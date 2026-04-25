@@ -1,0 +1,144 @@
+{
+  "assets": [
+    {
+      "asset_id": "char_skeleton",
+      "name": "Skeleton Unit",
+      "category": "character",
+      "route": "character_rig",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_skeleton.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/full.png",
+      "rig_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/rig.json",
+      "scenario_asset_id": "asset_DM2bvw3KvTCs7Vbv8x7n5xRP",
+      "part_errors": [],
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_x4s6iDgfboKp7McFX6Jhe4Ft"
+        },
+        {
+          "step": "reference_guided_character_seed",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_kftGXX9r3gQpeKAZEQsn4C6J",
+          "asset_ids": [
+            "asset_mbC3894RkD34ZkD4EWVe9RNs"
+          ],
+          "selected_asset_id": "asset_mbC3894RkD34ZkD4EWVe9RNs"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_pixa-background-removal",
+          "job_id": "job_318ftuMBBvE6ZqGzto8jTQ7Z",
+          "asset_id": "asset_SNnLP3wA5jvM7ySoumZtS3SR",
+          "fallback_from": [
+            {
+              "model_id": "model_photoroom-background-removal",
+              "error": "Scenario job job_FHqYkVnb9QTyRwrKPFD3RYrU ended with status failure: {'jobId': 'job_FHqYkVnb9QTyRwrKPFD3RYrU', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_mbC3894RkD34ZkD4EWVe9RNs'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T14:38:43.588Z', 'updatedAt': '2026-04-25T14:38:50.739Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T14:38:43.588Z'}, {'status': 'in-progress', 'date': '2026-04-25T14:38:44.145Z'}, {'status': 'failure', 'date': '2026-04-25T14:38:50.739Z'}], 'progress': 1}"
+            }
+          ]
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_1Qxs6S9NdRCJiGztyZA9MbfY",
+          "asset_id": "asset_DM2bvw3KvTCs7Vbv8x7n5xRP"
+        },
+        {
+          "step": "emit_rig_json",
+          "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/rig.json"
+        },
+        {
+          "step": "character_parts_sheet_generation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_EckcAMBNwftQ4f7WBCykEtgr",
+          "asset_id": "asset_B8MvpmGzMhCZtuQPJZv5qfBp"
+        },
+        {
+          "step": "parts_sheet_background_removal",
+          "model_id": "model_pixa-background-removal",
+          "job_id": "job_xFfshRVN6ZPTrrjTp9pnMthV",
+          "asset_id": "asset_1nDnYnH8xJFieFJLDweFi7td",
+          "fallback_from": [
+            {
+              "model_id": "model_photoroom-background-removal",
+              "error": "Scenario job job_smfU4hxvXD5nPjuGCYgFdq1o ended with status failure: {'jobId': 'job_smfU4hxvXD5nPjuGCYgFdq1o', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_B8MvpmGzMhCZtuQPJZv5qfBp'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T14:39:51.683Z', 'updatedAt': '2026-04-25T14:39:59.326Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T14:39:51.683Z'}, {'status': 'in-progress', 'date': '2026-04-25T14:39:52.334Z'}, {'status': 'failure', 'date': '2026-04-25T14:39:59.326Z'}], 'progress': 1}"
+            }
+          ]
+        },
+        {
+          "step": "download_parts_sheet",
+          "asset_id": "asset_1nDnYnH8xJFieFJLDweFi7td",
+          "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts_sheet.png"
+        },
+        {
+          "step": "slice_part_sheet",
+          "parts": [
+            {
+              "part": "head",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/head.png",
+              "size": [
+                117,
+                136
+              ]
+            },
+            {
+              "part": "body",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/body.png",
+              "size": [
+                105,
+                140
+              ]
+            },
+            {
+              "part": "arm_front",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/arm_front.png",
+              "size": [
+                76,
+                116
+              ]
+            },
+            {
+              "part": "arm_back",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/arm_back.png",
+              "size": [
+                83,
+                106
+              ]
+            },
+            {
+              "part": "leg_front",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/leg_front.png",
+              "size": [
+                46,
+                137
+              ]
+            },
+            {
+              "part": "leg_back",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/leg_back.png",
+              "size": [
+                41,
+                134
+              ]
+            },
+            {
+              "part": "weapon",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/weapon.png",
+              "size": [
+                144,
+                65
+              ]
+            },
+            {
+              "part": "shadow",
+              "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_skeleton/parts/shadow.png",
+              "size": [
+                108,
+                28
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
