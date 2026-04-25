@@ -86,6 +86,10 @@ export default function Home() {
     updateStep(id, { status: 'active' as StepStatus, startedAt: Date.now(), output: undefined })
   }, [updateStep])
 
+  const completeStep = useCallback((id: string, output: React.ReactNode) => {
+    updateStep(id, { status: 'done' as StepStatus, doneAt: Date.now(), output })
+  }, [updateStep])
+
   const awaitStep = useCallback((id: string, output: React.ReactNode) => {
     updateStep(id, { status: 'awaiting' as StepStatus, doneAt: Date.now(), output })
   }, [updateStep])
@@ -133,89 +137,35 @@ export default function Home() {
 
     // ── Step 1: Metadata ─────────────────────────────────────────────
     let decision: ReviewDecision
-    do {
-      activateStep('metadata')
-      const videoEl = document.createElement('video')
-      videoEl.preload = 'metadata'
-      const objectUrl = URL.createObjectURL(videoFile)
-      videoEl.src = objectUrl
-      await new Promise<void>(r => {
-        videoEl.onloadedmetadata = () => r()
-        videoEl.onerror = () => r()
-      })
-      URL.revokeObjectURL(objectUrl)
+    activateStep('metadata')
+    const videoEl = document.createElement('video')
+    videoEl.preload = 'metadata'
+    const objectUrl = URL.createObjectURL(videoFile)
+    videoEl.src = objectUrl
+    await new Promise<void>(r => {
+      videoEl.onloadedmetadata = () => r()
+      videoEl.onerror = () => r()
+    })
+    URL.revokeObjectURL(objectUrl)
 
-      const duration    = videoEl.duration   ? `${Math.round(videoEl.duration)}s`               : '?'
-      const resolution  = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '?'
-      const totalSizeMB = [...videoFiles, ...assetFiles].reduce((acc, f) => acc + f.size, 0) / 1024 / 1024
+    const duration    = videoEl.duration   ? `${Math.round(videoEl.duration)}s`               : '?'
+    const resolution  = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '?'
+    const totalSizeMB = [...videoFiles, ...assetFiles].reduce((acc, f) => acc + f.size, 0) / 1024 / 1024
 
-      awaitStep('metadata', (
-        <div className="flex flex-wrap gap-x-6 gap-y-1">
-          <span><span className="font-semibold text-[#0F141C]">{videoFile.name}</span></span>
-          <span>{duration} · {resolution}</span>
-          <span><span className="font-semibold text-[#0F141C]">{assetFiles.length}</span> assets · {totalSizeMB.toFixed(0)} MB total</span>
-        </div>
-      ))
-      setReviewContent(prev => ({
-        ...prev,
-        metadata: (
-          <div className="space-y-4">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Input validated</p>
-            <div className="grid grid-cols-2 gap-3">
-              {([
-                { label: 'Video',      value: videoFile.name },
-                { label: 'Duration',   value: duration },
-                { label: 'Resolution', value: resolution },
-                { label: 'Assets',     value: `${assetFiles.length} files · ${totalSizeMB.toFixed(0)} MB` },
-              ] as { label: string; value: string }[]).map(({ label, value }) => (
-                <div key={label} className="bg-[#F6F9FC] rounded-xl p-4">
-                  <div className="text-[10px] text-gray-400 mb-1">{label}</div>
-                  <div className="text-sm font-semibold text-[#0F141C] truncate">{value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ),
-      }))
-
-      decision = await waitForReview()
-    } while (decision.action === 'retry')
-    acceptStep('metadata')
+    completeStep('metadata', (
+      <div className="flex flex-wrap gap-x-6 gap-y-1">
+        <span><span className="font-semibold text-[#0F141C]">{videoFile.name}</span></span>
+        <span>{duration} · {resolution}</span>
+        <span><span className="font-semibold text-[#0F141C]">{assetFiles.length}</span> assets · {totalSizeMB.toFixed(0)} MB total</span>
+      </div>
+    ))
 
     // ── Step 2: Upload ───────────────────────────────────────────────
-    do {
-      activateStep('upload')
-      await delay(2000)
-
-      awaitStep('upload', (
-        <span>Video uploaded · File state <span className="font-semibold text-[#0F141C]">ACTIVE</span></span>
-      ))
-      setReviewContent(prev => ({
-        ...prev,
-        upload: (
-          <div className="space-y-4">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Gemini Files API</p>
-            <div className="rounded-xl border border-gray-100 bg-[#F6F9FC] p-4 font-mono text-xs space-y-2.5">
-              <div className="flex justify-between">
-                <span className="text-gray-400">state</span>
-                <span className="text-emerald-600 font-semibold">ACTIVE</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">mime</span>
-                <span className="text-[#0F141C]">video/mp4</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">size</span>
-                <span className="text-[#0F141C]">{(videoFile.size / 1024 / 1024).toFixed(1)} MB</span>
-              </div>
-            </div>
-          </div>
-        ),
-      }))
-
-      decision = await waitForReview()
-    } while (decision.action === 'retry')
-    acceptStep('upload')
+    activateStep('upload')
+    await delay(2000)
+    completeStep('upload', (
+      <span>Video uploaded · File state <span className="font-semibold text-[#0F141C]">ACTIVE</span></span>
+    ))
 
     // ── Step 3: Analysis ─────────────────────────────────────────────
     do {
@@ -257,52 +207,41 @@ export default function Home() {
       }))
 
       decision = await waitForReview()
+      if (decision.action === 'correct') {
+        const correction = decision.text
+        setReviewContent(prev => ({
+          ...prev,
+          analysis: (
+            <div className="space-y-5">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Video analysis</p>
+              <div>
+                <div className="text-2xl font-bold text-[#0F141C]">Castle Clashers</div>
+                <div className="text-sm text-gray-400 mt-0.5">Arcade · Portrait · corrected</div>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">{correction}</p>
+            </div>
+          ),
+        }))
+      }
     } while (decision.action === 'retry')
     acceptStep('analysis')
 
     // ── Step 4: Codegen ──────────────────────────────────────────────
-    do {
-      activateStep('codegen')
-      await delay(2000)
-      const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
-
-      awaitStep('codegen', (
-        <div className="flex flex-wrap gap-x-6 gap-y-1">
-          <span><span className="font-semibold text-[#0F141C]">Castle_Clashers_Playable</span> · 360×640</span>
-          <span>player_damage <span className="font-semibold text-[#0F141C]">34</span></span>
-          <span>gravity <span className="font-semibold text-[#0F141C]">900</span></span>
-          <span>session <span className="font-semibold text-[#0F141C]">30s</span></span>
-        </div>
-      ))
-      setPlayableHtml(mockHtml)
-      setReviewContent(prev => ({
-        ...prev,
-        codegen: (
-          <div className="space-y-4">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Generated spec</p>
-            <div className="rounded-xl border border-gray-100 bg-[#F6F9FC] p-4 font-mono text-xs space-y-2">
-              {([
-                ['player_damage', '34'],
-                ['gravity',       '900'],
-                ['session',       '30s'],
-                ['canvas',        '360 × 640'],
-              ] as [string, string][]).map(([k, v]) => (
-                <div key={k} className="flex justify-between">
-                  <span className="text-gray-400">{k}</span>
-                  <span className="text-[#0F141C] font-semibold">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ),
-      }))
-
-      decision = await waitForReview()
-    } while (decision.action === 'retry')
-    acceptStep('codegen')
+    activateStep('codegen')
+    await delay(2000)
+    const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
+    setPlayableHtml(mockHtml)
+    completeStep('codegen', (
+      <div className="flex flex-wrap gap-x-6 gap-y-1">
+        <span><span className="font-semibold text-[#0F141C]">Castle_Clashers_Playable</span> · 360×640</span>
+        <span>player_damage <span className="font-semibold text-[#0F141C]">34</span></span>
+        <span>gravity <span className="font-semibold text-[#0F141C]">900</span></span>
+        <span>session <span className="font-semibold text-[#0F141C]">30s</span></span>
+      </div>
+    ))
 
     setIsRunning(false)
-  }, [videoFiles, assetFiles, isRunning, activateStep, awaitStep, acceptStep, waitForReview])
+  }, [videoFiles, assetFiles, isRunning, activateStep, completeStep, awaitStep, acceptStep, waitForReview])
 
   const canRun = videoFiles.length > 0 && assetFiles.length > 0 && !isRunning
   const today  = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -349,6 +288,12 @@ export default function Home() {
       <PipelineStepper steps={steps} />
     </div>
   ) : null
+
+  const rightPanelTitle = playableHtml && steps.every(s => s.status === 'done')
+    ? 'Result'
+    : isAwaiting
+      ? 'Review'
+      : 'Output'
 
   return (
     <div className="flex h-[100dvh] overflow-hidden" style={{ background: '#F6F9FC' }}>
@@ -433,25 +378,25 @@ export default function Home() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto lg:overflow-hidden p-3 sm:p-5 dot-grid">
+        <main className="flex-1 overflow-hidden p-3 sm:p-5 dot-grid">
           {!hasRun ? (
             <div className="h-full flex items-center justify-center py-8 lg:py-0">
               <div className="w-full max-w-xl">{uploadCard}</div>
             </div>
           ) : (
-            <div className="lg:h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Left — scrollable */}
-              <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0">
+              <div className="min-h-0 space-y-4 overflow-hidden">
                 {uploadCard}
                 {pipelineCard}
               </div>
 
-              {/* Right — fixed height, internal scroll */}
-              <div className="flex flex-col lg:min-h-0 min-h-[420px]">
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 lg:min-h-0">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">Review</p>
-                  <div className="flex-1 lg:min-h-0 lg:overflow-hidden">
+              {/* Right — fixed viewport height */}
+              <div className="flex min-h-0 flex-col overflow-hidden">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">{rightPanelTitle}</p>
+                  <div className="flex-1 min-h-0 overflow-hidden">
                     <ReviewPanel
                       steps={steps}
                       reviewContent={reviewContent}

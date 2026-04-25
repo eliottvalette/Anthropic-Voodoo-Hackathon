@@ -25,7 +25,9 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
     const el = wrapperRef.current
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
-      setScale(Math.min(1, entry.contentRect.width / GAME_W))
+      const widthScale = entry.contentRect.width / GAME_W
+      const heightScale = entry.contentRect.height / GAME_H
+      setScale(Math.min(1, widthScale, heightScale))
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -39,8 +41,8 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-[#0F141C]">Playable Preview</h2>
           <p className="text-xs text-gray-400 mt-0.5">Self-contained · runs offline</p>
@@ -58,19 +60,22 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
 
       <div
         ref={wrapperRef}
-        className="w-full overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-black"
-        style={{ height: GAME_H * scale }}
+        className="relative mx-auto w-full max-w-[360px] flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-black shadow-sm"
+        style={{ aspectRatio: `${GAME_W} / ${GAME_H}` }}
       >
         {blobUrl && (
           <iframe
             src={blobUrl}
             style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
               width: GAME_W,
               height: GAME_H,
               border: 'none',
-              transform: `scale(${scale})`,
-              transformOrigin: 'top left',
               display: 'block',
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              transformOrigin: 'center center',
             }}
             title="Playable Preview"
             sandbox="allow-scripts allow-same-origin"

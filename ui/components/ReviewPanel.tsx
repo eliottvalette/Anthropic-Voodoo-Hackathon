@@ -121,7 +121,7 @@ export default function ReviewPanel({
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {isLoading ? (
           <Skeleton />
         ) : allDone ? (
