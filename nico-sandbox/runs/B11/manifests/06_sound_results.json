@@ -1,0 +1,85 @@
+{
+  "status": "complete",
+  "updated_at": "2026-04-25T15:37:51.961575+00:00",
+  "source_video": "../../ressources/Video Example/B11.mp4",
+  "run_dir": "../runs/B11",
+  "planned_sounds": 7,
+  "completed_sounds": 7,
+  "failed_sounds": 0,
+  "sounds": [
+    {
+      "sound_id": "bgm_battle_theme",
+      "type": "bgm",
+      "name": "Epic Battle Theme",
+      "game_event": "Plays continuously during gameplay.",
+      "strategy": "ffmpeg_extract",
+      "final_path": "../runs/B11/final-assets/sounds/bgm/bgm_battle_theme.mp3"
+    },
+    {
+      "sound_id": "sfx_missile_launch",
+      "type": "sfx",
+      "name": "Missile Launch",
+      "game_event": "Missiles are fired from the castle.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_2pQdpiwC4BuZ29t19SVHat4T",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_6vKZUWJwp6WjVf4cRGsZLtmF",
+      "final_path": "../runs/B11/final-assets/sounds/sfx/sfx_missile_launch.mp3"
+    },
+    {
+      "sound_id": "sfx_castle_explosion",
+      "type": "sfx",
+      "name": "Castle Explosion and Crumble",
+      "game_event": "Missiles hit the enemy castle, causing damage and destruction.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_MuE1nuRgu9W7xN8nRbfZygqA",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_tzALt9SGDrhwZpRU5ErdPit5",
+      "final_path": "../runs/B11/final-assets/sounds/sfx/sfx_castle_explosion.mp3"
+    },
+    {
+      "sound_id": "ui_character_place",
+      "type": "ui_sound",
+      "name": "Character Placement Pop",
+      "game_event": "Player drags and drops a character into the castle.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_zg9FmTFb867QxUpuKt1iTX9N",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_HbvUkXuiPfVDZX5xZ9xey9q7",
+      "final_path": "../runs/B11/final-assets/sounds/ui/ui_character_place.mp3"
+    },
+    {
+      "sound_id": "sfx_fireworks",
+      "type": "sfx",
+      "name": "Fireworks Popping",
+      "game_event": "Fireworks appear when a castle is completely destroyed.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_n6oZy9TbMrSKUZnURrfwQCrn",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_mtSbQVyJH5ZoFfQCXqj9udSZ",
+      "final_path": "../runs/B11/final-assets/sounds/sfx/sfx_fireworks.mp3"
+    },
+    {
+      "sound_id": "ui_battle_failed",
+      "type": "ui_sound",
+      "name": "Battle Failed Jingle",
+      "game_event": "The 'Battle Failed' screen appears.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_VomzLHWgX4F4EaXegY7sr49e",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_tFWAQAipEgTgejAUYfvcu9rN",
+      "final_path": "../runs/B11/final-assets/sounds/ui/ui_battle_failed.mp3"
+    },
+    {
+      "sound_id": "sfx_fire_loop",
+      "type": "sfx",
+      "name": "Fire Crackling",
+      "game_event": "Plays on the final title screen with the burning castle.",
+      "strategy": "scenario_generate",
+      "scenario_asset_id": "asset_wyE1aVonVieFjVfuTNJTgBhe",
+      "model_id": "model_elevenlabs-sound-effects-v2",
+      "job_id": "job_ZQ1eVRWYUW3hWnNXqEgttsg4",
+      "final_path": "../runs/B11/final-assets/sounds/sfx/sfx_fire_loop.mp3"
+    }
+  ]
+}
