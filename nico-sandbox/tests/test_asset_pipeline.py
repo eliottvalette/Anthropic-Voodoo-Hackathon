@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+import asset_pipeline
 from asset_pipeline import box_1000_to_pixels, extract_json_payload, padded_box
 
 
@@ -32,6 +33,12 @@ class JsonParsingTests(unittest.TestCase):
     def test_extracts_fenced_json_payload(self):
         payload = extract_json_payload('```json\n{"assets": [{"name": "orc"}]}\n```')
         self.assertEqual(json.loads(payload)["assets"][0]["name"], "orc")
+
+
+class PathTests(unittest.TestCase):
+    def test_root_points_to_repository_root_after_script_reorg(self):
+        self.assertTrue((asset_pipeline.ROOT / ".env").exists())
+        self.assertTrue((asset_pipeline.ROOT / "nico-sandbox").exists())
 
 
 if __name__ == "__main__":

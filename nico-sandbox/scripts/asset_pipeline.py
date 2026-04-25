@@ -16,7 +16,7 @@ from google.genai import types
 from PIL import Image, ImageDraw, ImageFont
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 VIDEO_PATH = ROOT / "ressources" / "Video Example" / "B11.mp4"
 OUTPUT_ROOT = ROOT / "nico-sandbox" / "runs" / "B11"
 
