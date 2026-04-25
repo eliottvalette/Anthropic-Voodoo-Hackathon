@@ -122,7 +122,16 @@ Select the single best candidate for downstream crop -> Scenario background remo
         contents=[part, prompt],
         config=config,
     )
-    payload = json.loads(asset_pipeline.extract_json_payload(response.text or "{}"))
+    raw_path = manifests_dir / "01_target_video_candidates.raw.txt"
+    raw_path.write_text(response.text or "")
+    parsed = getattr(response, "parsed", None)
+    if isinstance(parsed, dict):
+        payload = parsed
+    else:
+        try:
+            payload = json.loads(asset_pipeline.extract_json_payload(response.text or "{}"))
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"Gemini returned malformed target JSON. Raw response saved to {raw_path}") from exc
     payload["_gemini_model"] = model
     payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
     asset_pipeline.write_json(manifests_dir / "01_target_video_candidates.json", payload)
@@ -170,7 +179,11 @@ Return [ymin, xmin, ymax, xmax] normalized to 0-1000.
         contents=[image, prompt],
         config=config,
     )
-    payload = json.loads(asset_pipeline.extract_json_payload(response.text or "{}"))
+    parsed = getattr(response, "parsed", None)
+    if isinstance(parsed, dict):
+        payload = parsed
+    else:
+        payload = json.loads(asset_pipeline.extract_json_payload(response.text or "{}"))
     payload["_gemini_model"] = model
     return payload
 
