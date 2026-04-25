@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Asset Pipeline Sandbox</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-card: #181b22;
+    --bg-card-hover: #1f232c;
+    --border: #262b35;
+    --text: #e6e8ec;
+    --text-dim: #8a92a3;
+    --accent: #6ea8ff;
+    --accent-strong: #4f8ffb;
+    --good: #5dd39e;
+    --bad: #ff6b6b;
+    --warn: #ffb86b;
+    --pending: #6c7a93;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+  }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .summary { color: var(--text-dim); font-size: 13px; }
+  .style-bar {
+    padding: 8px 24px;
+    background: #131620;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .style-bar b { color: var(--text); }
+  main {
+    padding: 20px 24px 80px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background 0.15s ease;
+  }
+  .card:hover { background: var(--bg-card-hover); }
+  .thumb {
+    aspect-ratio: 1;
+    background: repeating-conic-gradient(#1c2029 0% 25%, #20242e 0% 50%) 0 0/16px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+  }
+  .thumb .placeholder { color: var(--text-dim); font-size: 12px; }
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+  }
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .id {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #232733;
+    color: var(--text-dim);
+  }
+  .badge.status-done { background: #1f3a2c; color: var(--good); }
+  .badge.status-error { background: #3a1f1f; color: var(--bad); }
+  .badge.status-pending { background: #2a2f3a; color: var(--pending); }
+  .badge.status-regenerating { background: #2c2a3a; color: var(--accent); }
+  .actions {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+  }
+  button {
+    background: #232733;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: #2c3140; }
+  button.primary { background: var(--accent-strong); border-color: var(--accent-strong); color: white; }
+  button.primary:hover { background: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .refinement {
+    color: var(--accent);
+    font-size: 11px;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .error-text {
+    color: var(--bad);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* modal */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    width: 480px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal h2 { font-size: 14px; margin: 0; }
+  .modal .hint { color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+  .modal textarea {
+    background: #0f1219;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    min-height: 110px;
+    resize: vertical;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .modal pre {
+    background: #0f1219;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .jobs-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #131620;
+    border-top: 1px solid var(--border);
+    padding: 6px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    z-index: 5;
+  }
+  .jobs-bar .running { color: var(--accent); }
+  .jobs-bar .done { color: var(--good); }
+  .jobs-bar .error { color: var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Asset Pipeline Sandbox</h1>
+  <span class="summary" id="summary">loading…</span>
+</header>
+<div class="style-bar" id="style-bar"></div>
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+<div class="jobs-bar" id="jobs-bar">no active regen jobs</div>
+
+<script>
+const POLL_MS = 2000;
+let lastManifest = null;
+let regeneratingIds = new Set();
+
+async function fetchManifest() {
+  const r = await fetch('/api/manifest');
+  if (!r.ok) throw new Error('manifest fetch failed');
+  return r.json();
+}
+
+async function fetchJobs() {
+  const r = await fetch('/api/jobs');
+  if (!r.ok) return { jobs: [] };
+  return r.json();
+}
+
+function renderStyleBar(art) {
+  const el = document.getElementById('style-bar');
+  if (!art) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const anti = (art.anti_styles || []).join(', ');
+  el.innerHTML = `<b>Style lock:</b> ${art.summary || ''} · <b>Rendering:</b> ${art.rendering || ''} · <b>Palette:</b> ${art.palette || ''}${anti ? ` · <b>Avoid:</b> ${anti}` : ''}`;
+}
+
+function renderSummary(m) {
+  const total = (m.assets || []).length;
+  const done = (m.assets || []).filter(a => a.status === 'done').length;
+  const err = (m.assets || []).filter(a => a.status === 'error').length;
+  document.getElementById('summary').textContent =
+    `${m.run_dir} · ${done}/${total} done${err ? ` · ${err} errors` : ''}${m.status ? ` · ${m.status}` : ''}`;
+}
+
+function statusFor(a) {
+  if (regeneratingIds.has(a.asset_id)) return 'regenerating';
+  return a.status || 'pending';
+}
+
+function renderGrid(m) {
+  const grid = document.getElementById('grid');
+  const assets = (m.assets || []).slice().sort((x, y) => (x.asset_id || '').localeCompare(y.asset_id || ''));
+  // build keyed cards
+  const existing = {};
+  for (const node of grid.children) existing[node.dataset.assetId] = node;
+  const seen = new Set();
+  for (const a of assets) {
+    seen.add(a.asset_id);
+    let card = existing[a.asset_id];
+    const status = statusFor(a);
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.assetId = a.asset_id;
+      grid.appendChild(card);
+    }
+    const imgUrl = a.final_url || a.crop_url;
+    const isFinal = !!a.final_url;
+    const cacheBuster = isFinal ? `?t=${m.updated_at || Date.now()}` : '';
+    card.innerHTML = `
+      <div class="thumb">
+        ${imgUrl ? `<img src="${imgUrl}${cacheBuster}" alt="${a.asset_id}" />` : `<div class="placeholder">no preview</div>`}
+      </div>
+      <div class="meta">
+        <div class="name">${a.name || a.asset_id}</div>
+        <div class="id">${a.asset_id}</div>
+        <div class="badges">
+          <span class="badge">${a.category || ''}</span>
+          ${a.route ? `<span class="badge">${a.route}</span>` : ''}
+          <span class="badge status-${status}">${status}</span>
+        </div>
+        ${a.last_user_refinement ? `<div class="refinement" title="${escapeAttr(a.last_user_refinement)}">↻ ${escapeHtml(a.last_user_refinement)}</div>` : ''}
+        ${a.error ? `<div class="error-text" title="${escapeAttr(a.error)}">${escapeHtml(a.error)}</div>` : ''}
+      </div>
+      <div class="actions">
+        <button data-act="regen" data-id="${a.asset_id}" ${status === 'regenerating' ? 'disabled' : ''}>${status === 'regenerating' ? 'Running…' : 'Regenerate'}</button>
+        <button data-act="prompt" data-id="${a.asset_id}">Prompt</button>
+      </div>
+    `;
+  }
+  for (const id of Object.keys(existing)) {
+    if (!seen.has(id)) existing[id].remove();
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g, '&quot;');
+}
+
+document.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button[data-act]');
+  if (!btn) return;
+  const assetId = btn.dataset.id;
+  if (btn.dataset.act === 'regen') openRegenModal(assetId);
+  else if (btn.dataset.act === 'prompt') openPromptModal(assetId);
+});
+
+function modal(html, onMount) {
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal">${html}</div>`;
+  document.body.appendChild(bg);
+  bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
+  if (onMount) onMount(bg);
+  return bg;
+}
+
+function openRegenModal(assetId) {
+  const node = modal(`
+    <h2>Regenerate <code>${assetId}</code></h2>
+    <div class="hint">Optional refinement appended on top of the current style-locked prompt. The original description and STYLE LOCK stay intact.</div>
+    <textarea id="extra" placeholder="e.g. make the rocket nose-cone slightly smaller, keep silhouette identical"></textarea>
+    <div class="modal-actions">
+      <button data-close>Cancel</button>
+      <button class="primary" id="go">Regenerate</button>
+    </div>
+  `);
+  node.querySelector('[data-close]').addEventListener('click', () => node.remove());
+  node.querySelector('#go').addEventListener('click', async () => {
+    const extra = node.querySelector('#extra').value;
+    const goBtn = node.querySelector('#go');
+    goBtn.disabled = true;
+    goBtn.textContent = 'Submitting…';
+    try {
+      const r = await fetch('/api/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset_id: assetId, additional_prompt: extra }),
+      });
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(text);
+      }
+      regeneratingIds.add(assetId);
+      node.remove();
+      tick();
+    } catch (err) {
+      alert('Regen failed: ' + err.message);
+      goBtn.disabled = false;
+      goBtn.textContent = 'Regenerate';
+    }
+  });
+  setTimeout(() => node.querySelector('#extra').focus(), 50);
+}
+
+async function openPromptModal(assetId) {
+  const node = modal(`
+    <h2>Prompt for <code>${assetId}</code></h2>
+    <div class="hint">Loaded from <code>03_extracted_assets_manifest.json</code>. This is what gets sent to Scenario each generation.</div>
+    <pre id="body">loading…</pre>
+    <div class="modal-actions"><button data-close>Close</button></div>
+  `);
+  node.querySelector('[data-close]').addEventListener('click', () => node.remove());
+  try {
+    const r = await fetch('/api/asset/' + encodeURIComponent(assetId) + '/prompt');
+    const data = await r.json();
+    node.querySelector('#body').textContent = data.scenario_prompt || '(no prompt)';
+  } catch (err) {
+    node.querySelector('#body').textContent = 'error: ' + err.message;
+  }
+}
+
+async function tick() {
+  try {
+    const m = await fetchManifest();
+    lastManifest = m;
+    renderStyleBar(m.art_style);
+    renderSummary(m);
+    const jobs = await fetchJobs();
+    const running = jobs.jobs.filter(j => j.status === 'running');
+    const newRegenerating = new Set(running.map(j => j.asset_id));
+    regeneratingIds = newRegenerating;
+    renderGrid(m);
+    const done = jobs.jobs.filter(j => j.status === 'done').length;
+    const err = jobs.jobs.filter(j => j.status === 'error').length;
+    const bar = document.getElementById('jobs-bar');
+    if (running.length === 0 && done === 0 && err === 0) {
+      bar.textContent = 'no active regen jobs';
+    } else {
+      bar.innerHTML =
+        (running.length ? `<span class="running">running: ${running.map(j => j.asset_id).join(', ')}</span>` : '') +
+        (done ? `<span class="done">done: ${done}</span>` : '') +
+        (err ? `<span class="error">errors: ${err}</span>` : '');
+    }
+  } catch (err) {
+    document.getElementById('summary').textContent = 'error: ' + err.message;
+  }
+}
+
+tick();
+setInterval(tick, POLL_MS);
+</script>
+</body>
+</html>

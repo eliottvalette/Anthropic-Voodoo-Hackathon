@@ -220,7 +220,7 @@ def main() -> None:
     parser.add_argument("--asset-id", action="append", help="Optional asset id filter. Can be passed more than once.")
     parser.add_argument("--limit", type=int, help="Optional max number of assets to process after sorting/filtering.")
     parser.add_argument("--resolution", default="1K", choices=["512", "1K", "2K", "4K"])
-    parser.add_argument("--num-outputs", type=int, default=4, help="Scenario candidate count for sprite/character seed generation.")
+    parser.add_argument("--num-outputs", type=int, default=1, help="Scenario candidate count for sprite/character seed generation.")
     parser.add_argument("--skip-character-parts", action="store_true", help="Only emit character full.png and rig.json.")
     parser.add_argument("--dry-run-scenario", action="store_true", help="Stop after extraction and write the Scenario/Gemini asset plan.")
     parser.add_argument("--force", action="store_true", help="Reprocess assets even if manifest results already exist.")
