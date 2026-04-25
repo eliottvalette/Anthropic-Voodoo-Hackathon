@@ -181,6 +181,18 @@
             "launch",
             "cannon"
           ]
+        },
+        {
+          "name": "slash",
+          "file": "vfx/slash.js",
+          "demo": "vfx/demos/slash.html",
+          "signature": "spawnSlash(slashes, cx, cy, fromAngle, toAngle, opts?)",
+          "description": "Curved arc swoosh for melee swings — sword, ninja, claw, dash strike. Animated head/tail sweep with cubic ease-out, 3-pass glow stroke + bright tip dot.",
+          "tags": [
+            "melee",
+            "swing",
+            "swoosh"
+          ]
         }
       ]
     },
