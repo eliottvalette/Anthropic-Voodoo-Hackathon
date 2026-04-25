@@ -22,6 +22,7 @@
     particles: [],
     floats: [],
     debris: [],
+    dyingSections: [],
     ctaVisible: false,
     result: null,
     shake: 0,
@@ -64,6 +65,16 @@
       { x: 630, y: 455, angle: Math.PI + 0.02 }
     ]
   };
+
+  // Castle split into 3 polygon sections (normalized 0-1 relative to castle rect).
+  // Index 0 = bottom (survives longest), 2 = top (falls first).
+  // Jagged seam lines simulate cracks rather than clean horizontal cuts.
+  const SECTION_POLYS = [
+    [ [0,0.66], [0.15,0.64], [0.38,0.68], [0.62,0.63], [0.84,0.67], [1,0.65], [1,1], [0,1] ],
+    [ [0,0.31], [0.20,0.33], [0.44,0.28], [0.66,0.32], [0.88,0.30], [1,0.31],
+      [1,0.65], [0.84,0.67], [0.62,0.63], [0.38,0.68], [0.15,0.64], [0,0.66] ],
+    [ [0,0], [1,0], [1,0.31], [0.88,0.30], [0.66,0.32], [0.44,0.28], [0.20,0.33], [0,0.31] ],
+  ];
 
   const images = {};
 
@@ -150,10 +161,23 @@
     return unitSlots[turn.side][turn.slot];
   }
 
-  function pointerToWorld(event) {
+  function getCanvasViewport() {
     const rect = canvas.getBoundingClientRect();
-    const sx = ((event.clientX - rect.left) / rect.width) * W;
-    const sy = ((event.clientY - rect.top) / rect.height) * H;
+    const scale = Math.min(rect.width / W, rect.height / H);
+    const width = W * scale;
+    const height = H * scale;
+    return {
+      left: rect.left + (rect.width - width) / 2,
+      top: rect.top + (rect.height - height) / 2,
+      width,
+      height
+    };
+  }
+
+  function pointerToWorld(event) {
+    const viewport = getCanvasViewport();
+    const sx = ((event.clientX - viewport.left) / viewport.width) * W;
+    const sy = ((event.clientY - viewport.top) / viewport.height) * H;
     return {
       x: (sx - W / 2) / camera.zoom + camera.x,
       y: (sy - H / 2) / camera.zoom + camera.y,
@@ -279,6 +303,12 @@
     }
 
     updateParticles(dt);
+    for (let i = state.dyingSections.length - 1; i >= 0; i--) {
+      state.dyingSections[i].age += dt;
+      if (state.dyingSections[i].age >= state.dyingSections[i].maxAge) {
+        state.dyingSections.splice(i, 1);
+      }
+    }
     state.shake = Math.max(0, state.shake - dt * 0.045);
     makeSnapshot();
   }
@@ -308,8 +338,24 @@
   }
 
   function applyHit(side, projectile) {
+    const prevHp = side === "player" ? state.playerHp : state.enemyHp;
     if (side === "player") state.playerHp = Math.max(0, state.playerHp - 1);
     else state.enemyHp = Math.max(0, state.enemyHp - 1);
+
+    const sectionIndex = prevHp - 1;
+    const c = castles[side];
+    const poly = SECTION_POLYS[sectionIndex];
+    const cx = c.x + poly.reduce((s, p) => s + p[0], 0) / poly.length * c.w;
+    const cy = c.y + poly.reduce((s, p) => s + p[1], 0) / poly.length * c.h;
+
+    state.dyingSections.push({
+      side,
+      sectionIndex,
+      age: 0,
+      maxAge: 520,
+      vx: side === "player" ? -0.045 : 0.045,
+    });
+    smoke(cx, cy, 18);
 
     state.shake = 10;
     burst(projectile.x, projectile.y, projectile.type.color, 28, 0.18);
@@ -394,6 +440,23 @@
     }
   }
 
+  function smoke(x, y, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
+      const speed = 0.02 + Math.random() * 0.055;
+      const g = 145 + Math.floor(Math.random() * 85);
+      state.particles.push({
+        x: x + (Math.random() - 0.5) * 55,
+        y: y + (Math.random() - 0.5) * 30,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 11 + Math.random() * 19,
+        color: "rgb(" + g + "," + g + "," + g + ")",
+        life: 750 + Math.random() * 700,
+      });
+    }
+  }
+
   function makeDebris(x, y, side, count) {
     const dir = side === "player" ? 1 : -1;
     for (let i = 0; i < count; i += 1) {
@@ -459,88 +522,53 @@
     const img = side === "player" ? images.castlePlayer : images.castleEnemy;
 
     ctx.save();
-    drawShadow(c.x + 20, c.y + c.h - 35, c.w - 40, 32);
-    drawDamageClip(side, c, hp, function () {
-      if (img) drawContain(img, c.x, c.y, c.w, c.h);
-    });
-    drawDamageClip(side, c, hp, function () {
-      drawInterior(side, c);
-    });
-    drawCrackMask(side, c, hp);
+    if (hp > 0) drawShadow(c.x + 20, c.y + c.h - 35, c.w - 40, 32);
+    for (let i = 0; i < hp; i++) drawCastleSection(img, c, i);
+    for (const d of state.dyingSections) {
+      if (d.side === side) drawDyingSection(img, c, d);
+    }
     ctx.restore();
   }
 
-  function drawDamageClip(side, c, hp, drawFn) {
-    const ratio = Math.max(0, hp / 3);
+  function drawCastleSection(img, c, idx) {
+    if (!img) return;
+    const poly = SECTION_POLYS[idx];
     ctx.save();
     ctx.beginPath();
-    if (side === "player") {
-      ctx.rect(c.x, c.y, c.w * ratio, c.h);
-    } else {
-      ctx.rect(c.x + c.w * (1 - ratio), c.y, c.w * ratio, c.h);
-    }
-    ctx.clip();
-    drawFn();
-    ctx.restore();
-  }
-
-  function drawInterior(side, c) {
-    const x = c.x + 58;
-    const y = c.y + 116;
-    const w = c.w - 116;
-    const h = c.h - 168;
-    ctx.save();
-    ctx.fillStyle = "#111318";
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = "#0a0b0d";
-    ctx.lineWidth = 6;
-    ctx.strokeRect(x, y, w, h);
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
-    ctx.lineWidth = 1;
-    for (let yy = y + 8; yy < y + h; yy += 12) {
-      ctx.beginPath();
-      ctx.moveTo(x, yy);
-      ctx.lineTo(x + w, yy);
-      ctx.stroke();
-    }
-    for (let xx = x + 10; xx < x + w; xx += 24) {
-      ctx.beginPath();
-      ctx.moveTo(xx, y);
-      ctx.lineTo(xx, y + h);
-      ctx.stroke();
-    }
-    ctx.fillStyle = "#8b5431";
-    [271, 376, 455].forEach((yy) => {
-      ctx.fillRect(x + 12, yy, Math.max(0, w - 24), 6);
-      ctx.fillStyle = "#4a2617";
-      ctx.fillRect(x + 12, yy + 6, Math.max(0, w - 24), 3);
-      ctx.fillStyle = "#8b5431";
+    poly.forEach(([nx, ny], i) => {
+      const px = c.x + nx * c.w;
+      const py = c.y + ny * c.h;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     });
+    ctx.closePath();
+    ctx.clip();
+    drawContain(img, c.x, c.y, c.w, c.h);
     ctx.restore();
   }
 
-  function drawCrackMask(side, c, hp) {
-    if (hp >= 3) return;
-    const damageX = side === "player" ? c.x + c.w * (hp / 3) : c.x + c.w * (1 - hp / 3);
+  function drawDyingSection(img, c, d) {
+    if (!img) return;
+    const t = d.age / d.maxAge;
+    const fallY = 0.5 * 0.0010 * d.age * d.age;
+    const driftX = d.vx * d.age;
     ctx.save();
-    ctx.strokeStyle = "#353535";
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 7 + (3 - hp) * 3; i += 1) {
-      const y = c.y + 120 + ((i * 47) % 220);
-      const dir = side === "player" ? -1 : 1;
-      ctx.beginPath();
-      ctx.moveTo(damageX, y);
-      ctx.lineTo(damageX + dir * (10 + (i % 4) * 7), y + 8);
-      ctx.lineTo(damageX + dir * (18 + (i % 3) * 6), y + 1);
-      ctx.stroke();
-    }
+    ctx.globalAlpha = Math.max(0, 1 - t * t);
+    ctx.translate(driftX, fallY);
+    const poly = SECTION_POLYS[d.sectionIndex];
+    ctx.beginPath();
+    poly.forEach(([nx, ny], i) => {
+      const px = c.x + nx * c.w;
+      const py = c.y + ny * c.h;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.closePath();
+    ctx.clip();
+    drawContain(img, c.x, c.y, c.w, c.h);
     ctx.restore();
   }
 
   function drawUnits(side) {
-    const castleHp = side === "player" ? state.playerHp : state.enemyHp;
     for (let i = 0; i < 3; i += 1) {
-      if (castleHp <= i - 1) continue;
       drawUnit(side, i);
     }
   }
@@ -562,13 +590,18 @@
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    if (img) drawContain(img, -25, -67, 50, 64);
+    if (img) {
+      ctx.shadowColor = "rgba(0,0,0,0.32)";
+      ctx.shadowBlur = 10;
+      drawContain(img, -30, -82, 60, 74);
+      ctx.shadowBlur = 0;
+    }
     ctx.rotate(side === "player" ? 0 : Math.PI);
     ctx.fillStyle = "#25282f";
     roundRect(0, -35, 36, 14, 7);
     ctx.fill();
     ctx.fillStyle = type.color;
-    roundRect(22, -32, 25, 8, 4);
+    roundRect(6, -32, 24, 8, 4);
     ctx.fill();
     ctx.restore();
   }
@@ -661,9 +694,13 @@
   function drawFixedUi() {
     const playerPct = Math.max(0, Math.round((state.playerHp / 3) * 100));
     const enemyPct = Math.max(0, Math.round((state.enemyHp / 3) * 100));
+    const playerBarCenterX = 8 + 132 / 2;
+    const enemyBarCenterX = 220 + 132 / 2;
     ctx.save();
     drawTrapezoid(8, 8, 132, 28, "#08aeea", true);
     drawTrapezoid(220, 8, 132, 28, "#e80e16", false);
+    drawOutlinedText(playerPct + "%", playerBarCenterX, 31, 20, "center");
+    drawOutlinedText(enemyPct + "%", enemyBarCenterX, 31, 20, "center");
     ctx.fillStyle = "#111";
     ctx.font = "900 53px Arial";
     ctx.textAlign = "center";

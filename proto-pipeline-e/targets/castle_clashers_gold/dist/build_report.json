@@ -1,6 +1,6 @@
 {
   "output": "playable.html",
-  "bytes": 3632173,
+  "bytes": 3633823,
   "assets": [
     "background",
     "castlePlayer",
@@ -13,5 +13,5 @@
     "projPoison",
     "endOverlay"
   ],
-  "generated_at": "2026-04-25T20:20:42.066Z"
+  "generated_at": "2026-04-25T20:39:57.816Z"
 }
