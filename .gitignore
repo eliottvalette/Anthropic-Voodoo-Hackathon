@@ -2,3 +2,6 @@
 .claude/*
 .env
 .agents/*
+proto-pipeline-m/BENCHMARK.md
+proto-pipeline-m/IMPLEMENTATION_PROMPT.md
+proto-pipeline-m/PLAN.md
