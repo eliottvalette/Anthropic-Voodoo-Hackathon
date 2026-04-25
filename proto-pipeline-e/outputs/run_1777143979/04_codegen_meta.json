@@ -1,0 +1,13 @@
+{
+  "totalLatencyMs": 129817,
+  "subCalls": [
+    {
+      "step": "4_codegen",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 1684,
+      "tokensOut": 4472,
+      "latencyMs": 129763,
+      "attempt": 1
+    }
+  ]
+}
