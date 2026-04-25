@@ -60,9 +60,9 @@ function timeAgo(iso: string): string {
 
 function HistoryCard({ run }: { run: Run }) {
   return (
-    <button className="group overflow-hidden rounded-2xl border border-gray-100 bg-white p-2.5 text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md">
-      <div className="overflow-hidden rounded-xl">
-        <div className="aspect-[9/16] bg-black">
+    <button className="group flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white p-2.5 text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="basis-[70%] min-h-0 overflow-hidden rounded-xl bg-black">
+        <div className="flex h-full w-full items-center justify-center overflow-hidden">
           <img
             src={run.preview}
             alt={`${run.gameName} playable preview`}
@@ -70,7 +70,7 @@ function HistoryCard({ run }: { run: Run }) {
           />
         </div>
       </div>
-      <div className="mt-2 min-w-0 px-0.5 pb-0.5">
+      <div className="basis-[30%] min-h-0 px-0.5 pt-2">
         <div className="truncate text-[13px] font-semibold leading-4 text-[#0F141C]">{run.gameName}</div>
         <div className="mt-0.5 flex items-center gap-1.5 text-[10px] leading-3 text-gray-400">
           <span>{run.genre}</span>
@@ -117,7 +117,7 @@ export default function HistoryView() {
         </div>
 
         <div className="min-h-0 flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid h-full grid-cols-1 grid-rows-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map(run => (
               <HistoryCard key={run.id} run={run} />
             ))}
