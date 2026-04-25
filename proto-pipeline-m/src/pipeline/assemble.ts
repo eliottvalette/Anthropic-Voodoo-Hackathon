@@ -37,16 +37,23 @@ export async function buildAssetsBlock(
   return `const A = {\n${entries.join(",\n")}\n};`;
 }
 
-const ASSET_BLOCK_PATTERNS: RegExp[] = [
-  /\/\*\s*ASSETS_BASE64\s*\*\//,
-  /const\s+A\s*=\s*\{[\s\S]*?\};?/m,
-];
+const MARKER_PAT = /\/\*\s*ASSETS_BASE64\s*\*\//;
+const CONST_A_PAT = /const\s+A\s*=\s*\{[\s\S]*?\};?/m;
 
 export function injectAssets(html: string, assetsBlock: string): string {
-  for (const pat of ASSET_BLOCK_PATTERNS) {
-    if (pat.test(html)) return html.replace(pat, assetsBlock);
+  let out = html;
+  const hadMarker = MARKER_PAT.test(out);
+  if (hadMarker) {
+    out = out.replace(MARKER_PAT, assetsBlock);
+    while (CONST_A_PAT.test(out.replace(assetsBlock, ""))) {
+      const without = out.replace(assetsBlock, "__ASSETS_PLACEHOLDER__");
+      const stripped = without.replace(CONST_A_PAT, "");
+      out = stripped.replace("__ASSETS_PLACEHOLDER__", assetsBlock);
+    }
+    return out;
   }
-  return html.replace(
+  if (CONST_A_PAT.test(out)) return out.replace(CONST_A_PAT, assetsBlock);
+  return out.replace(
     /(<script>)/i,
     `$1\n/* assets injected by runtime */\n${assetsBlock}\n`,
   );
