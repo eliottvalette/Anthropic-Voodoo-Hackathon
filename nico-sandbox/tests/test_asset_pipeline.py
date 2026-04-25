@@ -41,5 +41,35 @@ class PathTests(unittest.TestCase):
         self.assertTrue((asset_pipeline.ROOT / "nico-sandbox").exists())
 
 
+class StrategyTests(unittest.TestCase):
+    def test_projectiles_default_to_reference_recreate_then_alpha(self):
+        self.assertEqual(asset_pipeline.default_recreation_strategy("projectile"), "reference_recreate_then_alpha")
+        self.assertIn("model_google-gemini-3-1-flash", asset_pipeline.default_scenario_pipeline("projectile"))
+        self.assertIn("model_photoroom-background-removal", asset_pipeline.default_scenario_pipeline("projectile"))
+
+    def test_backgrounds_skip_alpha_pipeline(self):
+        self.assertEqual(asset_pipeline.default_recreation_strategy("background"), "background_plate_cleanup")
+        self.assertNotIn("model_photoroom-background-removal", asset_pipeline.default_scenario_pipeline("background"))
+
+    def test_scenario_prompt_for_sprite_excludes_background_noise(self):
+        candidate = asset_pipeline.Candidate.from_dict(
+            {
+                "asset_id": "proj_missile",
+                "name": "Missile",
+                "category": "projectile",
+                "visual_description": "red nose rocket with white fins",
+                "gameplay_role": "fired projectile",
+                "best_timestamp_s": 9.25,
+                "fallback_timestamps_s": [],
+                "approx_box_2d": [100, 100, 200, 200],
+                "isolate_with_background_removal": True,
+                "priority": 1,
+            }
+        )
+        prompt = asset_pipeline.scenario_prompt_for_candidate(candidate)
+        self.assertIn("recreate ONLY this asset", prompt)
+        self.assertIn("no background", prompt)
+
+
 if __name__ == "__main__":
     unittest.main()

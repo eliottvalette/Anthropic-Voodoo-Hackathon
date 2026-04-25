@@ -32,6 +32,22 @@ The manifest should include these classes whenever they appear:
 
 ## Pipeline
 
+### Proven Missile Flow
+
+The B11 missile test showed the best default lane for small, compressed gameplay sprites:
+
+1. Ask Gemini video analysis to find the moment where the target is most isolated, most zoomed-in, least blurred, and highest contrast. For projectiles, explicitly ask it to exclude smoke trails, launch puffs, hands, walls, impact VFX, and anything not physically part of the projectile.
+2. Extract that exact frame locally with ffmpeg.
+3. Ask Gemini image analysis for a tight box around only the target asset.
+4. Crop the reference locally.
+5. Upload the crop to Scenario.
+6. Use `model_google-gemini-3-1-flash` with a reference-guided recreation prompt to generate clean sprite candidates.
+7. Use `model_photoroom-background-removal` on the selected sprite candidate to get real alpha.
+8. Use `model_scenario-padding-remover` to trim transparent padding.
+9. Save the result under `final-assets/<category>/<asset_id>.png` and write Scenario job/asset IDs to the manifest.
+
+This worked better than direct background removal from the video crop because the crop still contained brick-wall pixels. The strong version is: use the video crop as evidence, not necessarily as the final pixels.
+
 ### 1. Video Ingest
 
 Input:
@@ -57,6 +73,9 @@ Gemini output should include:
 - `fallback_timestamps_s`
 - `approx_box_2d` as `[ymin, xmin, ymax, xmax]` normalized to `0-1000`
 - `recreation_strategy`
+- `scenario_pipeline`
+- `animation_notes`
+- `background_plate_notes`
 - `priority`
 
 ### 2. Exact Frame And Box Refinement
@@ -110,37 +129,48 @@ Model mapping:
 
 | Need | Scenario model | Notes |
 | --- | --- | --- |
-| Transparent cutout | `model_pixa-background-removal` | Fast RGBA output. |
-| Transparent cutout alternate | `model_photoroom-background-removal` | Good backup for difficult edges. |
+| Reference-guided sprite recreation | `model_google-gemini-3-1-flash` | Default first pass for weak crops; generate 4 candidates for important assets. |
+| Transparent cutout | `model_photoroom-background-removal` | Best current default after sprite recreation. |
+| Transparent cutout alternate | `model_pixa-background-removal` | Fast backup for difficult edges. |
+| Transparent padding trim | `model_scenario-padding-remover` | Final cleanup after alpha output. |
 | Faithful upscaling | `model_upscale-v3` | Use `style: cartoon`, `preset: precise`, low `strength`. |
-| Creative cleanup | `model_google-gemini-3-1-flash` or `model_p-image-editing` | Use when video crop is too compressed or small. |
+| Creative cleanup | `model_google-gemini-3-1-flash` | Use when video crop is too compressed, small, or attached to background. |
 | Segmentation masks | `model_meta-sam-3-1-image` | Use text or boxes to split objects/parts. |
+| Layer decomposition | `model_qwen-image-layered` | Candidate for character/object layer packs. |
 | Vector output | `model_visioncortex-vtracer` | Best for simple UI, projectiles, icons, silhouettes. |
 
-Default quality settings:
-
-```json
-{
-  "model_id": "model_upscale-v3",
-  "parameters": {
-    "style": "cartoon",
-    "upscaleFactor": 2,
-    "preset": "precise",
-    "strength": 0.1,
-    "fractality": 0,
-    "controlnetConditioningScale": 0.9,
-    "prompt": "Clean mobile game asset, crisp black outline, preserve original silhouette and colors, remove video compression artifacts."
-  }
-}
-```
-
-Use a more creative pass only if extraction quality is too low:
+Default sprite recreation prompt:
 
 ```text
-Recreate this cropped gameplay asset as a clean 2D mobile game sprite.
-Preserve the pose, silhouette, colors, proportions, and camera angle.
-Use crisp outlines, flat-shaded cartoon rendering, transparent background.
-Do not add new objects.
+Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.
+Preserve the source asset's silhouette, color family, proportions, camera angle, readable details, and casual mobile-game rendering style.
+Improve video compression artifacts and make the asset crisp and production-quality.
+Center the asset with comfortable transparent padding.
+Remove everything that is not the asset: no background, wall, character, hand cursor, UI, smoke/trail/impact particles unless explicitly part of the target.
+Use a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.
+Do not add new objects or change the gameplay read.
+```
+
+Default background plate prompt:
+
+```text
+Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.
+Preserve the original scene composition, camera angle, palette, lighting, and casual mobile-game art style.
+Remove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.
+Reconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.
+Return an opaque rectangular background plate, not a transparent sprite.
+```
+
+Default sprite chain:
+
+```text
+crop -> Scenario upload -> Gemini 3.1 reference edit -> Photoroom background removal -> padding remover -> final PNG
+```
+
+Default background chain:
+
+```text
+full frame or plate crop -> Scenario upload -> Gemini 3.1 plate cleanup -> final opaque PNG
 ```
 
 ### 5. Character Animation Preparation
@@ -174,6 +204,17 @@ characters/<asset_id>/
 - suggested animations: idle, walk/bounce, shoot, hit, defeat
 
 PSB can be exported later for artist editing, but the playable should use layered PNGs and JSON transforms because they are smaller and easier to animate in canvas.
+
+For animated objects, do not generate frames independently. Use one approved seed frame and ask Scenario Gemini for a complete strip in one edit request:
+
+```text
+Create a transparent sprite strip with N equal slots from this seed character.
+Keep the same character, facing direction, silhouette, palette, outfit proportions, and weapon.
+No scenery, labels, UI, or poster composition.
+Use one consistent scale and anchor across all frames.
+```
+
+Then normalize the strip into fixed-size frames and emit `rig.json` or frame metadata. Character part extraction should use `model_meta-sam-3-1-image` or `model_qwen-image-layered` after the clean full-body seed exists.
 
 ### 6. Asset Packaging
 
@@ -242,8 +283,36 @@ Every accepted asset should pass these checks:
 
 ## Open Implementation Work
 
-- Add a Scenario enhancement batch step after initial crops.
-- Add SAM-based character part segmentation.
-- Add background plate recovery and optional foreground removal/inpainting.
+- Add Gemini-based automatic variant QA so the tool can pick the best of 4 Scenario candidates without a human.
+- Add SAM/Qwen-based character part segmentation.
+- Add multi-frame background plate recovery and optional foreground removal/inpainting.
 - Add final asset normalization and texture atlas export.
 - Add a final `asset_manifest.json` consumed by the playable generator.
+
+## Automation Notes
+
+Scenario REST generation uses the unified custom generation endpoint:
+
+```text
+POST https://api.cloud.scenario.com/v1/generate/custom/{modelId}
+GET  https://api.cloud.scenario.com/v1/jobs/{jobId}
+GET  https://api.cloud.scenario.com/v1/assets/{assetId}
+```
+
+Images should be uploaded first to get a Scenario `assetId`. Small images use `/v1/assets`; larger files use `/v1/uploads`.
+
+Required environment variables:
+
+```text
+GEMINI_API_KEY=
+SCENARIO_API_KEY=
+SCENARIO_API_SECRET=
+SCENARIO_TEAM_ID=
+SCENARIO_PROJECT_ID=
+```
+
+References:
+
+- https://docs.scenario.com/docs/uploading-assets
+- https://docs.scenario.com/docs/retrieve-asset-url-by-asset-id
+- https://help.scenario.com/articles/3896230951-quick-start-universal-generation-video-audio-3d-image

@@ -1,0 +1,11 @@
+{
+  "assets": [
+    {
+      "asset_id": "proj_missile",
+      "name": "Missile Projectile",
+      "category": "projectile",
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "output_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_missile.png"
+    }
+  ]
+}

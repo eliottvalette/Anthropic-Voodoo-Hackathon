@@ -18,6 +18,9 @@ nico-sandbox/
       crops/                    Local crops before Scenario enhancement
     scenario/
       transparent-png/          Scenario-generated alpha PNGs
+      gemini-sprite/            Scenario Gemini recreated sprite candidates
+      gemini-sprite-transparent/ Final alpha candidates before trim
+    final-assets/               Fully recreated assets for playable generation
     previews/                   Contact sheets and visual QA summaries
     qa/
       debug-overlays/           Bounding box review images
@@ -54,9 +57,35 @@ To reuse an existing Gemini video manifest and only redo frames/crops/refinement
 .venv/bin/python nico-sandbox/scripts/asset_pipeline.py --skip-video-gemini --video "ressources/Video Example/B11.mp4" --out nico-sandbox/runs/B11
 ```
 
+Run the Scenario automation pass after crops exist:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/scenario_automation.py --run nico-sandbox/runs/B11
+```
+
+Dry-run the Scenario plan without spending credits:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/scenario_automation.py --run nico-sandbox/runs/B11 --dry-run
+```
+
+Target one extracted asset:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/scenario_automation.py --run nico-sandbox/runs/B11 --asset-id proj_missile
+```
+
+The current default sprite lane is the B11 missile-proven chain:
+
+```text
+Gemini video selection -> local frame/crop -> Scenario Gemini reference recreation -> Photoroom alpha -> padding trim
+```
+
+Backgrounds use an opaque plate-cleanup prompt instead of alpha removal. Characters use a base-sprite prompt first; animation strips and layer/rig extraction are the next dedicated pass.
+
 ## Validate
 
 ```bash
 .venv/bin/python -m unittest discover -s nico-sandbox/tests -p "test_*.py"
-.venv/bin/python -m py_compile nico-sandbox/scripts/asset_pipeline.py nico-sandbox/tests/test_asset_pipeline.py
+.venv/bin/python -m py_compile nico-sandbox/scripts/asset_pipeline.py nico-sandbox/scripts/extract_target_asset.py nico-sandbox/scripts/scenario_automation.py nico-sandbox/tests/test_asset_pipeline.py
 ```

@@ -14,7 +14,17 @@
 - `model_upscale-v3`: faithful/cartoon upscaling and enhancement for low-res extracted assets.
 - `model_scenario-gemini-upscale`: high-resolution enhancement for larger hero/UI assets.
 - `model_meta-sam-3-1-image`: segmentation masks, useful for rig-ready character parts.
+- `model_qwen-image-layered`: possible RGBA layer decomposition for structured character/object assets.
 - `model_visioncortex-vtracer`: vectorization for clean UI/icons/projectiles.
+
+## Missile Test Learning
+
+- The B11 missile result was best when the video crop was used as reference evidence, not as final pixels.
+- Direct Scenario background removal on the missile crop left visible wall/background contamination.
+- The stronger chain is: Scenario Gemini 3.1 reference-guided sprite recreation, then Photoroom background removal, then Scenario padding trim.
+- Gemini video selection should optimize for isolation, zoom, low blur, full visibility, and high contrast, not merely "first visible frame."
+- For animation, use one approved seed frame and generate a whole strip at once; frame-by-frame generation risks identity and scale drift.
+- Scenario REST docs indicate generation uses `/v1/generate/custom/{modelId}`, job polling uses `/v1/jobs/{jobId}`, and generated asset URLs come from `/v1/assets/{assetId}`.
 
 ## Product Direction
 
