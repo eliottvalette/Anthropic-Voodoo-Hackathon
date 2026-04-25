@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import DropZone from '@/components/DropZone'
 import PipelineStepper, { Step, StepStatus } from '@/components/PipelineStepper'
-import PlayableViewer from '@/components/PlayableViewer'
+import ReviewPanel from '@/components/ReviewPanel'
 
 const INITIAL_STEPS: Step[] = [
   { id: 'metadata', label: 'Metadata + Asset Inventory', estimate: '~0s',  status: 'idle' },
@@ -13,6 +13,8 @@ const INITIAL_STEPS: Step[] = [
 ]
 
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
+type ReviewDecision = { action: 'accept' } | { action: 'retry' } | { action: 'correct'; text: string }
 
 function VideoIcon() {
   return (
@@ -34,16 +36,6 @@ function AssetsIcon() {
   )
 }
 
-function SidebarItem({ icon, active = false }: { icon: React.ReactNode; active?: boolean }) {
-  return (
-    <div className={`w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-150 ${
-      active ? 'bg-[#0055FF] text-white' : 'text-gray-300 hover:text-[#0F141C] hover:bg-gray-50'
-    }`}>
-      {icon}
-    </div>
-  )
-}
-
 function Tags({ items }: { items: string[] }) {
   return (
     <div className="flex gap-1.5 flex-wrap mt-2">
@@ -56,26 +48,75 @@ function Tags({ items }: { items: string[] }) {
   )
 }
 
+function SidebarItem({ icon, active = false }: { icon: React.ReactNode; active?: boolean }) {
+  return (
+    <div className={`w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-150 ${
+      active ? 'bg-[#0055FF] text-white' : 'text-gray-300 hover:text-[#0F141C] hover:bg-gray-50'
+    }`}>
+      {icon}
+    </div>
+  )
+}
 
 export default function Home() {
-  const [videoFiles, setVideoFiles]     = useState<File[]>([])
-  const [assetFiles, setAssetFiles]     = useState<File[]>([])
-  const [steps, setSteps]               = useState<Step[]>(INITIAL_STEPS)
-  const [isRunning, setIsRunning]       = useState(false)
-  const [hasRun, setHasRun]             = useState(false)
-  const [playableHtml, setPlayableHtml] = useState<string | null>(null)
+  const [videoFiles, setVideoFiles]       = useState<File[]>([])
+  const [assetFiles, setAssetFiles]       = useState<File[]>([])
+  const [steps, setSteps]                 = useState<Step[]>(INITIAL_STEPS)
+  const [isRunning, setIsRunning]         = useState(false)
+  const [hasRun, setHasRun]               = useState(false)
+  const [playableHtml, setPlayableHtml]   = useState<string | null>(null)
+  const [autoMode, setAutoMode]           = useState(false)
+  const [isAwaiting, setIsAwaiting]       = useState(false)
+  const [reviewContent, setReviewContent] = useState<Record<string, React.ReactNode>>({})
+
+  const autoModeRef       = useRef(false)
+  const reviewResolverRef = useRef<((d: ReviewDecision) => void) | null>(null)
+
+  const handleAutoToggle = () => {
+    const next = !autoMode
+    setAutoMode(next)
+    autoModeRef.current = next
+  }
 
   const updateStep = useCallback((id: string, updates: Partial<Step>) => {
     setSteps(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
   }, [])
 
   const activateStep = useCallback((id: string) => {
-    updateStep(id, { status: 'active' as StepStatus, startedAt: Date.now() })
+    updateStep(id, { status: 'active' as StepStatus, startedAt: Date.now(), output: undefined })
   }, [updateStep])
 
-  const completeStep = useCallback((id: string, output: React.ReactNode) => {
-    updateStep(id, { status: 'done' as StepStatus, doneAt: Date.now(), output })
+  const awaitStep = useCallback((id: string, output: React.ReactNode) => {
+    updateStep(id, { status: 'awaiting' as StepStatus, doneAt: Date.now(), output })
   }, [updateStep])
+
+  const acceptStep = useCallback((id: string) => {
+    updateStep(id, { status: 'done' as StepStatus })
+  }, [updateStep])
+
+  const waitForReview = useCallback((): Promise<ReviewDecision> => {
+    if (autoModeRef.current) return Promise.resolve({ action: 'accept' as const })
+    setIsAwaiting(true)
+    return new Promise(resolve => { reviewResolverRef.current = resolve })
+  }, [])
+
+  const handleAccept = useCallback(() => {
+    setIsAwaiting(false)
+    reviewResolverRef.current?.({ action: 'accept' })
+    reviewResolverRef.current = null
+  }, [])
+
+  const handleRetry = useCallback(() => {
+    setIsAwaiting(false)
+    reviewResolverRef.current?.({ action: 'retry' })
+    reviewResolverRef.current = null
+  }, [])
+
+  const handleCorrect = useCallback((text: string) => {
+    setIsAwaiting(false)
+    reviewResolverRef.current?.({ action: 'correct', text })
+    reviewResolverRef.current = null
+  }, [])
 
   const handleRun = useCallback(async () => {
     if (!videoFiles.length || !assetFiles.length || isRunning) return
@@ -84,68 +125,184 @@ export default function Home() {
     setHasRun(true)
     setPlayableHtml(null)
     setSteps(INITIAL_STEPS)
+    setReviewContent({})
+    setIsAwaiting(false)
+    reviewResolverRef.current = null
 
     const videoFile = videoFiles[0]
 
-    activateStep('metadata')
-    const videoEl = document.createElement('video')
-    videoEl.preload = 'metadata'
-    const objectUrl = URL.createObjectURL(videoFile)
-    videoEl.src = objectUrl
-    await new Promise<void>(r => {
-      videoEl.onloadedmetadata = () => r()
-      videoEl.onerror = () => r()
-    })
-    URL.revokeObjectURL(objectUrl)
+    // ── Step 1: Metadata ─────────────────────────────────────────────
+    let decision: ReviewDecision
+    do {
+      activateStep('metadata')
+      const videoEl = document.createElement('video')
+      videoEl.preload = 'metadata'
+      const objectUrl = URL.createObjectURL(videoFile)
+      videoEl.src = objectUrl
+      await new Promise<void>(r => {
+        videoEl.onloadedmetadata = () => r()
+        videoEl.onerror = () => r()
+      })
+      URL.revokeObjectURL(objectUrl)
 
-    const duration    = videoEl.duration   ? `${Math.round(videoEl.duration)}s`               : '?'
-    const resolution  = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '?'
-    const totalSizeMB = [...videoFiles, ...assetFiles].reduce((acc, f) => acc + f.size, 0) / 1024 / 1024
+      const duration    = videoEl.duration   ? `${Math.round(videoEl.duration)}s`               : '?'
+      const resolution  = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '?'
+      const totalSizeMB = [...videoFiles, ...assetFiles].reduce((acc, f) => acc + f.size, 0) / 1024 / 1024
 
-    completeStep('metadata', (
-      <div className="flex flex-wrap gap-x-6 gap-y-1">
-        <span><span className="text-[#0F141C] font-semibold">{videoFile.name}</span></span>
-        <span>{duration} · {resolution}</span>
-        <span><span className="text-[#0F141C] font-semibold">{assetFiles.length}</span> assets · {totalSizeMB.toFixed(0)} MB total</span>
-      </div>
-    ))
-
-    activateStep('upload')
-    await delay(2000)
-    completeStep('upload', (
-      <span>Video uploaded · File state <span className="text-[#0F141C] font-semibold">ACTIVE</span></span>
-    ))
-
-    activateStep('analysis')
-    await delay(2500)
-    completeStep('analysis', (
-      <div>
-        <div>
-          <span className="text-[#0F141C] font-semibold">Castle Clashers</span>
-          <span className="ml-2 text-gray-400">Arcade · Portrait</span>
+      awaitStep('metadata', (
+        <div className="flex flex-wrap gap-x-6 gap-y-1">
+          <span><span className="font-semibold text-[#0F141C]">{videoFile.name}</span></span>
+          <span>{duration} · {resolution}</span>
+          <span><span className="font-semibold text-[#0F141C]">{assetFiles.length}</span> assets · {totalSizeMB.toFixed(0)} MB total</span>
         </div>
-        <div className="mt-1 text-gray-500">Aim and fire projectiles to destroy the enemy castle before the timer runs out</div>
-        <Tags items={['Ballistic arc', 'Drag to aim', 'Health system', 'Auto-fire enemy', 'Particle FX']} />
-      </div>
-    ))
+      ))
+      setReviewContent(prev => ({
+        ...prev,
+        metadata: (
+          <div className="space-y-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Input validated</p>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { label: 'Video',      value: videoFile.name },
+                { label: 'Duration',   value: duration },
+                { label: 'Resolution', value: resolution },
+                { label: 'Assets',     value: `${assetFiles.length} files · ${totalSizeMB.toFixed(0)} MB` },
+              ] as { label: string; value: string }[]).map(({ label, value }) => (
+                <div key={label} className="bg-[#F6F9FC] rounded-xl p-4">
+                  <div className="text-[10px] text-gray-400 mb-1">{label}</div>
+                  <div className="text-sm font-semibold text-[#0F141C] truncate">{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      }))
 
-    activateStep('codegen')
-    await delay(2000)
+      decision = await waitForReview()
+    } while (decision.action === 'retry')
+    acceptStep('metadata')
 
-    const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
+    // ── Step 2: Upload ───────────────────────────────────────────────
+    do {
+      activateStep('upload')
+      await delay(2000)
 
-    completeStep('codegen', (
-      <div className="flex flex-wrap gap-x-6 gap-y-1">
-        <span><span className="text-[#0F141C] font-semibold">Castle_Clashers_Playable</span> · 360×640</span>
-        <span>player_damage <span className="text-[#0F141C] font-semibold">34</span></span>
-        <span>gravity <span className="text-[#0F141C] font-semibold">900</span></span>
-        <span>session <span className="text-[#0F141C] font-semibold">30s</span></span>
-      </div>
-    ))
+      awaitStep('upload', (
+        <span>Video uploaded · File state <span className="font-semibold text-[#0F141C]">ACTIVE</span></span>
+      ))
+      setReviewContent(prev => ({
+        ...prev,
+        upload: (
+          <div className="space-y-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Gemini Files API</p>
+            <div className="rounded-xl border border-gray-100 bg-[#F6F9FC] p-4 font-mono text-xs space-y-2.5">
+              <div className="flex justify-between">
+                <span className="text-gray-400">state</span>
+                <span className="text-emerald-600 font-semibold">ACTIVE</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">mime</span>
+                <span className="text-[#0F141C]">video/mp4</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">size</span>
+                <span className="text-[#0F141C]">{(videoFile.size / 1024 / 1024).toFixed(1)} MB</span>
+              </div>
+            </div>
+          </div>
+        ),
+      }))
 
-    setPlayableHtml(mockHtml)
+      decision = await waitForReview()
+    } while (decision.action === 'retry')
+    acceptStep('upload')
+
+    // ── Step 3: Analysis ─────────────────────────────────────────────
+    do {
+      activateStep('analysis')
+      await delay(2500)
+
+      awaitStep('analysis', (
+        <div>
+          <div>
+            <span className="font-semibold text-[#0F141C]">Castle Clashers</span>
+            <span className="ml-2 text-gray-400">Arcade · Portrait</span>
+          </div>
+          <div className="mt-1 text-gray-500">Aim and fire projectiles to destroy the enemy castle</div>
+          <Tags items={['Ballistic arc', 'Drag to aim', 'Health system', 'Auto-fire enemy', 'Particle FX']} />
+        </div>
+      ))
+      setReviewContent(prev => ({
+        ...prev,
+        analysis: (
+          <div className="space-y-5">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Video analysis</p>
+            <div>
+              <div className="text-2xl font-bold text-[#0F141C]">Castle Clashers</div>
+              <div className="text-sm text-gray-400 mt-0.5">Arcade · Portrait · 30s session</div>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Aim and fire projectiles to destroy the enemy castle before the timer runs out.
+            </p>
+            <div className="space-y-2">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Detected mechanics</div>
+              <div className="flex flex-wrap gap-1.5">
+                {['Ballistic arc', 'Drag to aim', 'Health system', 'Auto-fire enemy', 'Particle FX'].map(tag => (
+                  <span key={tag} className="px-3 py-1 rounded-full bg-[#0F141C] text-white text-[11px] font-medium">{tag}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ),
+      }))
+
+      decision = await waitForReview()
+    } while (decision.action === 'retry')
+    acceptStep('analysis')
+
+    // ── Step 4: Codegen ──────────────────────────────────────────────
+    do {
+      activateStep('codegen')
+      await delay(2000)
+      const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
+
+      awaitStep('codegen', (
+        <div className="flex flex-wrap gap-x-6 gap-y-1">
+          <span><span className="font-semibold text-[#0F141C]">Castle_Clashers_Playable</span> · 360×640</span>
+          <span>player_damage <span className="font-semibold text-[#0F141C]">34</span></span>
+          <span>gravity <span className="font-semibold text-[#0F141C]">900</span></span>
+          <span>session <span className="font-semibold text-[#0F141C]">30s</span></span>
+        </div>
+      ))
+      setPlayableHtml(mockHtml)
+      setReviewContent(prev => ({
+        ...prev,
+        codegen: (
+          <div className="space-y-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Generated spec</p>
+            <div className="rounded-xl border border-gray-100 bg-[#F6F9FC] p-4 font-mono text-xs space-y-2">
+              {([
+                ['player_damage', '34'],
+                ['gravity',       '900'],
+                ['session',       '30s'],
+                ['canvas',        '360 × 640'],
+              ] as [string, string][]).map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <span className="text-gray-400">{k}</span>
+                  <span className="text-[#0F141C] font-semibold">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      }))
+
+      decision = await waitForReview()
+    } while (decision.action === 'retry')
+    acceptStep('codegen')
+
     setIsRunning(false)
-  }, [videoFiles, assetFiles, isRunning, activateStep, completeStep])
+  }, [videoFiles, assetFiles, isRunning, activateStep, awaitStep, acceptStep, waitForReview])
 
   const canRun = videoFiles.length > 0 && assetFiles.length > 0 && !isRunning
   const today  = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -203,8 +360,7 @@ export default function Home() {
             <path d="M2 11.5L7 2L12 11.5H2z" fill="white" />
           </svg>
         </div>
-
-        <div className="flex flex-col gap-2 items-center">
+        <div className="flex flex-col gap-2">
           <SidebarItem active icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M7.5 2v7M4.5 6l3-3 3 3M2 12.5h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -217,8 +373,7 @@ export default function Home() {
             </svg>
           } />
         </div>
-
-        <div className="mt-auto flex flex-col items-center gap-2">
+        <div className="mt-auto">
           <SidebarItem icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.4" />
@@ -228,53 +383,88 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* ── Main column ──────────────────────────────────── */}
+      {/* ── Main ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
 
         {/* Header */}
-        <header className="h-[52px] bg-white border-b border-gray-100 flex items-center px-6 gap-2 shrink-0">
+        <header className="h-[52px] bg-white border-b border-gray-100 flex items-center px-4 sm:px-6 gap-2 shrink-0">
           <span className="text-xs text-gray-400 font-medium">Voodoo</span>
           <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
             <path d="M1 1l4 4-4 4" stroke="#D1D5DB" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="text-xs font-semibold text-[#0F141C]">Playable Generator</span>
 
-          <div className="ml-auto flex items-center gap-5">
+          <div className="ml-auto flex items-center gap-3">
+            {/* Auto toggle */}
+            <button
+              onClick={handleAutoToggle}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                autoMode
+                  ? 'bg-[#0055FF] text-white'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d="M5.5 1v2M5.5 8v2M1 5.5h2M8 5.5h2M2.6 2.6l1.4 1.4M7 7l1.4 1.4M2.6 8.4l1.4-1.4M7 4l1.4-1.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Auto
+            </button>
+
             {isRunning && (
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#0055FF] pulse-dot" />
-                <span className="text-xs text-[#0055FF] font-medium">Pipeline running</span>
+                <span className="text-xs text-[#0055FF] font-medium hidden sm:block">Pipeline running</span>
               </div>
             )}
-            {playableHtml && !isRunning && (
+            {isAwaiting && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="text-xs text-amber-600 font-medium hidden sm:block">Awaiting review</span>
+              </div>
+            )}
+            {steps.every(s => s.status === 'done') && !isRunning && hasRun && (
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-xs text-gray-500 font-medium">Ready</span>
+                <span className="text-xs text-gray-500 font-medium hidden sm:block">Ready</span>
               </div>
             )}
-            <span className="text-xs text-gray-300">{today}</span>
+            <span className="text-xs text-gray-300 hidden sm:block">{today}</span>
           </div>
         </header>
 
-        {/* Dot-grid content */}
-        <main className="flex-1 overflow-auto p-3 sm:p-6 dot-grid">
-          {playableHtml ? (
-            <div
-              className="preview-grid mx-auto grid grid-cols-1 gap-5 items-start"
-              style={{ maxWidth: 1100 }}
-            >
-              <div className="space-y-5">
+        {/* Content */}
+        <main className="flex-1 overflow-auto lg:overflow-hidden p-3 sm:p-5 dot-grid">
+          {!hasRun ? (
+            <div className="h-full flex items-center justify-center py-8 lg:py-0">
+              <div className="w-full max-w-xl">{uploadCard}</div>
+            </div>
+          ) : (
+            <div className="lg:h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              {/* Left — scrollable */}
+              <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0">
                 {uploadCard}
                 {pipelineCard}
               </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 fade-slide-in lg:sticky lg:top-0">
-                <PlayableViewer html={playableHtml} />
+
+              {/* Right — fixed height, internal scroll */}
+              <div className="flex flex-col lg:min-h-0 min-h-[420px]">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 lg:min-h-0">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">Review</p>
+                  <div className="flex-1 lg:min-h-0 lg:overflow-hidden">
+                    <ReviewPanel
+                      steps={steps}
+                      reviewContent={reviewContent}
+                      playableHtml={playableHtml}
+                      isAwaiting={isAwaiting}
+                      onAccept={handleAccept}
+                      onRetry={handleRetry}
+                      onCorrect={handleCorrect}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="max-w-xl mx-auto space-y-5">
-              {uploadCard}
-              {pipelineCard}
+
             </div>
           )}
         </main>
