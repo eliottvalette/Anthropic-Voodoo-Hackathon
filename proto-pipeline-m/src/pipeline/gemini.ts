@@ -117,7 +117,14 @@ export type ContentPart =
 export type GenerateOptions = {
   temperature?: number;
   responseMimeType?: string;
+  mediaResolution?: "low" | "medium" | "high";
 };
+
+const MEDIA_RES_MAP = {
+  low: "MEDIA_RESOLUTION_LOW",
+  medium: "MEDIA_RESOLUTION_MEDIUM",
+  high: "MEDIA_RESOLUTION_HIGH",
+} as const;
 
 export async function generateJson<T = unknown>(
   model: string,
@@ -132,6 +139,9 @@ export async function generateJson<T = unknown>(
     generationConfig: {
       responseMimeType: options.responseMimeType ?? "application/json",
       temperature: options.temperature ?? 0.4,
+      ...(options.mediaResolution
+        ? { mediaResolution: MEDIA_RES_MAP[options.mediaResolution] }
+        : {}),
     },
   };
   const t0 = Date.now();
@@ -171,6 +181,6 @@ export async function generateJson<T = unknown>(
 }
 
 export const MODELS = {
-  flash: "gemini-flash-latest",
-  pro: "gemini-flash-latest",
+  flash: "gemini-3-flash-preview",
+  pro: "gemini-3.1-pro-preview",
 } as const;
