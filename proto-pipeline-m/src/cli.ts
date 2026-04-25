@@ -3,7 +3,7 @@ const HELP = `proto-pipeline-m
 Usage:
   bun run pipeline --help
   bun run pipeline --list-models
-  bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>]
+  bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]
   bun run pipeline --probe-only --run <id> --video <path> --assets <dir>
   bun run verify <html-path> [--mechanic <name>]
   bun run bench --variants <list> --videos <list>
@@ -131,6 +131,38 @@ async function runP4Only(args: string[]): Promise<void> {
   console.log(JSON.stringify(out.meta, null, 2));
 }
 
+async function runFull(args: string[]): Promise<void> {
+  const runId = getFlag(args, "--run");
+  const video = getFlag(args, "--video");
+  const assets = getFlag(args, "--assets");
+  const variant = getFlag(args, "--variant") ?? "_default";
+  const retriesArg = getFlag(args, "--retries");
+  const maxRetries = retriesArg !== undefined ? Number(retriesArg) : 2;
+  if (!runId || !video || !assets) {
+    console.error(
+      "Usage: bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]",
+    );
+    process.exit(1);
+  }
+  const { runPipeline } = await import("./pipeline/run.ts");
+  const meta = await runPipeline(runId, video, assets, variant, maxRetries);
+  console.log("--- summary ---");
+  console.log(
+    JSON.stringify(
+      {
+        runs: meta.verify.runs,
+        retries: meta.retries,
+        totalLatencyMs: meta.totalLatencyMs,
+        totalTokensIn: meta.totalTokensIn,
+        totalTokensOut: meta.totalTokensOut,
+        verify: meta.verify,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
 async function runVerify(args: string[]): Promise<void> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const htmlPath = positional[1];
@@ -184,6 +216,11 @@ async function main(): Promise<void> {
 
   if (args.includes("--p4-only")) {
     await runP4Only(args);
+    return;
+  }
+
+  if (args.includes("--run")) {
+    await runFull(args);
     return;
   }
 
