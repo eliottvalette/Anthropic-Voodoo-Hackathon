@@ -28,15 +28,18 @@ function getFlag(args: string[], name: string): string | undefined {
 }
 
 async function runProbeOnly(args: string[]): Promise<void> {
-  const runId = getFlag(args, "--run");
+  const rawRunId = getFlag(args, "--run");
   const video = getFlag(args, "--video");
   const assets = getFlag(args, "--assets");
-  if (!runId || !video || !assets) {
+  if (!rawRunId || !video || !assets) {
     console.error(
       "Usage: bun run pipeline --probe-only --run <id> --video <path> --assets <dir>",
     );
     process.exit(1);
   }
+  const { stampRunId } = await import("./pipeline/runId.ts");
+  const runId = await stampRunId(rawRunId);
+  console.log(`[cli] runId "${rawRunId}" stamped → "${runId}"`);
   const { writeProbe } = await import("./pipeline/probe.ts");
   const { outPath, report } = await writeProbe(runId, video, assets);
   console.log(`wrote ${outPath}`);
@@ -54,21 +57,35 @@ async function runProbeOnly(args: string[]): Promise<void> {
 }
 
 async function runP1Only(args: string[]): Promise<void> {
-  const runId = getFlag(args, "--run");
+  const rawRunId = getFlag(args, "--run");
   const video = getFlag(args, "--video");
+  const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
-  if (!runId || !video) {
+  if (!rawRunId || !video) {
     console.error(
-      "Usage: bun run pipeline --p1-only --run <id> --video <path> [--variant <id>]",
+      "Usage: bun run pipeline --p1-only --run <id> --video <path> [--assets <dir>] [--variant <id>]",
     );
     process.exit(1);
+  }
+  const { stampRunId } = await import("./pipeline/runId.ts");
+  const runId = await stampRunId(rawRunId);
+  console.log(`[cli] runId "${rawRunId}" stamped → "${runId}"`);
+  if (assets) {
+    const { writeProbe } = await import("./pipeline/probe.ts");
+    await writeProbe(runId, video, assets);
   }
   const { writeP1 } = await import("./pipeline/p1_video.ts");
   const { outDir, output } = await writeP1(runId, video, variant);
   console.log(`wrote ${outDir}/01_video.json + meta + subs`);
   console.log(JSON.stringify(output.meta, null, 2));
+  console.log("--- defining hook ---");
+  console.log(output.merged.defining_hook);
   console.log("--- merged summary ---");
   console.log(output.merged.summary_one_sentence);
+  if (output.alternate) {
+    console.log(`--- alternate (fits_better=${output.alternate.fits_evidence_better}) ---`);
+    console.log(`${output.alternate.alternate_genre}: ${output.alternate.rationale}`);
+  }
 }
 
 async function runP2Only(args: string[]): Promise<void> {
@@ -116,14 +133,32 @@ async function runP4Only(args: string[]): Promise<void> {
   const runId = getFlag(args, "--run");
   const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
+  const retryOnlyCsv = getFlag(args, "--retry-only");
   if (!runId || !assets) {
     console.error(
-      "Usage: bun run pipeline --p4-only --run <id> --assets <dir> [--variant <id>]",
+      "Usage: bun run pipeline --p4-only --run <id> --assets <dir> [--variant <id>] [--retry-only <csv>]\n" +
+        "  --retry-only: comma-separated subsystems to regenerate (input,physics,render,state,winloss).\n" +
+        "                Empty value means re-aggregate+re-lint only without regenerating any subsystem.",
     );
     process.exit(1);
   }
-  const { writeP4 } = await import("./pipeline/p4_codegen.ts");
-  const out = await writeP4(runId, assets, variant);
+  const { runP4 } = await import("./pipeline/p4_codegen.ts");
+  type Sub = "input" | "physics" | "render" | "state" | "winloss";
+  const VALID: Sub[] = ["input", "physics", "render", "state", "winloss"];
+  let retryOnly: Sub[] | undefined;
+  if (retryOnlyCsv !== undefined) {
+    retryOnly = retryOnlyCsv
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean) as Sub[];
+    for (const s of retryOnly) {
+      if (!VALID.includes(s)) {
+        console.error(`invalid --retry-only entry: ${s}`);
+        process.exit(1);
+      }
+    }
+  }
+  const out = await runP4(runId, assets, variant, { retryOnly });
   console.log(
     `wrote ${out.htmlPath} (${(out.bytes / 1024).toFixed(1)} KB)`,
   );
@@ -136,7 +171,7 @@ async function runFull(args: string[]): Promise<void> {
   const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
   const retriesArg = getFlag(args, "--retries");
-  const maxRetries = retriesArg !== undefined ? Number(retriesArg) : 2;
+  const maxRetries = retriesArg !== undefined ? Number(retriesArg) : 4;
   if (!runId || !video || !assets) {
     console.error(
       "Usage: bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]",
