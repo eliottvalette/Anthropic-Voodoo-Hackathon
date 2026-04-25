@@ -205,6 +205,18 @@
             "highlight",
             "charge"
           ]
+        },
+        {
+          "name": "coin-pop",
+          "file": "vfx/coin-pop.js",
+          "demo": "vfx/demos/coin-pop.html",
+          "signature": "spawnCoinPop(coins, x, y, opts?) / spawnCoinShower(coins, x, y, count?, opts?)",
+          "description": "Arcing rotating disc with fake-3D Y-axis flip (scaleX = |cos(spin)|) for reward feedback — gold, silver, bronze, gem. Gravity arc + rim edge stand-in when edge-on. Pairs with float-text for '+N' labels.",
+          "tags": [
+            "reward",
+            "coin",
+            "pickup"
+          ]
         }
       ]
     },

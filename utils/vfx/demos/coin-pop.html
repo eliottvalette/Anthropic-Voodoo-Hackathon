@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>coin-pop demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../coin-pop.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const coins = [];
+        const variants = [
+            { color: '#ffd84a', edgeColor: '#a87514', shineColor: '#fff7c2' }, // gold
+            { color: '#cdd6e2', edgeColor: '#5b6675', shineColor: '#ffffff' }, // silver
+            { color: '#ff9a6b', edgeColor: '#7d3a18', shineColor: '#ffd8b6' }, // bronze
+            { color: '#7ef3ff', edgeColor: '#1e5a73', shineColor: '#ffffff' }, // gem
+        ];
+        let last = 0;
+
+        cv.addEventListener('pointerdown', e => {
+            const r = cv.getBoundingClientRect();
+            const x = (e.clientX - r.left) * cv.width / r.width;
+            const y = (e.clientY - r.top) * cv.height / r.height;
+            const v = variants[Math.floor(Math.random() * variants.length)];
+            spawnCoinShower(coins, x, y, 10, Object.assign({ radius: 10, power: 0.5 }, v));
+        });
+
+        let auto = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now; auto += dt;
+            if (auto > 1100) {
+                const v = variants[Math.floor(Math.random() * variants.length)];
+                spawnCoinShower(coins, 180, 380, 8, Object.assign({ radius: 9, power: 0.45 }, v));
+                auto = 0;
+            }
+            updateCoinPop(coins, dt);
+
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            // Floor for coins to "land near"
+            ctx.fillStyle = '#172033';
+            ctx.fillRect(0, 480, cv.width, 160);
+            // Source treasure chest stand-in
+            ctx.fillStyle = '#3a4252';
+            ctx.fillRect(150, 360, 60, 30);
+            ctx.fillStyle = '#ffd84a';
+            ctx.fillRect(154, 366, 52, 6);
+
+            drawCoinPop(ctx, coins);
+            // Cull coins that fall off-screen so the array doesn't grow unbounded
+            for (let i = coins.length - 1; i >= 0; i--) if (coins[i].y > 720) coins.splice(i, 1);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
