@@ -133,6 +133,18 @@
             "magic",
             "twinkle"
           ]
+        },
+        {
+          "name": "confetti",
+          "file": "vfx/confetti.js",
+          "demo": "vfx/demos/confetti.html",
+          "signature": "spawnConfetti(pieces, x, y, count?, opts?) / spawnConfettiCannon(pieces, x, y, angleRad, count?, power?, opts?)",
+          "description": "Spinning colored ribbons with gravity, air drag, and fake-3D flutter (cos(wobble) scaleX). Win states, level-up, end-screen celebration.",
+          "tags": [
+            "win",
+            "celebration",
+            "ribbon"
+          ]
         }
       ]
     },

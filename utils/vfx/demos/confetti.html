@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>confetti demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../confetti.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const pieces = [];
+        let last = 0;
+
+        cv.addEventListener('pointerdown', e => {
+            const r = cv.getBoundingClientRect();
+            const x = (e.clientX - r.left) * cv.width / r.width;
+            const y = (e.clientY - r.top) * cv.height / r.height;
+            spawnConfetti(pieces, x, y, 50, { spread: 80, vyMin: -0.45, vyMax: -0.18 });
+        });
+
+        let auto = 0, mode = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now;
+            auto += dt;
+            if (auto > 2400) {
+                if (mode === 0) {
+                    // Cannons from bottom corners shooting toward center
+                    spawnConfettiCannon(pieces, 10, 600, -Math.PI / 3.2, 40, 0.55);
+                    spawnConfettiCannon(pieces, 350, 600, -Math.PI + Math.PI / 3.2, 40, 0.55);
+                } else {
+                    // Top-down rain burst
+                    spawnConfetti(pieces, 180, -10, 80, { spread: 360, vyMin: 0.08, vyMax: 0.22, life: 2600 });
+                }
+                mode = 1 - mode;
+                auto = 0;
+            }
+            updateConfetti(pieces, dt);
+            ctx.fillStyle = '#0F141C';
+            ctx.fillRect(0, 0, cv.width, cv.height);
+            drawConfetti(ctx, pieces);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
