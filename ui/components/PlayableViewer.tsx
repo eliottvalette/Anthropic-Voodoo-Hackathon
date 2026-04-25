@@ -9,17 +9,39 @@ interface PlayableViewerProps {
   html: string
 }
 
+function htmlForPreview(html: string): string {
+  return html.replace(
+    /window\.location\.href\s*=\s*"https:\/\/play\.google\.com\/store\/apps\/details\?id=com\.epicoro\.castleclashers";/g,
+    'window.parent.postMessage({type:"playable-preview-cta", url:"https://play.google.com/store/apps/details?id=com.epicoro.castleclashers"},"*");'
+  )
+}
+
 export default function PlayableViewer({ html }: PlayableViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string>('')
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
-    const blob = new Blob([html], { type: 'text/html' })
+    const blob = new Blob([htmlForPreview(html)], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     setBlobUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [html])
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (
+        typeof event.data === 'object' &&
+        event.data !== null &&
+        event.data.type === 'playable-preview-cta' &&
+        typeof event.data.url === 'string'
+      ) {
+        window.open(event.data.url, '_blank', 'noopener,noreferrer')
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
 
   useEffect(() => {
     const el = wrapperRef.current
@@ -34,10 +56,13 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
   }, [])
 
   const handleDownload = () => {
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = blobUrl
+    a.href = url
     a.download = 'playable.html'
     a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
