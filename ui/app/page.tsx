@@ -1,9 +1,14 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import DropZone from '@/components/DropZone'
 import PipelineStepper, { Step, StepStatus } from '@/components/PipelineStepper'
 import ReviewPanel from '@/components/ReviewPanel'
+import PlayableViewer from '@/components/PlayableViewer'
+import HistoryView from '@/components/HistoryView'
+import { createClient } from '@/utils/supabase/client'
+
+type View = 'generator' | 'history'
 
 const INITIAL_STEPS: Step[] = [
   { id: 'metadata', label: 'Metadata + Asset Inventory', estimate: '~0s',  status: 'idle' },
@@ -48,11 +53,16 @@ function Tags({ items }: { items: string[] }) {
   )
 }
 
-function SidebarItem({ icon, active = false }: { icon: React.ReactNode; active?: boolean }) {
+function SidebarItem({ icon, active = false, onClick }: { icon: React.ReactNode; active?: boolean; onClick?: () => void }) {
   return (
-    <div className={`w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-150 ${
-      active ? 'bg-[#0055FF] text-white' : 'text-gray-300 hover:text-[#0F141C] hover:bg-gray-50'
-    }`}>
+    <div
+      onClick={onClick}
+      className={`w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-150 ${
+        active
+          ? 'bg-[#0055FF] text-white'
+          : 'dot-grid border border-gray-100 bg-[#F6F9FC] text-gray-300 hover:text-[#0F141C] hover:border-gray-200'
+      }`}
+    >
       {icon}
     </div>
   )
@@ -68,9 +78,23 @@ export default function Home() {
   const [autoMode, setAutoMode]           = useState(false)
   const [isAwaiting, setIsAwaiting]       = useState(false)
   const [reviewContent, setReviewContent] = useState<Record<string, React.ReactNode>>({})
+  const [fullscreen, setFullscreen]       = useState(false)
+  const [view, setView]                   = useState<View>('generator')
+  const [userEmail, setUserEmail]         = useState<string | null>(null)
 
   const autoModeRef       = useRef(false)
   const reviewResolverRef = useRef<((d: ReviewDecision) => void) | null>(null)
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null)
+    })
+  }, [])
+
+  const handleLogout = async () => {
+    await createClient().auth.signOut()
+    window.location.href = '/login'
+  }
 
   const handleAutoToggle = () => {
     const next = !autoMode
@@ -305,26 +329,42 @@ export default function Home() {
             <path d="M2 11.5L7 2L12 11.5H2z" fill="white" />
           </svg>
         </div>
+
         <div className="flex flex-col gap-2">
-          <SidebarItem active icon={
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <path d="M7.5 2v7M4.5 6l3-3 3 3M2 12.5h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          } />
-          <SidebarItem icon={
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <circle cx="7.5" cy="7.5" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M7.5 5v2.5l1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          } />
+          {/* Generator */}
+          <SidebarItem
+            active={view === 'generator'}
+            onClick={() => setView('generator')}
+            icon={
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <path d="M7.5 2v7M4.5 6l3-3 3 3M2 12.5h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            }
+          />
+          {/* History */}
+          <SidebarItem
+            active={view === 'history'}
+            onClick={() => setView('history')}
+            icon={
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <circle cx="7.5" cy="7.5" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M7.5 5v2.5l1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            }
+          />
         </div>
-        <div className="mt-auto">
-          <SidebarItem icon={
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M7.5 1.5v1.5M7.5 12v1.5M1.5 7.5H3M12 7.5h1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-          } />
+
+        {/* User avatar + logout */}
+        <div className="mt-auto flex flex-col items-center gap-2">
+          {userEmail && (
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="w-9 h-9 rounded-xl bg-[#F6F9FC] border border-gray-100 flex items-center justify-center text-xs font-bold text-[#0F141C] hover:bg-gray-100 hover:border-gray-200 transition-all"
+            >
+              {userEmail[0].toUpperCase()}
+            </button>
+          )}
         </div>
       </aside>
 
@@ -337,7 +377,9 @@ export default function Home() {
           <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
             <path d="M1 1l4 4-4 4" stroke="#D1D5DB" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-xs font-semibold text-[#0F141C]">Playable Generator</span>
+          <span className="text-xs font-semibold text-[#0F141C]">
+            {view === 'history' ? 'History' : 'Playable Generator'}
+          </span>
 
           <div className="ml-auto flex items-center gap-3">
             {/* Auto toggle */}
@@ -379,39 +421,65 @@ export default function Home() {
 
         {/* Content */}
         <main className="flex-1 overflow-hidden p-3 sm:p-5 dot-grid">
-          {!hasRun ? (
-            <div className="h-full flex items-center justify-center py-8 lg:py-0">
-              <div className="w-full max-w-xl">{uploadCard}</div>
-            </div>
+
+          {view === 'history' ? (
+            <HistoryView />
           ) : (
-            <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-              {/* Left — scrollable */}
-              <div className="min-h-0 space-y-4 overflow-hidden">
-                {uploadCard}
-                {pipelineCard}
-              </div>
-
-              {/* Right — fixed viewport height */}
-              <div className="flex min-h-0 flex-col overflow-hidden">
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">{rightPanelTitle}</p>
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <ReviewPanel
-                      steps={steps}
-                      reviewContent={reviewContent}
-                      playableHtml={playableHtml}
-                      isAwaiting={isAwaiting}
-                      onAccept={handleAccept}
-                      onRetry={handleRetry}
-                      onCorrect={handleCorrect}
-                    />
-                  </div>
+            <>
+              {/* ── Pre-run: centered upload ── */}
+              {!hasRun && (
+                <div className="h-full flex items-center justify-center">
+                  <div className="w-full max-w-xl">{uploadCard}</div>
                 </div>
-              </div>
+              )}
 
-            </div>
+              {/* ── Focus mode: phone centered, no split ── */}
+              {hasRun && fullscreen && playableHtml && (
+                <div className="h-full">
+                  <PlayableViewer
+                    html={playableHtml}
+                    isFullscreen
+                    onToggleFullscreen={() => setFullscreen(false)}
+                  />
+                </div>
+              )}
+
+              {/* ── Split layout ── */}
+              {hasRun && !fullscreen && (
+                <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                  {/* Left — scrollable */}
+                  <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0">
+                    {uploadCard}
+                    {pipelineCard}
+                  </div>
+
+                  {/* Right — fixed height */}
+                  <div className="flex min-h-0 flex-col overflow-hidden min-h-[420px] lg:min-h-0">
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">
+                        {steps.every(s => s.status === 'done') && playableHtml ? 'Result' : isAwaiting ? 'Review' : 'Output'}
+                      </p>
+                      <div className="flex-1 min-h-0 overflow-hidden">
+                        <ReviewPanel
+                          steps={steps}
+                          reviewContent={reviewContent}
+                          playableHtml={playableHtml}
+                          isAwaiting={isAwaiting}
+                          onAccept={handleAccept}
+                          onRetry={handleRetry}
+                          onCorrect={handleCorrect}
+                          onToggleFullscreen={playableHtml ? () => setFullscreen(true) : undefined}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+            </>
           )}
+
         </main>
       </div>
     </div>
