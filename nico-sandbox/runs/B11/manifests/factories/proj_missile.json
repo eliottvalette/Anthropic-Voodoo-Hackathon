@@ -25,7 +25,7 @@
       "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_missile.png"
     },
     "prompts": {
-      "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Missile Projectile\nCategory: projectile\nDescription: A small grey missile with a red tip, leaving a smoke trail.\nGameplay role: \n\nPreserve the source asset's silhouette, color family, proportions, camera angle, readable details, and casual mobile-game rendering style.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Missile Projectile\nDescription: A small grey missile with a red tip, leaving a smoke trail.\nGameplay role: \n\nReproduce the projectile's shape, silhouette, color, and art style exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
     },
     "notes": [
       "Video crop is reference evidence; Scenario recreation supplies final pixels."
@@ -38,7 +38,7 @@
     "route": "static_sprite",
     "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_missile.png",
     "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_missile.png",
-    "scenario_asset_id": "asset_apYXY4zHQ6pPGZLSjK6tTXJ9",
+    "scenario_asset_id": "asset_mWkoE2eXiYAc1aB3yXq57PpY",
     "steps": [
       {
         "step": "upload_reference_crop",
@@ -47,32 +47,32 @@
       {
         "step": "reference_guided_sprite_recreation",
         "model_id": "model_google-gemini-3-1-flash",
-        "job_id": "job_H8LApA46XxifRFc7vk8FRfHf",
+        "job_id": "job_nTEmJ6xbG5KRDTLQqRCfWsqp",
         "asset_ids": [
-          "asset_nouqaAogVut3gDX83rCLXRWj",
-          "asset_55HC1A4fUx7eNQSbJ6wiyPat",
-          "asset_CrksTY9ShEYCqVj4PsmA4EtS",
-          "asset_Dn4oewFLjt8SMd319RWzxUDf"
+          "asset_Wukc9dnGyXspfGyEVwNBvwpd",
+          "asset_n8zVU4HxHzZ8JSwrdHE57ZZi",
+          "asset_4Tb9MTfY1ojN9Twx7KyYxJ5g",
+          "asset_YdsfXAzwGN3ssUJFBVTEBxCm"
         ],
-        "selected_asset_id": "asset_Dn4oewFLjt8SMd319RWzxUDf"
+        "selected_asset_id": "asset_YdsfXAzwGN3ssUJFBVTEBxCm"
       },
       {
         "step": "background_removal",
         "model_id": "model_pixa-background-removal",
-        "job_id": "job_v4K32huLVBZa9qNPjkEpBCUF",
-        "asset_id": "asset_TqycHVbbdzVJZa9huGkyWThr",
+        "job_id": "job_c6bPumtf28Ppyg89aaqpp77q",
+        "asset_id": "asset_sYHqVWw9qy4Vwk3N3DgUjSKa",
         "fallback_from": [
           {
             "model_id": "model_photoroom-background-removal",
-            "error": "Scenario job job_yp4rtgv8FEpnBDaWiW2zecjS ended with status failure: {'jobId': 'job_yp4rtgv8FEpnBDaWiW2zecjS', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_Dn4oewFLjt8SMd319RWzxUDf'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T15:08:53.904Z', 'updatedAt': '2026-04-25T15:09:01.570Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T15:08:53.904Z'}, {'status': 'in-progress', 'date': '2026-04-25T15:08:54.502Z'}, {'status': 'failure', 'date': '2026-04-25T15:09:01.570Z'}], 'progress': 1}"
+            "error": "Scenario job job_mb3UwWcS42HGKpvPbTrrFC1p ended with status failure: {'jobId': 'job_mb3UwWcS42HGKpvPbTrrFC1p', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_YdsfXAzwGN3ssUJFBVTEBxCm'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T16:21:38.811Z', 'updatedAt': '2026-04-25T16:21:46.802Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T16:21:38.811Z'}, {'status': 'in-progress', 'date': '2026-04-25T16:21:39.464Z'}, {'status': 'failure', 'date': '2026-04-25T16:21:46.802Z'}], 'progress': 1}"
           }
         ]
       },
       {
         "step": "transparent_padding_trim",
         "model_id": "model_scenario-padding-remover",
-        "job_id": "job_vswwJGQ3yrDuFTAfDG1w8Nxq",
-        "asset_id": "asset_apYXY4zHQ6pPGZLSjK6tTXJ9"
+        "job_id": "job_8m68XdAenFeuY9Lk4LskGoJF",
+        "asset_id": "asset_mWkoE2eXiYAc1aB3yXq57PpY"
       }
     ]
   }
