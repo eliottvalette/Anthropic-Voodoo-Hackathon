@@ -1,0 +1,52 @@
+{
+  "initial_state": {
+    "player_hp": 3,
+    "enemy_hp": 3,
+    "active_turn": "player_0",
+    "canvas": "360x640",
+    "cta_visible": false
+  },
+  "interaction": {
+    "player_drag": {
+      "start": "active player unit muzzle",
+      "movement": "drag backward on negative x",
+      "preview": "dotted ballistic trajectory projected toward positive x",
+      "release": "fires one projectile and advances turn after impact or miss"
+    },
+    "enemy_turn": {
+      "input": "automatic",
+      "aim": "toward player castle with bounded random error",
+      "release_delay_ms": 600
+    }
+  },
+  "damage_model": {
+    "castle_hp": 3,
+    "hit_damage": 1,
+    "destruction_states": [
+      "full",
+      "two_thirds",
+      "one_third",
+      "destroyed"
+    ],
+    "collision_rule": "The castle hitbox shrinks to the currently visible remaining section."
+  },
+  "end_state": {
+    "victory": "enemy castle reaches 0 hp",
+    "defeat": "player castle reaches 0 hp",
+    "cta": "shown for both victory and defeat"
+  },
+  "verification_hooks": {
+    "state_object": "window.__engineState",
+    "required_snapshot_fields": [
+      "phase",
+      "turnIndex",
+      "playerHp",
+      "enemyHp",
+      "projectiles",
+      "inputs",
+      "ctaVisible"
+    ],
+    "input_change_expected": "Pointer drag/release increments inputs and changes phase or projectile count."
+  }
+}
+

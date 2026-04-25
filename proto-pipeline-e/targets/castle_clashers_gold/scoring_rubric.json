@@ -1,0 +1,56 @@
+{
+  "total": 100,
+  "criteria": [
+    {
+      "name": "core_gameplay",
+      "points": 35,
+      "checks": [
+        "turn order alternates between the three player and enemy units",
+        "player drag/release fires exactly one projectile on player turns",
+        "enemy auto-fires on enemy turns",
+        "projectiles use visible ballistic arcs",
+        "hits advance the damage state and can end the match"
+      ]
+    },
+    {
+      "name": "visual_fidelity",
+      "points": 20,
+      "checks": [
+        "uses extracted Castle Clashers assets",
+        "keeps player castle left and enemy castle right",
+        "renders a clean portrait phone composition",
+        "top bar contains player health, timer, and enemy health"
+      ]
+    },
+    {
+      "name": "feedback",
+      "points": 15,
+      "checks": [
+        "trajectory preview is visible while dragging",
+        "hits produce shake, impact particles, and floating damage",
+        "castle destruction has three visible states"
+      ]
+    },
+    {
+      "name": "playable_ad_compliance",
+      "points": 15,
+      "checks": [
+        "single-file playable output exists",
+        "CTA is shown on victory and defeat",
+        "CTA uses mraid.open or window.open without iframe navigation",
+        "no external runtime libraries"
+      ]
+    },
+    {
+      "name": "layout_and_runtime",
+      "points": 15,
+      "checks": [
+        "9:16 canvas is scaled to fit without scrollbars",
+        "no visual overflow outside the phone frame",
+        "benchmark hooks expose deterministic state",
+        "single-file size remains below 5 MB"
+      ]
+    }
+  ]
+}
+

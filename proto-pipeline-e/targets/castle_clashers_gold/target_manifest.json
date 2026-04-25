@@ -1,0 +1,44 @@
+{
+  "id": "castle_clashers_gold",
+  "label": "Castle Clashers Gold Target",
+  "game": "Castle Clashers",
+  "target_type": "gold_playable",
+  "pipeline_scope": "proto-pipeline-e",
+  "source_assets": [
+    "ressources/Castle Clashers/Assets",
+    "nico-sandbox/runs/B11/scenario/transparent-png",
+    "nico-sandbox/runs/B11/extracted/crops",
+    "nico-sandbox/runs/B11/final-assets-v1"
+  ],
+  "viewport": {
+    "logical_width": 360,
+    "logical_height": 640,
+    "aspect_ratio": "9:16",
+    "orientation": "portrait",
+    "scaling": "contain_no_overflow"
+  },
+  "mechanic": {
+    "name": "manual_artillery_turns",
+    "primary_input": "drag_release",
+    "turn_order": [
+      "player_0",
+      "enemy_0",
+      "player_1",
+      "enemy_1",
+      "player_2",
+      "enemy_2"
+    ],
+    "win_condition": "enemy_castle_destroyed",
+    "loss_condition": "player_castle_destroyed"
+  },
+  "deliverables": {
+    "readable_source": "source/index.html",
+    "single_file_playable": "dist/playable.html"
+  },
+  "constraints": {
+    "single_file_budget_bytes": 5000000,
+    "external_runtime_dependencies": false,
+    "iframe_safe_cta": true,
+    "offline_after_load": true
+  }
+}
