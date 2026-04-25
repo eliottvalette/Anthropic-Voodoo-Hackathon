@@ -6,22 +6,26 @@
 <title>drag-release demo</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
-  canvas{background:linear-gradient(180deg,#7da45c,#9fb978);border-radius:8px;touch-action:none;cursor:crosshair}
-  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
 </style>
 </head>
 <body>
-
 <canvas id="c" width="360" height="640"></canvas>
 <script src="../drag-release.js"></script>
 <script>
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 const W = 360, H = 640;
-const origin = { x: 80, y: 480 };
-const target = { x: 290, y: 200, w: 50, h: 50 };
+const origin = { x: W / 2, y: H / 2 + 40 };
+const targets = [
+  { x: 50,  y: 90 },
+  { x: 180, y: 70 },
+  { x: 310, y: 90 },
+  { x: 60,  y: 230 },
+  { x: 300, y: 230 },
+];
 const projectiles = [];
-let last = 0;
+let last = 0, score = 0;
 
 const dr = createDragRelease(cv, {
   getOrigin: () => origin,
@@ -32,14 +36,14 @@ const dr = createDragRelease(cv, {
       y: (e.clientY - r.top) * H / r.height,
     };
   },
-  activeRadius: 80,
-  pullRangeX: [10, 160],
-  pullRangeY: [-100, 130],
-  toVelocity: ({ pullX, pullY }) => ({
-    vx: 0.10 + pullX * 0.0035,
-    vy: -0.15 + pullY * 0.0028,
-  }),
-  onFire: ({ vx, vy }) => projectiles.push({ x: origin.x, y: origin.y - 20, vx, vy, age: 0 }),
+  activeRadius: 60,
+  originOffsetY: 0,
+  // Symmetric pull range — drag in any direction, fire opposite
+  pullRangeX: [-140, 140],
+  pullRangeY: [-180, 180],
+  toVelocity: ({ pullX, pullY }) => ({ vx: pullX * 0.0055, vy: pullY * 0.0055 }),
+  minPull: 12,
+  onFire: ({ vx, vy }) => projectiles.push({ x: origin.x, y: origin.y, vx, vy, age: 0 }),
 });
 
 function loop(now) {
@@ -49,39 +53,75 @@ function loop(now) {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
     p.age += dt;
-    p.vy += 0.00078 * dt;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    if (p.x < -50 || p.x > W + 50 || p.y > H + 50 || p.age > 4000) projectiles.splice(i, 1);
+    // hit-test targets
+    for (let j = targets.length - 1; j >= 0; j--) {
+      const t = targets[j];
+      if (Math.hypot(p.x - t.x, p.y - t.y) < 22) {
+        targets.splice(j, 1);
+        score++;
+        projectiles.splice(i, 1);
+        if (targets.length === 0) {
+          // respawn after a moment
+          setTimeout(() => {
+            targets.push({ x: 50, y: 90 }, { x: 180, y: 70 }, { x: 310, y: 90 }, { x: 60, y: 230 }, { x: 300, y: 230 });
+          }, 800);
+        }
+        break;
+      }
+    }
+    if (p.x < -30 || p.x > W + 30 || p.y < -30 || p.y > H + 30 || p.age > 5000) projectiles.splice(i, 1);
   }
 
   ctx.clearRect(0,0,W,H);
 
-  // target
-  ctx.fillStyle = '#ed2024';
-  ctx.fillRect(target.x, target.y, target.w, target.h);
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(target.x, target.y, target.w, target.h);
-
-  // origin (cannon)
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(origin.x - 20, origin.y - 8, 40, 28);
-  ctx.fillStyle = '#27a8ff';
-  ctx.beginPath();
-  ctx.arc(origin.x, origin.y - 22, 16, 0, Math.PI*2);
-  ctx.fill();
-
-  // trajectory preview
-  dr.drawTrajectory(ctx, 18, 4);
-
-  // projectiles
-  ctx.fillStyle = '#ffbf31';
-  for (const p of projectiles) {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
-    ctx.fill();
+  // Targets (red orbs)
+  for (const t of targets) {
+    ctx.fillStyle = '#ed2024';
+    ctx.beginPath(); ctx.arc(t.x, t.y, 18, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.arc(t.x - 5, t.y - 5, 5, 0, Math.PI*2); ctx.fill();
   }
+
+  // Active radius dashed ring
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.arc(origin.x, origin.y, 60, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+
+  // Origin slingshot puck
+  ctx.fillStyle = '#27a8ff';
+  ctx.beginPath(); ctx.arc(origin.x, origin.y, 16, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.beginPath(); ctx.arc(origin.x - 5, origin.y - 5, 4, 0, Math.PI*2); ctx.fill();
+
+  // Trajectory preview
+  dr.drawTrajectory(ctx, 22, 3.5);
+
+  // Projectiles
+  for (const p of projectiles) {
+    ctx.fillStyle = '#ffbf31';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Hint
+  if (!dr.isDragging() && projectiles.length === 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = '900 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('DRAG IN ANY DIRECTION → FIRES OPPOSITE', W / 2, H - 50);
+  }
+
+  // Score
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 12px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('hits: ' + score, 14, 22);
 
   requestAnimationFrame(loop);
 }

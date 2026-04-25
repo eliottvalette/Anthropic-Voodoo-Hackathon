@@ -143,12 +143,20 @@
       "description": "Input, camera, turn flow, CTA wiring",
       "items": [
         {
-          "name": "drag-release",
+          "name": "drag-release · slingshot",
           "file": "mechanics/drag-release.js",
           "demo": "mechanics/demos/drag-release.html",
-          "signature": "createDragRelease(canvas, { getOrigin, pointerToWorld, toVelocity, onFire })",
-          "description": "Slingshot / artillery aim with trajectory preview, Pointer Events + capture",
-          "tags": ["input", "drag", "aim", "physics"]
+          "signature": "createDragRelease(canvas, { pullRangeX:[-140,140], toVelocity:directly, gravity:0 })",
+          "description": "True 360° slingshot — drag in any direction, fires opposite. No gravity.",
+          "tags": ["input", "drag", "slingshot", "360"]
+        },
+        {
+          "name": "drag-release · artillery",
+          "file": "mechanics/drag-release.js",
+          "demo": "mechanics/demos/drag-release-artillery.html",
+          "signature": "createDragRelease(canvas, { pullRangeX:[22,130], gravity:0.00078, toVelocity:arc })",
+          "description": "Ballistic artillery — pull back to fire arc. Gravity-aware trajectory preview. Castle Clashers-style.",
+          "tags": ["input", "drag", "ballistic", "arc", "physics"]
         },
         {
           "name": "camera-lerp",
