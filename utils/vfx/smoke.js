@@ -13,17 +13,19 @@
 
 function smoke(particles, x, y, count = 14) {
   for (let i = 0; i < count; i++) {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
-    const speed = 0.02 + Math.random() * 0.055;
-    const g = 145 + Math.floor(Math.random() * 85);
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+    const speed = 0.04 + Math.random() * 0.06;
+    const g = 175 + Math.floor(Math.random() * 60);
     particles.push({
-      x: x + (Math.random() - 0.5) * 55,
-      y: y + (Math.random() - 0.5) * 30,
+      x: x + (Math.random() - 0.5) * 45,
+      y: y + (Math.random() - 0.5) * 18,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      radius: 11 + Math.random() * 19,
+      radius: 13 + Math.random() * 18,
       color: "rgb(" + g + "," + g + "," + g + ")",
-      life: 750 + Math.random() * 700,
+      life: 900 + Math.random() * 800,
+      // Buoyancy: smoke floats upward against default gravity.
+      gravity: -0.00018,
     });
   }
 }

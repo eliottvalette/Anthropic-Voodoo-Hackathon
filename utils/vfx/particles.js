@@ -15,7 +15,9 @@ function updateParticles(particles, dt) {
     p.life -= dt;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    p.vy += 0.00055 * dt;
+    // Per-particle gravity allows buoyant effects (smoke) to rise.
+    // Default falls (positive y).
+    p.vy += (p.gravity !== undefined ? p.gravity : 0.00055) * dt;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }

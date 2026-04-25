@@ -82,7 +82,7 @@ export default function UtilsView() {
       <div className="flex-1 overflow-auto pb-4">
         <p className="text-[11px] text-gray-400 mb-3">{current.description}</p>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {visibleItems.map(item => (
             <UtilCard key={item.name} item={item} onViewSource={() => handleViewSource(item)} />
           ))}
@@ -103,10 +103,7 @@ export default function UtilsView() {
 
 function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () => void }) {
   return (
-    <button
-      onClick={onViewSource}
-      className="bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all overflow-hidden flex flex-col text-left group"
-    >
+    <div className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all overflow-hidden flex flex-col">
       <div className="bg-[#F6F9FC] aspect-[3/4] relative overflow-hidden border-b border-gray-100">
         {item.demo ? (
           <iframe
@@ -115,17 +112,38 @@ function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () 
             scrolling="no"
             sandbox="allow-scripts allow-same-origin"
             loading="lazy"
-            style={{ pointerEvents: 'none' }}
           />
         ) : null}
-        <div className="absolute inset-0 bg-transparent group-hover:bg-[#0F141C]/[0.03] transition-colors" />
       </div>
 
-      <div className="p-2.5 flex flex-col gap-1">
-        <div className="font-bold text-[#0F141C] text-[12px] leading-tight truncate">{item.name}</div>
-        <p className="text-[10px] text-gray-400 leading-snug line-clamp-2">{item.description}</p>
+      <div className="p-3.5 flex flex-col gap-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold text-[#0F141C] text-sm leading-tight">{item.name}</h3>
+          <button
+            onClick={onViewSource}
+            className="text-[10px] font-semibold text-[#0055FF] hover:underline shrink-0"
+          >
+            View source
+          </button>
+        </div>
+        <code className="text-[10.5px] text-gray-500 font-mono leading-snug break-all">
+          {item.signature}
+        </code>
+        <p className="text-[11px] text-gray-500 leading-snug">{item.description}</p>
+        {item.tags && item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-0.5">
+            {item.tags.map(t => (
+              <span
+                key={t}
+                className="px-1.5 py-0.5 rounded bg-[#F6F9FC] border border-gray-100 text-[9.5px] font-medium text-gray-500"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-    </button>
+    </div>
   )
 }
 

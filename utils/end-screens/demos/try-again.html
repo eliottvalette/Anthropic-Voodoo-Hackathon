@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>try-again demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
   canvas{background:linear-gradient(160deg,#7da45c,#9fb978);border-radius:8px;cursor:pointer;touch-action:none}
@@ -15,21 +17,35 @@
 <script>
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
-const headlines = ['ALMOST!','SO CLOSE','ONE MORE TRY','NEARLY THERE'];
+const variants = [
+  { primary: "ALMOST", secondary: "THERE" },
+  { primary: "SO",     secondary: "CLOSE" },
+  { primary: "ONE",    secondary: "MORE" },
+  { primary: "TRY",    secondary: "AGAIN" },
+];
 let i = 0;
 
-function draw() {
+function paintScene() {
   ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.fillStyle = '#0f1422';
-  ctx.fillRect(40,140, 280, 200);
+  ctx.fillStyle = '#0F141C';
+  ctx.beginPath();
+  ctx.moveTo(40,180); ctx.lineTo(70,140); ctx.lineTo(100,180);
+  ctx.lineTo(130,140); ctx.lineTo(160,180); ctx.lineTo(190,140); ctx.lineTo(220,180);
+  ctx.lineTo(220,440); ctx.lineTo(40,440); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#27a8ff';
-  ctx.fillRect(80,200, 60,120);
-  ctx.fillStyle = '#ed2024';
-  ctx.fillRect(220,200, 60,120);
-  drawTryAgain(ctx, cv.width, cv.height, { headline: headlines[i] });
+  ctx.fillRect(70,260,40,60);
+  ctx.fillStyle = 'rgba(0,0,0,0.20)';
+  ctx.fillRect(0, 480, cv.width, cv.height-480);
 }
+
+function draw() {
+  paintScene();
+  drawTryAgain(ctx, cv.width, cv.height, variants[i]);
+}
+
+document.fonts.ready.then(draw);
 draw();
-setInterval(() => { i = (i+1) % headlines.length; draw(); }, 1800);
+setInterval(() => { i = (i+1) % variants.length; draw(); }, 2200);
 </script>
 </body>
 </html>
