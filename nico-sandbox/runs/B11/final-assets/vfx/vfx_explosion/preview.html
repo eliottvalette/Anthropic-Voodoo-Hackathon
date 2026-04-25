@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>B11 Explosion VFX Preview</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #101318;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 12%, rgba(95, 135, 104, 0.24), transparent 32rem),
+          #101318;
+      }
+
+      main {
+        width: min(100vw, 420px);
+        padding: 14px;
+      }
+
+      #game {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 384 / 683;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #1d2420;
+      }
+
+      #status {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        padding: 6px 8px;
+        font-size: 11px;
+        color: #f7f2cf;
+        background: rgba(0, 0, 0, 0.38);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 6px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 120ms linear;
+      }
+
+      #status.visible {
+        opacity: 1;
+      }
+
+      .caption {
+        margin-top: 10px;
+        color: rgba(236, 241, 232, 0.72);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="game">
+        <div id="status"></div>
+      </div>
+      <div class="caption">Auto-looping procedural VFX generated from B11. Click or tap the playfield to spawn another burst.</div>
+    </main>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const setStatus = (message = "", isError = false) => {
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? "#ffd2d2" : "#f7f2cf";
+        statusEl.classList.toggle("visible", Boolean(message));
+      };
+
+      function createExplosion(scene, x, y) {
+        const createTexture = (key, drawFn, size) => {
+          if (scene.textures.exists(key)) return;
+          const g = scene.make.graphics({ x: 0, y: 0, add: false });
+          drawFn(g);
+          g.generateTexture(key, size, size);
+          g.destroy();
+        };
+
+        createTexture("smoke_p", (g) => {
+          g.fillStyle(0xffffff, 1);
+          g.fillCircle(16, 16, 16);
+        }, 32);
+        createTexture("stone_p", (g) => {
+          g.fillStyle(0x6c6258, 1);
+          g.fillPoints(
+            [
+              { x: 8, y: 0 },
+              { x: 16, y: 8 },
+              { x: 12, y: 16 },
+              { x: 0, y: 12 },
+            ],
+            true
+          );
+        }, 16);
+        createTexture("spark_p", (g) => {
+          g.fillStyle(0xfff27a, 1);
+          g.fillRect(0, 7, 16, 2);
+        }, 16);
+        createTexture("crack_p", (g) => {
+          g.fillStyle(0x24201f, 1);
+          g.fillPoints(
+            [
+              { x: 16, y: 0 },
+              { x: 32, y: 10 },
+              { x: 28, y: 32 },
+              { x: 10, y: 28 },
+              { x: 0, y: 16 },
+            ],
+            true
+          );
+        }, 32);
+        createTexture("flash_p", (g) => {
+          g.fillStyle(0xfff5b4, 1);
+          g.fillCircle(32, 32, 32);
+        }, 64);
+
+        const flash = scene.add.image(x, y, "flash_p").setBlendMode(Phaser.BlendModes.ADD).setScale(0.15).setAlpha(0.95);
+        scene.tweens.add({
+          targets: flash,
+          scale: 1.9,
+          alpha: 0,
+          duration: 170,
+          ease: "Cubic.easeOut",
+          onComplete: () => flash.destroy(),
+        });
+
+        const crack = scene.add.image(x, y + 16, "crack_p").setScale(0).setAlpha(0.75);
+        scene.tweens.add({ targets: crack, scale: 2.7, duration: 120, ease: "Back.easeOut" });
+        scene.tweens.add({ targets: crack, alpha: 0, duration: 850, delay: 180, onComplete: () => crack.destroy() });
+
+        const smoke = scene.add.particles(x, y, "smoke_p", {
+          speed: { min: 34, max: 95 },
+          angle: { min: 210, max: 330 },
+          scale: { start: 0.45, end: 2.3 },
+          alpha: { start: 0.52, end: 0 },
+          tint: [0xc9c5b9, 0x8c897c, 0xf2d18c],
+          lifespan: 850,
+          quantity: 10,
+          emitting: false,
+        });
+
+        const debris = scene.add.particles(x, y, "stone_p", {
+          speed: { min: 120, max: 310 },
+          angle: { min: 200, max: 340 },
+          gravityY: 720,
+          rotate: { min: 0, max: 360 },
+          scale: { start: 0.9, end: 0.2 },
+          alpha: { start: 1, end: 0 },
+          lifespan: 980,
+          quantity: 8,
+          emitting: false,
+        });
+
+        const sparks = scene.add.particles(x, y, "spark_p", {
+          speed: { min: 320, max: 680 },
+          angle: { min: 190, max: 350 },
+          lifespan: 260,
+          scaleX: { start: 3.2, end: 0 },
+          scaleY: 0.22,
+          rotate: (particle) => Phaser.Math.RadToDeg(Math.atan2(particle.velocityY, particle.velocityX)),
+          blendMode: Phaser.BlendModes.ADD,
+          tint: [0xfff27a, 0xffb13d, 0xffffff],
+          quantity: 18,
+          emitting: false,
+        });
+
+        smoke.explode();
+        debris.explode();
+        sparks.explode();
+
+        scene.time.delayedCall(1300, () => {
+          smoke.destroy();
+          debris.destroy();
+          sparks.destroy();
+        });
+      }
+
+      class PreviewScene extends Phaser.Scene {
+        preload() {
+          this.load.image("bg", "../../backgrounds/bg_gameplay.png");
+        }
+
+        create() {
+          this.add.image(192, 341.5, "bg").setDisplaySize(384, 683);
+          this.add.rectangle(192, 650, 384, 78, 0x301d1d, 0.28);
+
+          const spawn = (x = 192, y = 475) => {
+            try {
+              createExplosion(this, x, y);
+              setStatus("");
+            } catch (error) {
+              console.error("Explosion spawn failed:", error);
+              const msg = error instanceof Error ? error.message : String(error);
+              setStatus(`Spawn error: ${msg}`, true);
+            }
+          };
+
+          this.input.on("pointerdown", (pointer) => spawn(pointer.x, pointer.y));
+          this.time.addEvent({
+            delay: 1500,
+            loop: true,
+            callback: () => spawn(144 + Math.random() * 96, 438 + Math.random() * 72),
+          });
+          spawn();
+        }
+      }
+
+      new Phaser.Game({
+        type: Phaser.AUTO,
+        parent: "game",
+        backgroundColor: "#1d2420",
+        width: 384,
+        height: 683,
+        scale: {
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
+        scene: PreviewScene,
+      });
+    </script>
+  </body>
+</html>

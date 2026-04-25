@@ -1,0 +1,316 @@
+{
+  "plan": {
+    "asset_id": "char_ninja",
+    "route": "character_rig",
+    "category": "character",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/full.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/asset_manifest.json",
+    "steps": [
+      "upload_best_seed_crop",
+      "scenario_gemini_clean_full_body",
+      "photoroom_alpha",
+      "scenario_gemini_part_sheet",
+      "slice_part_sheet",
+      "optional_sam_or_qwen_fallback",
+      "emit_rig_json"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_photoroom-background-removal",
+      "model_pixa-background-removal",
+      "model_scenario-padding-remover",
+      "model_meta-sam-3-1-image",
+      "model_qwen-image-layered"
+    ],
+    "gemini_tasks": [
+      "part_label_qa",
+      "pivot_anchor_estimation",
+      "animation_suggestion"
+    ],
+    "outputs": {
+      "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/full.png",
+      "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts_sheet.png",
+      "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts",
+      "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/rig.json",
+      "expected_parts": [
+        "shadow",
+        "body",
+        "head",
+        "arm_back",
+        "arm_front",
+        "leg_back",
+        "leg_front",
+        "weapon"
+      ],
+      "part_sheet_grid": {
+        "columns": 4,
+        "rows": 2,
+        "order": [
+          "head",
+          "body",
+          "arm_front",
+          "arm_back",
+          "leg_front",
+          "leg_back",
+          "weapon",
+          "shadow"
+        ]
+      },
+      "rig_template": {
+        "asset_id": "char_ninja",
+        "version": 1,
+        "coordinate_space": "normalized_source_image",
+        "anchor": {
+          "x": 0.5,
+          "y": 0.92
+        },
+        "parts": [
+          {
+            "id": "shadow",
+            "file": "parts/shadow.png",
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "draw_order": 0
+          },
+          {
+            "id": "leg_back",
+            "file": "parts/leg_back.png",
+            "pivot": {
+              "x": 0.5,
+              "y": 0.18
+            },
+            "draw_order": 1
+          },
+          {
+            "id": "body",
+            "file": "parts/body.png",
+            "pivot": {
+              "x": 0.5,
+              "y": 0.62
+            },
+            "draw_order": 2
+          },
+          {
+            "id": "arm_back",
+            "file": "parts/arm_back.png",
+            "pivot": {
+              "x": 0.3,
+              "y": 0.22
+            },
+            "draw_order": 3
+          },
+          {
+            "id": "head",
+            "file": "parts/head.png",
+            "pivot": {
+              "x": 0.5,
+              "y": 0.72
+            },
+            "draw_order": 4
+          },
+          {
+            "id": "leg_front",
+            "file": "parts/leg_front.png",
+            "pivot": {
+              "x": 0.5,
+              "y": 0.18
+            },
+            "draw_order": 5
+          },
+          {
+            "id": "arm_front",
+            "file": "parts/arm_front.png",
+            "pivot": {
+              "x": 0.3,
+              "y": 0.22
+            },
+            "draw_order": 6
+          },
+          {
+            "id": "weapon",
+            "file": "parts/weapon.png",
+            "pivot": {
+              "x": 0.18,
+              "y": 0.5
+            },
+            "draw_order": 7
+          }
+        ],
+        "animations": [
+          {
+            "id": "idle",
+            "duration_ms": 900,
+            "loop": true,
+            "description": "subtle breathing/bounce using body, head, and arm rotations"
+          },
+          {
+            "id": "attack",
+            "duration_ms": 500,
+            "loop": false,
+            "description": "anticipation, strike/release, recoil"
+          },
+          {
+            "id": "hit",
+            "duration_ms": 300,
+            "loop": false,
+            "description": "quick backward squash, tint flash, recover"
+          }
+        ]
+      }
+    },
+    "prompts": {
+      "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Ninja Unit\nDescription: A small character dressed in purple ninja garb.\nGameplay role: \n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+      "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+    },
+    "notes": [
+      "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+    ]
+  },
+  "result": {
+    "asset_id": "char_ninja",
+    "name": "Ninja Unit",
+    "category": "character",
+    "route": "character_rig",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_ninja.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/full.png",
+    "rig_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/rig.json",
+    "scenario_asset_id": "asset_u8xm589dPDjvjdGjpoCJAYp1",
+    "part_errors": [],
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_E1uYGe4DGZC3f6g9gzMvpbRM"
+      },
+      {
+        "step": "reference_guided_character_seed",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_mp3UYaR3oFTa3PqNFxb9Y8Ek",
+        "asset_ids": [
+          "asset_cnEyxNBKNN8qDitb8trhL1WR",
+          "asset_TDAsfWkQaxiHEEDKcPJvMQQX",
+          "asset_QJbrohAc99sjqupRU6rf2Ccu",
+          "asset_vxWYA9MgamqLk8Uh2RBA9boT"
+        ],
+        "selected_asset_id": "asset_vxWYA9MgamqLk8Uh2RBA9boT"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_LHtgbuM8UNhfNjQVzxJGHgSL",
+        "asset_id": "asset_uvUk7P3GpzQs5j89WBvg5EHL",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_WgEfxavzPtPbG1dHcme5yPiM ended with status failure: {'jobId': 'job_WgEfxavzPtPbG1dHcme5yPiM', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_vxWYA9MgamqLk8Uh2RBA9boT'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T15:01:06.747Z', 'updatedAt': '2026-04-25T15:01:14.563Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T15:01:06.747Z'}, {'status': 'in-progress', 'date': '2026-04-25T15:01:07.283Z'}, {'status': 'failure', 'date': '2026-04-25T15:01:14.563Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_TGn8begoqDcJAnu8DED7eamv",
+        "asset_id": "asset_u8xm589dPDjvjdGjpoCJAYp1"
+      },
+      {
+        "step": "emit_rig_json",
+        "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/rig.json"
+      },
+      {
+        "step": "character_parts_sheet_generation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_m4T2K61YaEiCbLGahnUETRC4",
+        "asset_id": "asset_xiiAysX1tHfhDN6BoAFBV9Mt"
+      },
+      {
+        "step": "parts_sheet_background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_5EDMk3Pw66zYXpTbJLJDnwT1",
+        "asset_id": "asset_U59pHgVu8JKYMrgvQphoaFM6",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_FpTAU5gwxJerxLDSErCToLeL ended with status failure: {'jobId': 'job_FpTAU5gwxJerxLDSErCToLeL', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_xiiAysX1tHfhDN6BoAFBV9Mt'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T15:02:03.430Z', 'updatedAt': '2026-04-25T15:02:11.166Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T15:02:03.429Z'}, {'status': 'in-progress', 'date': '2026-04-25T15:02:04.282Z'}, {'status': 'failure', 'date': '2026-04-25T15:02:11.166Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "download_parts_sheet",
+        "asset_id": "asset_U59pHgVu8JKYMrgvQphoaFM6",
+        "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts_sheet.png"
+      },
+      {
+        "step": "slice_part_sheet",
+        "parts": [
+          {
+            "part": "head",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/head.png",
+            "size": [
+              294,
+              250
+            ]
+          },
+          {
+            "part": "body",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/body.png",
+            "size": [
+              224,
+              220
+            ]
+          },
+          {
+            "part": "arm_front",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/arm_front.png",
+            "size": [
+              153,
+              137
+            ]
+          },
+          {
+            "part": "arm_back",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/arm_back.png",
+            "size": [
+              88,
+              78
+            ]
+          },
+          {
+            "part": "leg_front",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/leg_front.png",
+            "size": [
+              145,
+              172
+            ]
+          },
+          {
+            "part": "leg_back",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/leg_back.png",
+            "size": [
+              121,
+              171
+            ]
+          },
+          {
+            "part": "weapon",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/weapon.png",
+            "size": [
+              207,
+              122
+            ]
+          },
+          {
+            "part": "shadow",
+            "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/char_ninja/parts/shadow.png",
+            "size": [
+              197,
+              77
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "plan": {
+    "asset_id": "ui_play_button",
+    "route": "ui_asset",
+    "category": "ui",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_play_button.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/ui_play_button.json",
+    "steps": [
+      "gemini_ui_description",
+      "choose_html_svg_or_png",
+      "optional_ui_lora_recreation",
+      "qa_legibility"
+    ],
+    "scenario_models": [
+      "model_2CrDSJ7FsBZckLpakS4JyS6A",
+      "model_mcYj5uGzXteUw6tKapsaDgBP"
+    ],
+    "gemini_tasks": [
+      "ocr",
+      "layout_description",
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_play_button.png",
+      "ui_lora_candidates": [
+        {
+          "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+          "name": "Human Interface 2.0",
+          "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+        },
+        {
+          "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+          "name": "Game UI Essentials 2.0",
+          "best_for": "icons, buttons, badges, and casual mobile UI elements"
+        }
+      ]
+    },
+    "prompts": {
+      "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Play Button\nCategory: ui\nDescription: A wooden button with the word 'PLAY' on it.\nGameplay role: \n\nPreserve the source asset's silhouette, color family, proportions, camera angle, readable details, and casual mobile-game rendering style.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+    },
+    "notes": [
+      "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+    ]
+  },
+  "result": {
+    "asset_id": "ui_play_button",
+    "name": "Play Button",
+    "category": "ui",
+    "route": "ui_asset",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_play_button.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_play_button.png",
+    "scenario_asset_id": "asset_CkSZWNFqjfSQwnwCThfv1exn",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_aNyrcKnzgqfekM5X1NYqJhUa"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_rftZD9fdTxSuX3C9PqREfVTT",
+        "asset_ids": [
+          "asset_EzP1FcgsvuyW5yZoPPyFpzmy",
+          "asset_R2zGYBrG6qsFxNe8i6jcAvhk",
+          "asset_Z1uyaXVXfo1ciM3iqKR9kyM8",
+          "asset_JhRadjimAwALzF6HGLDvNz4m"
+        ],
+        "selected_asset_id": "asset_JhRadjimAwALzF6HGLDvNz4m"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_ropG6rifUpG8qCT2CEs691LB",
+        "asset_id": "asset_geLBmC1dxmiTayQASUh14X3B",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_Hq3Pm4ZXRm8UjD8qFoEdfJdr ended with status failure: {'jobId': 'job_Hq3Pm4ZXRm8UjD8qFoEdfJdr', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_JhRadjimAwALzF6HGLDvNz4m'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T14:59:55.629Z', 'updatedAt': '2026-04-25T15:00:03.608Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T14:59:55.629Z'}, {'status': 'in-progress', 'date': '2026-04-25T14:59:56.438Z'}, {'status': 'failure', 'date': '2026-04-25T15:00:03.608Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_Z9mzGWVL1BjyW4xo8HX7vUWp",
+        "asset_id": "asset_CkSZWNFqjfSQwnwCThfv1exn"
+      }
+    ]
+  }
+}
