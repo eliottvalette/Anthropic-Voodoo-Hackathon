@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hand Tutorial Editor — POC</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --border: #e3e7ee;
+    --ink: #14171c;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --danger: #dc2626;
+    --good: #059669;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  body { display: grid; grid-template-rows: auto 1fr; }
+
+  header {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  header h1 { margin: 0 12px 0 0; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  header input[type="text"] { flex: 1 1 280px; min-width: 220px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 13px; }
+  header button, header label.btn { padding: 6px 12px; font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--panel); border-radius: 6px; cursor: pointer; color: var(--ink); }
+  header button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  header button.primary:hover { background: #000; }
+  header button:hover { background: #f1f3f8; }
+  header .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  header .mode-toggle button { border: 0; border-radius: 0; }
+  header .mode-toggle button.active { background: var(--accent); color: white; }
+
+  main { display: grid; grid-template-columns: 1fr 360px; min-height: 0; }
+
+  .stage-wrap { padding: 16px; overflow: auto; display: flex; align-items: flex-start; justify-content: center; }
+  .stage {
+    position: relative;
+    width: 430px; height: 820px;
+    background: #000;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    flex: 0 0 auto;
+  }
+  .stage iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000;
+    z-index: 1;
+  }
+  .preview-layer {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  }
+  .marker-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .anchor-dot {
+    position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    border-radius: 50%; background: #ffd400;
+    border: 2px solid rgba(0,0,0,0.55);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .anchor-dot.end { background: #ff6b6b; }
+  .anchor-line { position: absolute; height: 2px; background: rgba(255,212,0,0.85); transform-origin: 0 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+  .anchor-label {
+    position: absolute; transform: translate(8px, -22px);
+    background: rgba(20, 23, 28, 0.92); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    white-space: nowrap; letter-spacing: 0.04em;
+  }
+  .capture-layer {
+    position: absolute; inset: 0; z-index: 3;
+    cursor: crosshair;
+    background: transparent;
+  }
+  .capture-layer.disabled { pointer-events: none; cursor: default; }
+  .capture-marker {
+    position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border: 2px solid #ffd400; border-radius: 50%;
+    background: rgba(255,212,0,0.18);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+  .capture-line {
+    position: absolute; height: 3px; background: #ffd400;
+    transform-origin: 0 50%;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  }
+
+  aside.panel {
+    background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  aside.panel .scroll {
+    overflow: auto; padding: 12px; flex: 1;
+  }
+  aside.panel h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .gesture {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: #fafbfd;
+  }
+  .gesture.active { border-color: var(--accent); background: var(--accent-soft); }
+  .gesture .row { display: grid; grid-template-columns: 90px 1fr; gap: 6px; align-items: center; font-size: 12px; }
+  .gesture .row + .row { margin-top: 6px; }
+  .gesture .row label { color: var(--muted); }
+  .gesture .row input[type="text"], .gesture .row input[type="number"] {
+    padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; font: inherit; font-size: 12px;
+    width: 100%;
+  }
+  .gesture header.gesture-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0; margin-bottom: 8px; border: 0; background: transparent;
+  }
+  .gesture header.gesture-header strong { font-size: 13px; }
+  .gesture header.gesture-header .badge {
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px; background: #1f2937; color: white;
+  }
+  .gesture header.gesture-header .badge.swipe { background: #1e40af; }
+  .gesture header.gesture-header .badge.click { background: #6b21a8; }
+  .gesture .actions { display: flex; gap: 6px; }
+  .gesture button {
+    border: 1px solid var(--border); background: white; border-radius: 5px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+  }
+  .gesture button:hover { background: #f1f3f8; }
+  .gesture button.danger { color: var(--danger); border-color: #fecaca; }
+
+  .empty { color: var(--muted); font-size: 12px; padding: 20px; text-align: center; border: 1px dashed var(--border); border-radius: 8px; background: #fafbfd; }
+
+  footer.panel-footer {
+    border-top: 1px solid var(--border); padding: 10px 12px; display: flex; gap: 8px; flex-direction: column;
+    background: #fafbfd;
+  }
+  footer.panel-footer button {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  footer.panel-footer button.primary { background: var(--ink); color: white; border-color: var(--ink); }
+  footer.panel-footer .hint { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  .toast {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #14171c; color: white; padding: 10px 14px; border-radius: 8px; font-size: 13px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 99;
+    transition: opacity 0.25s ease;
+  }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--good); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Hand Tutorial Editor</h1>
+  <input type="text" id="playable-url" value="../../ressources/Playable Example/MarbleSort.html" />
+  <button id="reload-btn">Reload</button>
+  <span class="mode-toggle">
+    <button id="mode-click" class="active">Click</button>
+    <button id="mode-swipe">Swipe</button>
+  </span>
+  <button id="replay-btn">Replay preview</button>
+  <button id="export-btn" class="primary">Export HTML</button>
+</header>
+
+<main>
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <iframe id="game-frame" src="" allow="autoplay"></iframe>
+      <div class="preview-layer" id="preview-layer"></div>
+      <div class="marker-layer" id="marker-layer"></div>
+      <div class="capture-layer" id="capture-layer"></div>
+    </div>
+  </div>
+
+  <aside class="panel">
+    <div class="scroll" id="gesture-list">
+      <h2>Gestures</h2>
+      <div class="empty" id="empty-state">
+        Choose <strong>Click</strong> or <strong>Swipe</strong>, then tap or drag on the playable on the left.
+      </div>
+    </div>
+    <footer class="panel-footer">
+      <button id="clear-btn">Clear all gestures</button>
+      <p class="hint">
+        Coordinates are stored as percentages (0–100) of the playable viewport, so the hand stays in place across phone sizes. Export produces a standalone HTML with the runtime inlined.
+      </p>
+    </footer>
+  </aside>
+</main>
+
+<script src="tutorial_hand_animation.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const state = {
+    mode: "click",
+    gestures: [],
+    nextId: 1,
+    handles: [],
+    runtimeSource: null
+  };
+
+  const els = {
+    iframe: document.getElementById("game-frame"),
+    stage: document.getElementById("stage"),
+    preview: document.getElementById("preview-layer"),
+    markers: document.getElementById("marker-layer"),
+    capture: document.getElementById("capture-layer"),
+    list: document.getElementById("gesture-list"),
+    empty: document.getElementById("empty-state"),
+    modeClick: document.getElementById("mode-click"),
+    modeSwipe: document.getElementById("mode-swipe"),
+    replay: document.getElementById("replay-btn"),
+    exportBtn: document.getElementById("export-btn"),
+    clearBtn: document.getElementById("clear-btn"),
+    reloadBtn: document.getElementById("reload-btn"),
+    urlInput: document.getElementById("playable-url")
+  };
+
+  function toast(msg, kind) {
+    const t = document.createElement("div");
+    t.className = "toast" + (kind ? " " + kind : "");
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = "0"; }, 2400);
+    setTimeout(() => t.remove(), 2800);
+  }
+
+  function loadIframe() {
+    const url = els.urlInput.value.trim();
+    if (!url) return;
+    els.iframe.src = url;
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    els.modeClick.classList.toggle("active", mode === "click");
+    els.modeSwipe.classList.toggle("active", mode === "swipe");
+  }
+
+  function pctFromEvent(ev) {
+    const rect = els.capture.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100)),
+      y: Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100))
+    };
+  }
+
+  function addGesture(g) {
+    const num = state.nextId++;
+    g.id = "g" + num;
+    g.name = g.name || (g.mode === "click" ? "Tap " + num : "Swipe " + num);
+    g.delay = g.delay ?? 600;
+    g.duration = g.duration ?? (g.mode === "click" ? 1800 : 1500);
+    g.repeat = g.repeat ?? true;
+    state.gestures.push(g);
+    renderList();
+    renderPreview();
+  }
+
+  function updateGesture(id, patch) {
+    const g = state.gestures.find(x => x.id === id);
+    if (!g) return;
+    Object.assign(g, patch);
+    renderList();
+    renderPreview();
+  }
+
+  function removeGesture(id) {
+    state.gestures = state.gestures.filter(g => g.id !== id);
+    renderList();
+    renderPreview();
+  }
+
+  function renderList() {
+    const existingHeaders = els.list.querySelectorAll("h2");
+    els.list.innerHTML = "";
+    const h = document.createElement("h2");
+    h.textContent = "Gestures (" + state.gestures.length + ")";
+    els.list.appendChild(h);
+
+    if (state.gestures.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML = "Choose <strong>Click</strong> or <strong>Swipe</strong>, then tap or drag on the playable on the left.";
+      els.list.appendChild(empty);
+      return;
+    }
+
+    state.gestures.forEach(g => {
+      const card = document.createElement("div");
+      card.className = "gesture";
+
+      const head = document.createElement("header");
+      head.className = "gesture-header";
+      const left = document.createElement("div");
+      const badge = document.createElement("span");
+      badge.className = "badge " + g.mode;
+      badge.textContent = g.mode;
+      const name = document.createElement("strong");
+      name.textContent = " " + g.name;
+      left.appendChild(badge);
+      left.appendChild(name);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const replayBtn = document.createElement("button");
+      replayBtn.textContent = "↻";
+      replayBtn.title = "Replay";
+      replayBtn.onclick = () => renderPreview();
+      const delBtn = document.createElement("button");
+      delBtn.className = "danger";
+      delBtn.textContent = "✕";
+      delBtn.title = "Delete";
+      delBtn.onclick = () => removeGesture(g.id);
+      actions.appendChild(replayBtn);
+      actions.appendChild(delBtn);
+
+      head.appendChild(left);
+      head.appendChild(actions);
+      card.appendChild(head);
+
+      function row(label, child) {
+        const r = document.createElement("div");
+        r.className = "row";
+        const lab = document.createElement("label");
+        lab.textContent = label;
+        r.appendChild(lab);
+        r.appendChild(child);
+        card.appendChild(r);
+      }
+
+      function input(type, value, onchange) {
+        const inp = document.createElement("input");
+        inp.type = type;
+        inp.value = value;
+        inp.oninput = () => onchange(type === "number" ? Number(inp.value) : inp.value);
+        return inp;
+      }
+
+      row("Name", input("text", g.name, v => updateGesture(g.id, { name: v })));
+
+      if (g.mode === "click") {
+        row("X (%)", input("number", g.at.x.toFixed(1), v => updateGesture(g.id, { at: { ...g.at, x: v } })));
+        row("Y (%)", input("number", g.at.y.toFixed(1), v => updateGesture(g.id, { at: { ...g.at, y: v } })));
+      } else {
+        row("From X", input("number", g.from.x.toFixed(1), v => updateGesture(g.id, { from: { ...g.from, x: v } })));
+        row("From Y", input("number", g.from.y.toFixed(1), v => updateGesture(g.id, { from: { ...g.from, y: v } })));
+        row("To X", input("number", g.to.x.toFixed(1), v => updateGesture(g.id, { to: { ...g.to, x: v } })));
+        row("To Y", input("number", g.to.y.toFixed(1), v => updateGesture(g.id, { to: { ...g.to, y: v } })));
+      }
+      row("Delay (ms)", input("number", g.delay, v => updateGesture(g.id, { delay: v })));
+      row("Duration (ms)", input("number", g.duration, v => updateGesture(g.id, { duration: v })));
+
+      const repeatRow = document.createElement("div");
+      repeatRow.className = "row";
+      const repeatLab = document.createElement("label");
+      repeatLab.textContent = "Repeat";
+      const repeatBox = document.createElement("input");
+      repeatBox.type = "checkbox";
+      repeatBox.checked = !!g.repeat;
+      repeatBox.style.justifySelf = "start";
+      repeatBox.onchange = () => updateGesture(g.id, { repeat: repeatBox.checked });
+      repeatRow.appendChild(repeatLab);
+      repeatRow.appendChild(repeatBox);
+      card.appendChild(repeatRow);
+
+      els.list.appendChild(card);
+    });
+  }
+
+  function clearPreview() {
+    state.handles.forEach(h => { try { h.remove(); } catch (e) {} });
+    state.handles = [];
+    if (els.markers) els.markers.innerHTML = "";
+  }
+
+  function pctToPx(point, rect) {
+    return { x: point.x * rect.width / 100, y: point.y * rect.height / 100 };
+  }
+
+  function renderMarkers(rect) {
+    els.markers.innerHTML = "";
+    state.gestures.forEach(g => {
+      if (g.mode === "click") {
+        const p = pctToPx(g.at, rect);
+        const dot = document.createElement("div");
+        dot.className = "anchor-dot";
+        dot.style.left = p.x + "px";
+        dot.style.top = p.y + "px";
+        const label = document.createElement("div");
+        label.className = "anchor-label";
+        label.textContent = g.name;
+        label.style.left = p.x + "px";
+        label.style.top = p.y + "px";
+        els.markers.appendChild(dot);
+        els.markers.appendChild(label);
+      } else {
+        const a = pctToPx(g.from, rect);
+        const b = pctToPx(g.to, rect);
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const angle = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+        const line = document.createElement("div");
+        line.className = "anchor-line";
+        line.style.left = a.x + "px";
+        line.style.top = a.y + "px";
+        line.style.width = len + "px";
+        line.style.transform = "rotate(" + angle + "deg)";
+        const dotA = document.createElement("div");
+        dotA.className = "anchor-dot";
+        dotA.style.left = a.x + "px";
+        dotA.style.top = a.y + "px";
+        const dotB = document.createElement("div");
+        dotB.className = "anchor-dot end";
+        dotB.style.left = b.x + "px";
+        dotB.style.top = b.y + "px";
+        const label = document.createElement("div");
+        label.className = "anchor-label";
+        label.textContent = g.name;
+        label.style.left = a.x + "px";
+        label.style.top = a.y + "px";
+        els.markers.appendChild(line);
+        els.markers.appendChild(dotA);
+        els.markers.appendChild(dotB);
+        els.markers.appendChild(label);
+      }
+    });
+  }
+
+  function renderPreview() {
+    clearPreview();
+    const rect = els.preview.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    renderMarkers(rect);
+    state.gestures.forEach(g => {
+      const opts = {
+        container: els.preview,
+        mode: g.mode,
+        coordinateSize: { width: rect.width, height: rect.height },
+        fit: "stretch",
+        delay: g.delay || 0,
+        duration: g.duration,
+        repeat: !!g.repeat
+      };
+      if (g.mode === "click") {
+        opts.at = pctToPx(g.at, rect);
+      } else {
+        opts.from = pctToPx(g.from, rect);
+        opts.to = pctToPx(g.to, rect);
+      }
+      try {
+        const h = window.TutorialHand.show(opts);
+        state.handles.push(h);
+      } catch (err) {
+        console.error("Failed to render gesture", g, err);
+      }
+    });
+  }
+
+  let dragStart = null;
+  let dragMarker = null;
+  let dragLine = null;
+
+  els.capture.addEventListener("pointerdown", (ev) => {
+    ev.preventDefault();
+    els.capture.setPointerCapture(ev.pointerId);
+    const p = pctFromEvent(ev);
+    dragStart = { ...p, clientX: ev.clientX, clientY: ev.clientY };
+
+    if (state.mode === "click") {
+      addGesture({ mode: "click", at: { x: p.x, y: p.y } });
+      return;
+    }
+
+    dragMarker = document.createElement("div");
+    dragMarker.className = "capture-marker";
+    dragMarker.style.left = ev.clientX - els.capture.getBoundingClientRect().left + "px";
+    dragMarker.style.top = ev.clientY - els.capture.getBoundingClientRect().top + "px";
+    els.capture.appendChild(dragMarker);
+
+    dragLine = document.createElement("div");
+    dragLine.className = "capture-line";
+    dragLine.style.left = dragMarker.style.left;
+    dragLine.style.top = dragMarker.style.top;
+    dragLine.style.width = "0px";
+    els.capture.appendChild(dragLine);
+  });
+
+  els.capture.addEventListener("pointermove", (ev) => {
+    if (!dragStart || state.mode !== "swipe" || !dragLine) return;
+    const rect = els.capture.getBoundingClientRect();
+    const dx = ev.clientX - dragStart.clientX;
+    const dy = ev.clientY - dragStart.clientY;
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    dragLine.style.width = len + "px";
+    dragLine.style.transform = "rotate(" + angle + "deg)";
+  });
+
+  function endDrag(ev) {
+    if (!dragStart) return;
+    const p = pctFromEvent(ev);
+    if (state.mode === "swipe") {
+      const distance = Math.hypot(p.x - dragStart.x, p.y - dragStart.y);
+      if (distance > 1.5) {
+        addGesture({
+          mode: "swipe",
+          from: { x: dragStart.x, y: dragStart.y },
+          to: { x: p.x, y: p.y }
+        });
+      }
+    }
+    if (dragMarker) { dragMarker.remove(); dragMarker = null; }
+    if (dragLine) { dragLine.remove(); dragLine = null; }
+    dragStart = null;
+  }
+
+  els.capture.addEventListener("pointerup", endDrag);
+  els.capture.addEventListener("pointercancel", endDrag);
+
+  els.modeClick.onclick = () => setMode("click");
+  els.modeSwipe.onclick = () => setMode("swipe");
+  els.replay.onclick = renderPreview;
+  els.reloadBtn.onclick = () => { loadIframe(); };
+  els.clearBtn.onclick = () => {
+    if (state.gestures.length === 0) return;
+    if (!confirm("Clear all gestures?")) return;
+    state.gestures = [];
+    clearPreview();
+    renderList();
+  };
+
+  async function fetchRuntimeSource() {
+    if (state.runtimeSource) return state.runtimeSource;
+    try {
+      const res = await fetch("tutorial_hand_animation.js");
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      state.runtimeSource = await res.text();
+      return state.runtimeSource;
+    } catch (err) {
+      throw new Error("Couldn't load tutorial_hand_animation.js: " + err.message + ". Serve this folder over HTTP (e.g. `python3 -m http.server`).");
+    }
+  }
+
+  async function fetchPlayableSource() {
+    const url = els.urlInput.value.trim();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Couldn't fetch playable: HTTP " + res.status);
+    return res.text();
+  }
+
+  function buildInjection(runtimeSrc, gestures) {
+    const safeGestures = gestures.map(g => {
+      const base = {
+        id: g.id,
+        name: g.name,
+        mode: g.mode,
+        delay: g.delay || 0,
+        duration: g.duration,
+        repeat: !!g.repeat
+      };
+      if (g.mode === "click") base.at = g.at;
+      else { base.from = g.from; base.to = g.to; }
+      return base;
+    });
+
+    return `
+<!-- Tutorial hand runtime injected by hand_editor.html -->
+<script>${runtimeSrc}<\/script>
+<script>
+(function () {
+  var GESTURES = ${JSON.stringify(safeGestures, null, 2)};
+  // Auto-dismiss tolerances (relative to the playable container)
+  var CLICK_RADIUS_FRAC = 0.12;       // tap within 12% of max(w,h) of target
+  var SWIPE_START_RADIUS_FRAC = 0.20; // swipe start within 20% of "from"
+  var SWIPE_MIN_LENGTH_FRAC = 0.40;   // user swipe length >= 40% of expected length
+  var SWIPE_DIRECTION_DOT = 0.5;      // direction within ~60 degrees of expected
+
+  function pctToPx(p, rect) { return { x: p.x * rect.width / 100, y: p.y * rect.height / 100 }; }
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function relPoint(ev, rect) { return { x: ev.clientX - rect.left, y: ev.clientY - rect.top }; }
+
+  function bootHands() {
+    var container = document.getElementById("GameDiv") || document.body;
+    var slots = []; // { gesture, handle, dismissed }
+
+    function rect() { return container.getBoundingClientRect(); }
+
+    function showSlot(slot) {
+      if (slot.handle) { try { slot.handle.remove(); } catch (e) {} slot.handle = null; }
+      if (slot.dismissed) return;
+      var r = rect();
+      if (r.width === 0 || r.height === 0) return;
+      var g = slot.gesture;
+      var opts = {
+        container: container,
+        mode: g.mode,
+        coordinateSize: { width: r.width, height: r.height },
+        fit: "stretch",
+        delay: g.delay,
+        duration: g.duration,
+        repeat: g.repeat
+      };
+      if (g.mode === "click") opts.at = pctToPx(g.at, r);
+      else { opts.from = pctToPx(g.from, r); opts.to = pctToPx(g.to, r); }
+      try { slot.handle = window.TutorialHand.show(opts); }
+      catch (err) { console.error("[hand-tutorial] gesture failed", g, err); }
+    }
+
+    function dismissSlot(slot) {
+      if (slot.dismissed) return;
+      slot.dismissed = true;
+      if (slot.handle) { try { slot.handle.remove(); } catch (e) {} slot.handle = null; }
+    }
+
+    function showAll() {
+      slots.forEach(showSlot);
+    }
+
+    GESTURES.forEach(function (g) { slots.push({ gesture: g, handle: null, dismissed: false }); });
+    showAll();
+
+    var resizeTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(showAll, 120);
+    });
+
+    // --- Auto-dismiss: detect when the user actually performs the gesture ---
+    var pending = null; // { x, y, rect, time } captured on pointerdown
+
+    function tryMatchClick(ev) {
+      var r = rect();
+      var p = relPoint(ev, r);
+      var maxDim = Math.max(r.width, r.height);
+      slots.forEach(function (slot) {
+        if (slot.dismissed || slot.gesture.mode !== "click") return;
+        var target = pctToPx(slot.gesture.at, r);
+        if (dist(p, target) <= maxDim * CLICK_RADIUS_FRAC) dismissSlot(slot);
+      });
+    }
+
+    function tryMatchSwipe(downP, upP, r) {
+      var maxDim = Math.max(r.width, r.height);
+      slots.forEach(function (slot) {
+        if (slot.dismissed || slot.gesture.mode !== "swipe") return;
+        var from = pctToPx(slot.gesture.from, r);
+        var to = pctToPx(slot.gesture.to, r);
+        if (dist(downP, from) > maxDim * SWIPE_START_RADIUS_FRAC) return;
+        var ex = to.x - from.x, ey = to.y - from.y;
+        var ax = upP.x - downP.x, ay = upP.y - downP.y;
+        var elen = Math.hypot(ex, ey), alen = Math.hypot(ax, ay);
+        if (elen === 0 || alen < elen * SWIPE_MIN_LENGTH_FRAC) return;
+        var dot = (ex * ax + ey * ay) / (elen * alen);
+        if (dot >= SWIPE_DIRECTION_DOT) dismissSlot(slot);
+      });
+    }
+
+    document.addEventListener("pointerdown", function (ev) {
+      var r = rect();
+      var p = relPoint(ev, r);
+      pending = { down: p, rect: r, time: Date.now() };
+      tryMatchClick(ev);
+    }, true);
+
+    document.addEventListener("pointerup", function (ev) {
+      if (!pending) return;
+      var r = pending.rect;
+      var up = relPoint(ev, r);
+      tryMatchSwipe(pending.down, up, r);
+      pending = null;
+    }, true);
+
+    document.addEventListener("pointercancel", function () { pending = null; }, true);
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(bootHands, 50);
+  } else {
+    document.addEventListener("DOMContentLoaded", bootHands);
+  }
+}());
+<\/script>
+`;
+  }
+
+  async function exportHTML() {
+    if (state.gestures.length === 0) {
+      toast("Add at least one gesture before exporting.", "error");
+      return;
+    }
+    try {
+      const [runtimeSrc, playableSrc] = await Promise.all([fetchRuntimeSource(), fetchPlayableSource()]);
+      const injection = buildInjection(runtimeSrc, state.gestures);
+      let patched;
+      if (/<\/body>/i.test(playableSrc)) {
+        patched = playableSrc.replace(/<\/body>/i, injection + "</body>");
+      } else {
+        patched = playableSrc + injection;
+      }
+      const blob = new Blob([patched], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const baseName = (els.urlInput.value.split(/[\/\\]/).pop() || "playable.html").replace(/\.html?$/i, "");
+      a.href = url;
+      a.download = baseName + "_with_hands.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast("Exported " + a.download, "success");
+    } catch (err) {
+      console.error(err);
+      toast(err.message, "error");
+    }
+  }
+
+  els.exportBtn.onclick = exportHTML;
+
+  loadIframe();
+  renderList();
+
+  if (location.protocol === "file:") {
+    toast("Heads up: open this via `python3 -m http.server` from the repo root for export to work.", "error");
+  }
+})();
+</script>
+
+</body>
+</html>

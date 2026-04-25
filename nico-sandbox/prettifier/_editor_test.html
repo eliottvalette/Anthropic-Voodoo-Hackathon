@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html><body style="margin:0">
+<iframe id="frame" src="hand_editor.html" width="1280" height="900" style="border:0"></iframe>
+<script>
+  document.getElementById("frame").addEventListener("load", function () {
+    setTimeout(function () {
+      var w = document.getElementById("frame").contentWindow;
+      var d = document.getElementById("frame").contentDocument;
+      var capture = d.getElementById("capture-layer");
+      var rect = capture.getBoundingClientRect();
+      function fakePointer(type, x, y) {
+        var ev = new w.PointerEvent(type, { clientX: x, clientY: y, bubbles: true, pointerId: 1, pointerType: "mouse" });
+        capture.dispatchEvent(ev);
+      }
+      // Place a click at top-right (75%, 20%)
+      fakePointer("pointerdown", rect.left + rect.width * 0.75, rect.top + rect.height * 0.20);
+      fakePointer("pointerup",   rect.left + rect.width * 0.75, rect.top + rect.height * 0.20);
+      // Switch to swipe and place a diagonal swipe
+      d.getElementById("mode-swipe").click();
+      var fx = rect.left + rect.width * 0.20, fy = rect.top + rect.height * 0.65;
+      var tx = rect.left + rect.width * 0.80, ty = rect.top + rect.height * 0.40;
+      fakePointer("pointerdown", fx, fy);
+      fakePointer("pointermove", tx, ty);
+      fakePointer("pointerup",   tx, ty);
+    }, 1500);
+  });
+</script>
+</body></html>
