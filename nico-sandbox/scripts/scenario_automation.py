@@ -11,26 +11,54 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from google.genai import types
+from PIL import Image
 
+import asset_factories
 import asset_pipeline
 
 
 SCENARIO_BASE_URL = "https://api.cloud.scenario.com/v1"
 
-MODEL_GEMINI_EDIT = "model_google-gemini-3-1-flash"
-MODEL_BACKGROUND_REMOVE = "model_photoroom-background-removal"
-MODEL_PADDING_REMOVE = "model_scenario-padding-remover"
+MODEL_GEMINI_EDIT = asset_factories.MODEL_GEMINI_EDIT
+MODEL_BACKGROUND_REMOVE = asset_factories.MODEL_PHOTOROOM
+MODEL_PIXA_BACKGROUND_REMOVE = asset_factories.MODEL_PIXA_BACKGROUND_REMOVE
+MODEL_PADDING_REMOVE = asset_factories.MODEL_PADDING_REMOVER
+MODEL_SAM_IMAGE = asset_factories.MODEL_SAM_IMAGE
 
-FINAL_DIRS = {
-    "background": "backgrounds",
-    "castle": "props",
-    "character": "characters",
-    "projectile": "projectiles",
-    "weapon": "weapons",
-    "ui": "ui",
-    "effect": "vfx",
-    "other": "misc",
+BACKGROUND_REMOVE_MODELS = [MODEL_BACKGROUND_REMOVE, MODEL_PIXA_BACKGROUND_REMOVE]
+
+
+CHARACTER_PART_PROMPTS = {
+    "shadow": "Segment only the simple ground shadow under the character. Exclude the body and weapon.",
+    "body": "Segment only the torso/body clothing or armor. Exclude head, arms, legs, weapon, and shadow.",
+    "head": "Segment only the head and face. Exclude body, arms, legs, weapon, and shadow.",
+    "arm_back": "Segment only the rear/back arm if visible. Exclude torso, front arm, legs, weapon, and shadow.",
+    "arm_front": "Segment only the front/leading arm if visible. Exclude torso, rear arm, legs, weapon, and shadow.",
+    "leg_back": "Segment only the rear/back leg if visible. Exclude torso, front leg, arms, weapon, and shadow.",
+    "leg_front": "Segment only the front/leading leg if visible. Exclude torso, rear leg, arms, weapon, and shadow.",
+    "weapon": "Segment only the held weapon or carried tool if visible. Exclude character body, limbs, and shadow.",
 }
+
+
+CHARACTER_PART_SHEET_PROMPT_TEMPLATE = """
+Using the clean full-body character reference, create a production-ready transparent character parts sheet for 2D playable animation.
+
+Asset: {name}
+Description: {description}
+
+Output one image with a 4-column by 2-row layout. Each slot should contain exactly one isolated painted part on transparent background.
+Slot order, left to right:
+top row: head, body, arm_front, arm_back
+bottom row: leg_front, leg_back, weapon, shadow
+
+Rules:
+- Preserve the same character identity, palette, outline style, facing direction, weapon style, and proportions.
+- Draw the parts as usable color sprites, not white masks.
+- Keep each part centered inside its slot with transparent padding.
+- Do not draw labels, text, grid lines, scenery, UI, or a full assembled character.
+- If a part is barely visible in the reference, infer a plausible matching part from the character design.
+""".strip()
 
 
 @dataclass(frozen=True)
@@ -201,88 +229,124 @@ def resolve_path(value: str, run_dir: Path) -> Path:
 
 
 def prompt_for_item(item: dict[str, Any]) -> str:
-    if item.get("scenario_prompt"):
-        return str(item["scenario_prompt"])
-    category = str(item.get("category", "other"))
-    raw = {
-        "asset_id": item.get("asset_id", "asset"),
-        "name": item.get("name", item.get("asset_id", "asset")),
-        "category": category,
-        "visual_description": item.get("visual_description", ""),
-        "gameplay_role": item.get("gameplay_role", ""),
-        "best_timestamp_s": item.get("timestamp_s", 0),
-        "fallback_timestamps_s": [],
-        "approx_box_2d": item.get("gemini_box_2d", [0, 0, 1000, 1000]),
-        "isolate_with_background_removal": category != "background",
-        "priority": item.get("priority", 3),
-        "recreation_strategy": item.get("recreation_strategy") or asset_pipeline.default_recreation_strategy(category),
-        "scenario_pipeline": item.get("scenario_pipeline") or asset_pipeline.default_scenario_pipeline(category),
-        "animation_notes": item.get("animation_notes", ""),
-        "background_plate_notes": item.get("background_plate_notes", ""),
-    }
-    return asset_pipeline.scenario_prompt_for_candidate(asset_pipeline.Candidate.from_dict(raw))
+    return asset_factories.prompt_for_item(item)
 
 
 def output_path_for_item(run_dir: Path, item: dict[str, Any]) -> Path:
-    category = str(item.get("category", "other")).lower()
-    folder = FINAL_DIRS.get(category, FINAL_DIRS["other"])
-    return run_dir / "final-assets" / folder / f"{item['asset_id']}.png"
+    return asset_factories.plan_for_item(run_dir, item).primary_output
 
 
-def process_item(client: ScenarioClient, run_dir: Path, item: dict[str, Any], *, resolution: str, num_outputs: int) -> dict[str, Any]:
+def run_reference_edit(
+    client: ScenarioClient,
+    reference_asset_id: str,
+    prompt: str,
+    *,
+    resolution: str,
+    num_outputs: int,
+    aspect_ratio: str = "auto",
+) -> tuple[dict[str, Any], list[str]]:
+    generation = client.run_model(
+        MODEL_GEMINI_EDIT,
+        {
+            "prompt": prompt,
+            "referenceImages": [reference_asset_id],
+            "aspectRatio": aspect_ratio,
+            "resolution": resolution,
+            "numOutputs": num_outputs,
+            "useGoogleSearch": False,
+        },
+    )
+    generated_ids = asset_ids_from_job(generation)
+    if not generated_ids:
+        raise RuntimeError("Scenario Gemini edit did not return generated asset ids.")
+    return generation, generated_ids
+
+
+def background_removal_parameters(model_id: str, source_asset_id: str) -> dict[str, Any]:
+    if model_id == MODEL_PIXA_BACKGROUND_REMOVE:
+        return {"image": source_asset_id, "outputFormat": "rgba"}
+    return {"image": source_asset_id}
+
+
+def run_background_removal(client: ScenarioClient, source_asset_id: str) -> tuple[str, dict[str, Any], list[dict[str, Any]]]:
+    errors: list[dict[str, Any]] = []
+    for model_id in BACKGROUND_REMOVE_MODELS:
+        try:
+            job = client.run_model(model_id, background_removal_parameters(model_id, source_asset_id))
+            alpha_ids = asset_ids_from_job(job)
+            if not alpha_ids:
+                errors.append({"model_id": model_id, "error": "Background removal returned no asset ids."})
+                continue
+            step = {
+                "step": "background_removal",
+                "model_id": model_id,
+                "job_id": job.get("jobId"),
+                "asset_id": alpha_ids[0],
+            }
+            if errors:
+                step["fallback_from"] = errors
+            return alpha_ids[0], step, errors
+        except Exception as exc:
+            errors.append({"model_id": model_id, "error": str(exc)})
+    raise RuntimeError(f"All background removal models failed: {errors}")
+
+
+def run_alpha_trim(client: ScenarioClient, source_asset_id: str) -> tuple[str, list[dict[str, Any]]]:
+    alpha_asset_id, alpha_step, _errors = run_background_removal(client, source_asset_id)
+    trim_job = client.run_model(MODEL_PADDING_REMOVE, {"image": alpha_asset_id})
+    trim_ids = asset_ids_from_job(trim_job)
+    if not trim_ids:
+        raise RuntimeError("Scenario padding remover did not return asset ids.")
+
+    return trim_ids[0], [
+        alpha_step,
+        {
+            "step": "transparent_padding_trim",
+            "model_id": MODEL_PADDING_REMOVE,
+            "job_id": trim_job.get("jobId"),
+            "asset_id": trim_ids[0],
+        },
+    ]
+
+
+def write_asset_manifest(plan: asset_factories.FactoryPlan, result: dict[str, Any]) -> None:
+    asset_pipeline.write_json(plan.manifest_path, {"plan": plan.to_dict(), "result": result})
+
+
+def process_static_sprite(
+    client: ScenarioClient,
+    run_dir: Path,
+    item: dict[str, Any],
+    *,
+    resolution: str,
+    num_outputs: int,
+) -> dict[str, Any]:
+    plan = asset_factories.plan_for_item(run_dir, item)
     crop_path = resolve_path(str(item["crop_path"]), run_dir)
-    category = str(item.get("category", "other")).lower()
     uploaded_asset_id = client.upload_image(crop_path)
 
     prompt = prompt_for_item(item)
-    if category == "background" or item.get("recreation_strategy") == "background_plate_cleanup":
-        generation = client.run_model(
-            MODEL_GEMINI_EDIT,
-            {
-                "prompt": prompt,
-                "referenceImages": [uploaded_asset_id],
-                "aspectRatio": "auto",
-                "resolution": resolution,
-                "numOutputs": 1,
-                "useGoogleSearch": False,
-            },
-        )
-        generated_ids = asset_ids_from_job(generation)
-        if not generated_ids:
-            raise RuntimeError(f"No generated Scenario asset ids for {item['asset_id']}")
-        final_asset_id = generated_ids[0]
-        steps = [
-            {"step": "upload_reference_crop", "asset_id": uploaded_asset_id},
-            {"step": "background_plate_cleanup", "model_id": MODEL_GEMINI_EDIT, "job_id": generation.get("jobId"), "asset_id": final_asset_id},
-        ]
-    else:
-        generation = client.run_model(
-            MODEL_GEMINI_EDIT,
-            {
-                "prompt": prompt,
-                "referenceImages": [uploaded_asset_id],
-                "aspectRatio": "auto",
-                "resolution": resolution,
-                "numOutputs": num_outputs,
-                "useGoogleSearch": False,
-            },
-        )
-        generated_ids = asset_ids_from_job(generation)
-        if not generated_ids:
-            raise RuntimeError(f"No generated Scenario asset ids for {item['asset_id']}")
-        selected_generated_id = generated_ids[-1] if len(generated_ids) > 1 else generated_ids[0]
+    generation, generated_ids = run_reference_edit(
+        client,
+        uploaded_asset_id,
+        prompt,
+        resolution=resolution,
+        num_outputs=num_outputs,
+    )
+    selected_generated_id = generated_ids[-1] if len(generated_ids) > 1 else generated_ids[0]
+    final_asset_id, alpha_steps = run_alpha_trim(client, selected_generated_id)
 
-        alpha_job = client.run_model(MODEL_BACKGROUND_REMOVE, {"image": selected_generated_id})
-        alpha_ids = asset_ids_from_job(alpha_job)
-        if not alpha_ids:
-            raise RuntimeError(f"No alpha Scenario asset ids for {item['asset_id']}")
-
-        trim_job = client.run_model(MODEL_PADDING_REMOVE, {"image": alpha_ids[0]})
-        trim_ids = asset_ids_from_job(trim_job)
-        if not trim_ids:
-            raise RuntimeError(f"No trimmed Scenario asset ids for {item['asset_id']}")
-        final_asset_id = trim_ids[0]
-        steps = [
+    final_path = plan.primary_output
+    client.download_asset(final_asset_id, final_path)
+    result = {
+        "asset_id": item["asset_id"],
+        "name": item.get("name"),
+        "category": item.get("category"),
+        "route": plan.route,
+        "source_crop": str(crop_path),
+        "final_path": str(final_path),
+        "scenario_asset_id": final_asset_id,
+        "steps": [
             {"step": "upload_reference_crop", "asset_id": uploaded_asset_id},
             {
                 "step": "reference_guided_sprite_recreation",
@@ -291,26 +355,376 @@ def process_item(client: ScenarioClient, run_dir: Path, item: dict[str, Any], *,
                 "asset_ids": generated_ids,
                 "selected_asset_id": selected_generated_id,
             },
-            {"step": "background_removal", "model_id": MODEL_BACKGROUND_REMOVE, "job_id": alpha_job.get("jobId"), "asset_id": alpha_ids[0]},
-            {"step": "transparent_padding_trim", "model_id": MODEL_PADDING_REMOVE, "job_id": trim_job.get("jobId"), "asset_id": final_asset_id},
-        ]
+            *alpha_steps,
+        ],
+    }
+    write_asset_manifest(plan, result)
+    return result
 
-    final_path = output_path_for_item(run_dir, item)
+
+def process_background_plate(
+    client: ScenarioClient,
+    run_dir: Path,
+    item: dict[str, Any],
+    *,
+    resolution: str,
+) -> dict[str, Any]:
+    plan = asset_factories.plan_for_item(run_dir, item)
+    crop_path = resolve_path(str(item["crop_path"]), run_dir)
+    uploaded_asset_id = client.upload_image(crop_path)
+    generation, generated_ids = run_reference_edit(
+        client,
+        uploaded_asset_id,
+        prompt_for_item(item),
+        resolution=resolution,
+        num_outputs=1,
+    )
+    final_asset_id = generated_ids[0]
+    final_path = plan.primary_output
     client.download_asset(final_asset_id, final_path)
-    return {
+    result = {
         "asset_id": item["asset_id"],
         "name": item.get("name"),
         "category": item.get("category"),
+        "route": plan.route,
         "source_crop": str(crop_path),
         "final_path": str(final_path),
         "scenario_asset_id": final_asset_id,
-        "steps": steps,
+        "steps": [
+            {"step": "upload_reference_crop", "asset_id": uploaded_asset_id},
+            {
+                "step": "background_plate_cleanup",
+                "model_id": MODEL_GEMINI_EDIT,
+                "job_id": generation.get("jobId"),
+                "asset_id": final_asset_id,
+            },
+        ],
     }
+    write_asset_manifest(plan, result)
+    return result
+
+
+def segment_character_parts(
+    client: ScenarioClient,
+    plan: asset_factories.FactoryPlan,
+    source_asset_id: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    part_steps: list[dict[str, Any]] = []
+    part_errors: list[dict[str, Any]] = []
+    parts_dir = Path(str(plan.outputs["parts_dir"]))
+    parts_dir.mkdir(parents=True, exist_ok=True)
+
+    for part_id in asset_factories.CHARACTER_PARTS:
+        prompt = CHARACTER_PART_PROMPTS[part_id]
+        try:
+            job = client.run_model(
+                MODEL_SAM_IMAGE,
+                {
+                    "image": source_asset_id,
+                    "imagePromptingText": prompt,
+                },
+            )
+            part_ids = asset_ids_from_job(job)
+            if not part_ids:
+                part_errors.append({"part": part_id, "error": "SAM returned no asset ids."})
+                continue
+            part_path = parts_dir / f"{part_id}.png"
+            client.download_asset(part_ids[0], part_path)
+            part_steps.append(
+                {
+                    "step": "character_part_segmentation",
+                    "part": part_id,
+                    "model_id": MODEL_SAM_IMAGE,
+                    "job_id": job.get("jobId"),
+                    "asset_id": part_ids[0],
+                    "path": str(part_path),
+                }
+            )
+        except Exception as exc:
+            part_errors.append({"part": part_id, "error": str(exc)})
+    return part_steps, part_errors
+
+
+def character_parts_sheet_prompt(item: dict[str, Any]) -> str:
+    return CHARACTER_PART_SHEET_PROMPT_TEMPLATE.format(
+        name=item.get("name", item.get("asset_id", "character")),
+        description=item.get("visual_description", ""),
+    )
+
+
+def trim_transparent(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    bbox = rgba.getchannel("A").getbbox()
+    if not bbox:
+        return Image.new("RGBA", (8, 8), (0, 0, 0, 0))
+    return rgba.crop(bbox)
+
+
+def slice_parts_sheet(sheet_path: Path, plan: asset_factories.FactoryPlan) -> list[dict[str, Any]]:
+    image = Image.open(sheet_path).convert("RGBA")
+    grid = plan.outputs["part_sheet_grid"]
+    columns = int(grid["columns"])
+    rows = int(grid["rows"])
+    order = list(grid["order"])
+    cell_w = image.width // columns
+    cell_h = image.height // rows
+    parts_dir = Path(str(plan.outputs["parts_dir"]))
+    parts_dir.mkdir(parents=True, exist_ok=True)
+
+    outputs: list[dict[str, Any]] = []
+    for idx, part_id in enumerate(order):
+        col = idx % columns
+        row = idx // columns
+        left = col * cell_w
+        top = row * cell_h
+        right = image.width if col == columns - 1 else (col + 1) * cell_w
+        bottom = image.height if row == rows - 1 else (row + 1) * cell_h
+        part = trim_transparent(image.crop((left, top, right, bottom)))
+        part_path = parts_dir / f"{part_id}.png"
+        part.save(part_path)
+        outputs.append({"part": part_id, "path": str(part_path), "size": [part.width, part.height]})
+    return outputs
+
+
+def generate_character_parts_sheet(
+    client: ScenarioClient,
+    plan: asset_factories.FactoryPlan,
+    source_asset_id: str,
+    item: dict[str, Any],
+    *,
+    resolution: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    steps: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    generation, generated_ids = run_reference_edit(
+        client,
+        source_asset_id,
+        character_parts_sheet_prompt(item),
+        resolution=resolution,
+        num_outputs=1,
+        aspect_ratio="4:3",
+    )
+    sheet_asset_id = generated_ids[0]
+    steps.append(
+        {
+            "step": "character_parts_sheet_generation",
+            "model_id": MODEL_GEMINI_EDIT,
+            "job_id": generation.get("jobId"),
+            "asset_id": sheet_asset_id,
+        }
+    )
+
+    try:
+        sheet_asset_id, alpha_step, fallback_errors = run_background_removal(client, sheet_asset_id)
+        alpha_step["step"] = "parts_sheet_background_removal"
+        if fallback_errors:
+            alpha_step["fallback_from"] = fallback_errors
+        steps.append(alpha_step)
+    except Exception as exc:
+        errors.append({"step": "parts_sheet_background_removal", "error": str(exc)})
+
+    sheet_path = Path(str(plan.outputs["parts_sheet"]))
+    client.download_asset(sheet_asset_id, sheet_path)
+    steps.append({"step": "download_parts_sheet", "asset_id": sheet_asset_id, "path": str(sheet_path)})
+
+    sliced = slice_parts_sheet(sheet_path, plan)
+    steps.append({"step": "slice_part_sheet", "parts": sliced})
+    return steps, errors
+
+
+def process_character_rig(
+    client: ScenarioClient,
+    run_dir: Path,
+    item: dict[str, Any],
+    *,
+    resolution: str,
+    num_outputs: int,
+    extract_parts: bool,
+) -> dict[str, Any]:
+    plan = asset_factories.plan_for_item(run_dir, item)
+    crop_path = resolve_path(str(item["crop_path"]), run_dir)
+    uploaded_asset_id = client.upload_image(crop_path)
+    generation, generated_ids = run_reference_edit(
+        client,
+        uploaded_asset_id,
+        prompt_for_item(item),
+        resolution=resolution,
+        num_outputs=num_outputs,
+    )
+    selected_generated_id = generated_ids[-1] if len(generated_ids) > 1 else generated_ids[0]
+    final_asset_id, alpha_steps = run_alpha_trim(client, selected_generated_id)
+
+    full_path = plan.primary_output
+    client.download_asset(final_asset_id, full_path)
+
+    rig_path = Path(str(plan.outputs["rig"]))
+    rig_template = dict(plan.outputs["rig_template"])
+    rig_template["source"] = {
+        "full_png": str(full_path),
+        "scenario_asset_id": final_asset_id,
+        "source_crop": str(crop_path),
+    }
+    asset_pipeline.write_json(rig_path, rig_template)
+
+    part_steps: list[dict[str, Any]] = []
+    part_errors: list[dict[str, Any]] = []
+    if extract_parts:
+        try:
+            part_steps, part_errors = generate_character_parts_sheet(
+                client,
+                plan,
+                final_asset_id,
+                item,
+                resolution=resolution,
+            )
+        except Exception as exc:
+            part_errors.append({"step": "character_parts_sheet_generation", "error": str(exc)})
+            sam_steps, sam_errors = segment_character_parts(client, plan, final_asset_id)
+            part_steps.extend(sam_steps)
+            part_errors.extend(sam_errors)
+
+    result = {
+        "asset_id": item["asset_id"],
+        "name": item.get("name"),
+        "category": item.get("category"),
+        "route": plan.route,
+        "source_crop": str(crop_path),
+        "final_path": str(full_path),
+        "rig_path": str(rig_path),
+        "scenario_asset_id": final_asset_id,
+        "part_errors": part_errors,
+        "steps": [
+            {"step": "upload_reference_crop", "asset_id": uploaded_asset_id},
+            {
+                "step": "reference_guided_character_seed",
+                "model_id": MODEL_GEMINI_EDIT,
+                "job_id": generation.get("jobId"),
+                "asset_ids": generated_ids,
+                "selected_asset_id": selected_generated_id,
+            },
+            *alpha_steps,
+            {"step": "emit_rig_json", "path": str(rig_path)},
+            *part_steps,
+        ],
+    }
+    write_asset_manifest(plan, result)
+    return result
+
+
+def process_procedural_vfx(run_dir: Path, item: dict[str, Any]) -> dict[str, Any]:
+    plan = asset_factories.plan_for_item(run_dir, item)
+    crop_path = resolve_path(str(item["crop_path"]), run_dir)
+    image = Image.open(crop_path)
+    prompt = (
+        plan.prompts["gemini_codegen"]
+        + "\n\nReturn JSON with keys: summary, duration_ms, palette, particle_config, typescript."
+    )
+    config = types.GenerateContentConfig(
+        responseMimeType="application/json",
+        mediaResolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+        temperature=0.2,
+        maxOutputTokens=12000,
+    )
+    client = asset_pipeline.gemini_client()
+    model, response = asset_pipeline.call_model_with_fallback(
+        client,
+        asset_pipeline.IMAGE_MODELS,
+        contents=[image, prompt],
+        config=config,
+    )
+    text = response.text or "{}"
+    try:
+        payload = json.loads(asset_pipeline.extract_json_payload(text))
+    except json.JSONDecodeError:
+        payload = {"summary": "Gemini returned non-JSON procedural VFX output.", "raw": text}
+
+    code = str(payload.get("typescript") or payload.get("code") or "")
+    if not code:
+        code = "/* Gemini procedural VFX response did not include TypeScript. See JSON config. */\n"
+
+    config_path = Path(str(plan.outputs["config"]))
+    code_path = Path(str(plan.outputs["code"]))
+    asset_pipeline.write_json(
+        config_path,
+        {
+            "asset_id": item["asset_id"],
+            "name": item.get("name"),
+            "category": item.get("category"),
+            "route": plan.route,
+            "gemini_model": model,
+            "source_crop": str(crop_path),
+            "payload": payload,
+        },
+    )
+    code_path.parent.mkdir(parents=True, exist_ok=True)
+    code_path.write_text(code.rstrip() + "\n")
+    result = {
+        "asset_id": item["asset_id"],
+        "name": item.get("name"),
+        "category": item.get("category"),
+        "route": plan.route,
+        "source_crop": str(crop_path),
+        "final_path": str(code_path),
+        "config_path": str(config_path),
+        "gemini_model": model,
+        "steps": [{"step": "procedural_vfx_codegen", "model": model}],
+    }
+    write_asset_manifest(plan, result)
+    return result
+
+
+def process_item(
+    client: ScenarioClient | None,
+    run_dir: Path,
+    item: dict[str, Any],
+    *,
+    resolution: str,
+    num_outputs: int,
+    extract_character_parts: bool,
+) -> dict[str, Any]:
+    route = asset_factories.route_for_item(item)
+    if route == asset_factories.ROUTE_BACKGROUND_PLATE:
+        if client is None:
+            raise RuntimeError("Scenario client is required for background plate processing.")
+        return process_background_plate(client, run_dir, item, resolution=resolution)
+    if route == asset_factories.ROUTE_CHARACTER_RIG:
+        if client is None:
+            raise RuntimeError("Scenario client is required for character rig processing.")
+        return process_character_rig(
+            client,
+            run_dir,
+            item,
+            resolution=resolution,
+            num_outputs=num_outputs,
+            extract_parts=extract_character_parts,
+        )
+    if route == asset_factories.ROUTE_PROCEDURAL_VFX:
+        return process_procedural_vfx(run_dir, item)
+    if client is None:
+        raise RuntimeError("Scenario client is required for sprite processing.")
+    return process_static_sprite(client, run_dir, item, resolution=resolution, num_outputs=num_outputs)
 
 
 def load_extracted_manifest(run_dir: Path) -> list[dict[str, Any]]:
     manifest = asset_pipeline.read_json(run_dir / "manifests" / "03_extracted_assets_manifest.json")
     return list(manifest.get("assets", []))
+
+
+def automation_plan_for_items(run_dir: Path, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    plans: list[dict[str, Any]] = []
+    for item in items:
+        factory_plan = asset_factories.plan_for_item(run_dir, item)
+        payload = factory_plan.to_dict()
+        payload.update(
+            {
+                "name": item.get("name"),
+                "crop_path": item.get("crop_path"),
+                "recreation_strategy": item.get("recreation_strategy")
+                or asset_pipeline.default_recreation_strategy(str(item.get("category", "other"))),
+            }
+        )
+        plans.append(payload)
+    return plans
 
 
 def main() -> None:
@@ -320,6 +734,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="Optional max number of assets to process.")
     parser.add_argument("--resolution", default="1K", choices=["512", "1K", "2K", "4K"])
     parser.add_argument("--num-outputs", type=int, default=4)
+    parser.add_argument("--skip-character-parts", action="store_true", help="Only emit character full.png and rig.json.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -331,23 +746,27 @@ def main() -> None:
     if args.limit is not None:
         items = items[: args.limit]
 
-    plan = [
-        {
-            "asset_id": item["asset_id"],
-            "name": item.get("name"),
-            "category": item.get("category"),
-            "recreation_strategy": item.get("recreation_strategy") or asset_pipeline.default_recreation_strategy(str(item.get("category", "other"))),
-            "output_path": str(output_path_for_item(run_dir, item)),
-        }
-        for item in items
-    ]
+    plan = automation_plan_for_items(run_dir, items)
     if args.dry_run:
         asset_pipeline.write_json(run_dir / "manifests" / "05_scenario_automation_plan.json", {"assets": plan})
         print(json.dumps({"dry_run": True, "assets": plan}, indent=2))
         return
 
-    client = ScenarioClient(load_config())
-    results = [process_item(client, run_dir, item, resolution=args.resolution, num_outputs=args.num_outputs) for item in items]
+    requires_scenario = any(
+        asset_factories.route_for_item(item) != asset_factories.ROUTE_PROCEDURAL_VFX for item in items
+    )
+    client = ScenarioClient(load_config()) if requires_scenario else None
+    results = [
+        process_item(
+            client,
+            run_dir,
+            item,
+            resolution=args.resolution,
+            num_outputs=args.num_outputs,
+            extract_character_parts=not args.skip_character_parts,
+        )
+        for item in items
+    ]
     asset_pipeline.write_json(run_dir / "manifests" / "05_scenario_automation_manifest.json", {"assets": results})
     print(json.dumps({"assets": results}, indent=2))
 
