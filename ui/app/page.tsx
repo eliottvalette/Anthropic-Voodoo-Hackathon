@@ -194,10 +194,10 @@ export default function Home() {
   ) : null
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#F6F9FC' }}>
+    <div className="flex h-[100dvh] overflow-hidden" style={{ background: '#F6F9FC' }}>
 
       {/* ── Sidebar ─────────────────────────────────────── */}
-      <aside className="w-[60px] bg-white border-r border-gray-100 flex flex-col items-center py-5 shrink-0 z-10">
+      <aside className="hidden md:flex w-[60px] bg-white border-r border-gray-100 flex-col items-center py-5 shrink-0 z-10">
         <div className="w-8 h-8 rounded-lg bg-[#0F141C] flex items-center justify-center mb-6">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M2 11.5L7 2L12 11.5H2z" fill="white" />
@@ -229,7 +229,7 @@ export default function Home() {
       </aside>
 
       {/* ── Main column ──────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
 
         {/* Header */}
         <header className="h-[52px] bg-white border-b border-gray-100 flex items-center px-6 gap-2 shrink-0">
@@ -257,17 +257,17 @@ export default function Home() {
         </header>
 
         {/* Dot-grid content */}
-        <main className="flex-1 overflow-auto p-6 dot-grid">
+        <main className="flex-1 overflow-auto p-3 sm:p-6 dot-grid">
           {playableHtml ? (
             <div
-              className="grid gap-5 items-start mx-auto"
-              style={{ gridTemplateColumns: 'minmax(0,1fr) 416px', maxWidth: 1100 }}
+              className="preview-grid mx-auto grid grid-cols-1 gap-5 items-start"
+              style={{ maxWidth: 1100 }}
             >
               <div className="space-y-5">
                 {uploadCard}
                 {pipelineCard}
               </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 fade-slide-in sticky top-0">
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 fade-slide-in lg:sticky lg:top-0">
                 <PlayableViewer html={playableHtml} />
               </div>
             </div>
