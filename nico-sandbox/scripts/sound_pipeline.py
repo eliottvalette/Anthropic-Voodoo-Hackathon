@@ -2,10 +2,9 @@
 Sound pipeline for game audio recovery from video.
 
 Phase 1 — Gemini audio analysis  → 06_sound_manifest.json
-Phase 2a — BGM extraction via ffmpeg (music separates cleanly from the track)
-Phase 2b — SFX / UI sound generation via Scenario API
-            primary:  model_elevenlabs-sound-effects-v2
-            fallback: model_beatoven-sound-effect
+Phase 2  — All sounds generated via Scenario API
+            BGM:      model_beatoven-music-generation  (fallback: model_lyria-2)
+            SFX/UI:   model_elevenlabs-sound-effects-v2 (fallback: model_beatoven-sound-effect)
 """
 from __future__ import annotations
 
@@ -30,11 +29,10 @@ import scenario_automation
 # Scenario audio model IDs
 # ---------------------------------------------------------------------------
 
-MODEL_SFX_PRIMARY = "model_elevenlabs-sound-effects-v2"
+MODEL_BGM_PRIMARY  = "model_beatoven-music-generation"
+MODEL_BGM_FALLBACK = "model_lyria-2"
+MODEL_SFX_PRIMARY  = "model_elevenlabs-sound-effects-v2"
 MODEL_SFX_FALLBACK = "model_beatoven-sound-effect"
-MODEL_BGM_GENERATE = "model_beatoven-music-generation"
-
-SFX_MODELS = [MODEL_SFX_PRIMARY, MODEL_SFX_FALLBACK]
 
 
 # ---------------------------------------------------------------------------
@@ -42,33 +40,51 @@ SFX_MODELS = [MODEL_SFX_PRIMARY, MODEL_SFX_FALLBACK]
 # ---------------------------------------------------------------------------
 
 SOUND_MANIFEST_PROMPT = """
-Analyze the AUDIO TRACK of this mobile game video as a sound designer and audio director.
+Analyze the AUDIO TRACK of this mobile game video as an expert music composer and sound designer.
 
-Your goal: identify every distinct sound asset needed to recreate the game's audio experience.
+Your goal: produce a complete sound inventory so that every audio asset can be REGENERATED from scratch
+using AI music/SFX generation models. Extraction from the video is NOT used — all sounds will be generated
+from your text descriptions. Make every description as detailed and generation-ready as possible.
 
 Inventory three categories:
-1. BGM (background music) — continuous music tracks, identify the cleanest loop-friendly region.
-2. SFX (sound effects) — every distinct game event sound: explosions, impacts, projectiles firing, coins, etc.
+1. BGM (background music) — continuous music tracks.
+2. SFX (sound effects) — every distinct game event sound: explosions, impacts, projectiles, coins, etc.
 3. UI sounds — button taps, menu transitions, win/fail jingles, countdown beeps, notifications.
 
-For each sound event return:
-- sound_id: unique snake_case slug (e.g. sfx_explosion_large, bgm_main, ui_button_tap)
+For each sound return:
+- sound_id: unique snake_case slug (e.g. bgm_main_battle, sfx_explosion_large, ui_button_tap)
 - type: "bgm", "sfx", or "ui_sound"
 - name: short human-readable name
-- description: detailed audio description — instruments, tone, texture, attack/decay, pitch character
-- game_event: what triggers this sound in gameplay (e.g. "projectile hits target", "player taps screen")
-- start_s: first timestamp where this sound appears in the video
-- end_s: last timestamp where this sound ends
-- best_region_start_s: best extraction window start (cleanest region, least overlap with other sounds)
-- best_region_end_s: best extraction window end
+- description: rich technical audio description (see format rules below)
+- game_event: what triggers this sound in gameplay
+- start_s / end_s: timestamps where this sound appears in the video
+- best_region_start_s / best_region_end_s: cleanest window (least overlap with other sounds)
 - duration_s: recommended asset duration in seconds
-- generation_prompt: optimized text prompt for AI sound generation — be specific and descriptive
-- extraction_strategy: "ffmpeg_extract" for BGM/music, "scenario_generate" for SFX and UI sounds
-- loop_friendly: true if the sound should be a seamless loop
+- generation_prompt: the final AI generation prompt (see format rules below)
+- extraction_strategy: always "scenario_generate" for every sound
+- loop_friendly: true if designed to loop seamlessly
 
-Extraction strategy rules:
-- "ffmpeg_extract" for BGM only — music separates cleanly from compressed video audio
-- "scenario_generate" for all SFX and UI sounds — overlapping game audio makes clean extraction impossible
+FORMAT RULES FOR BGM description and generation_prompt:
+  The generation_prompt must be a rich, comma-separated music brief covering ALL of:
+  - Genre and sub-genre (e.g. "orchestral battle music", "8-bit chiptune action", "epic hybrid trailer")
+  - Tempo description (e.g. "fast-paced 140 BPM", "driving mid-tempo", "slow and tense")
+  - Key instruments (e.g. "full brass section, taiko drums, aggressive strings, choir stabs")
+  - Mood and energy arc (e.g. "heroic and intense throughout, builds to a climax")
+  - Production style (e.g. "mobile game, punchy mix, cinematic", "retro arcade, chiptune")
+  - Loop note if applicable (e.g. "seamless 30-second loop")
+  Example: "Epic orchestral battle music, fast-paced 130 BPM, full brass fanfares, driving taiko drums,
+            aggressive tremolo strings, heroic and tense mood, cinematic mobile game style, seamless loop"
+
+FORMAT RULES FOR SFX / UI description and generation_prompt:
+  The generation_prompt must describe the sound's physical character precisely:
+  - What object/action makes the sound
+  - Attack character (sharp crack, soft thud, quick pop, rolling rumble…)
+  - Pitch register (low, mid, high, sub-bass…)
+  - Texture (crisp, wet, metallic, woody, glassy…)
+  - Duration feel (punchy short, medium decay, long tail…)
+  - Any stylistic qualifier (cartoon, realistic, retro 8-bit, cinematic…)
+  Example: "Large cartoon explosion, deep booming impact with stone crumble, low-mid frequency,
+            sharp attack and long rumbling decay, mobile game style"
 
 Typical mobile game: 1-2 BGM tracks, 5-15 SFX, 3-8 UI sounds.
 """.strip()
@@ -99,7 +115,7 @@ SOUND_MANIFEST_SCHEMA: dict[str, Any] = {
                     "generation_prompt": {"type": "string"},
                     "extraction_strategy": {
                         "type": "string",
-                        "enum": ["ffmpeg_extract", "scenario_generate"],
+                        "enum": ["scenario_generate"],
                     },
                     "loop_friendly": {"type": "boolean"},
                 },
@@ -192,43 +208,59 @@ def _parse_gemini_response(response: Any) -> dict[str, Any]:
 # Phase 2a: BGM extraction via ffmpeg
 # ---------------------------------------------------------------------------
 
-def extract_bgm_segment(
-    video_path: Path,
+# ---------------------------------------------------------------------------
+# Phase 2: all sounds generated via Scenario
+# ---------------------------------------------------------------------------
+
+def _beatoven_music_params(sound: dict[str, Any]) -> dict[str, Any]:
+    duration = min(max(float(sound.get("duration_s", 60)), 5), 150)
+    return {
+        "prompt": str(sound["generation_prompt"]),
+        "duration": duration,
+        "refinement": 100,
+        "creativity": 12,
+    }
+
+
+def _lyria_params(sound: dict[str, Any]) -> dict[str, Any]:
+    return {"prompt": str(sound["generation_prompt"])}
+
+
+def generate_bgm_via_scenario(
+    client: scenario_automation.ScenarioClient,
     sound: dict[str, Any],
     output_path: Path,
-) -> Path:
-    """Extract an audio segment from the video using ffmpeg and save as mp3."""
+) -> dict[str, Any]:
+    """Generate background music via Scenario and download to output_path."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    start_s = float(sound.get("best_region_start_s", sound.get("start_s", 0)))
-    end_s = float(sound.get("best_region_end_s", sound.get("end_s", start_s + 30)))
-    duration_s = end_s - start_s
-    if duration_s <= 0:
-        duration_s = float(sound.get("duration_s", 30))
-
-    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
-    cmd = [
-        ffmpeg_exe,
-        "-y",
-        "-ss", str(start_s),
-        "-i", str(video_path),
-        "-t", str(duration_s),
-        "-vn",
-        "-acodec", "libmp3lame",
-        "-q:a", "2",
-        str(output_path),
+    model_params = [
+        (MODEL_BGM_PRIMARY,  _beatoven_music_params(sound)),
+        (MODEL_BGM_FALLBACK, _lyria_params(sound)),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"ffmpeg audio extraction failed: {result.stderr}")
 
-    print(f"[sound] BGM extracted → {output_path.name} ({duration_s:.1f}s)")
-    return output_path
+    last_error: Exception | None = None
+    for model_id, params in model_params:
+        try:
+            print(f"[sound] Generating BGM via {model_id}: {sound['sound_id']}")
+            job = client.run_model(model_id, params)
+            asset_ids = scenario_automation.asset_ids_from_job(job)
+            if not asset_ids:
+                raise RuntimeError(f"{model_id} returned no asset ids")
+            _download_audio_asset(client, asset_ids[0], output_path)
+            print(f"[sound] BGM downloaded → {output_path.name}")
+            return {
+                "scenario_asset_id": asset_ids[0],
+                "model_id": model_id,
+                "job_id": job.get("jobId") or job.get("id"),
+                "final_path": str(output_path),
+            }
+        except Exception as exc:
+            print(f"[sound] {model_id} failed for {sound['sound_id']}: {exc}")
+            last_error = exc
 
+    raise RuntimeError(f"All BGM models failed for {sound['sound_id']}: {last_error}")
 
-# ---------------------------------------------------------------------------
-# Phase 2b: SFX / UI sound generation via Scenario
-# ---------------------------------------------------------------------------
 
 def _elevenlabs_params(sound: dict[str, Any]) -> dict[str, Any]:
     duration = min(max(float(sound.get("duration_s", 3)), 0.5), 22)
