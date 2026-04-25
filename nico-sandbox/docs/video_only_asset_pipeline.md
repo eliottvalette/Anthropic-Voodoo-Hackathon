@@ -32,6 +32,44 @@ The manifest should include these classes whenever they appear:
 
 ## Pipeline
 
+### One-Command Runner
+
+The production entrypoint is:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/run_full_asset_pipeline.py "<video_path>" --out nico-sandbox/runs/<video_id>
+```
+
+It runs:
+
+```text
+Gemini video inventory
+-> local ffmpeg frame extraction
+-> Gemini image box refinement
+-> crop/debug/contact-sheet generation
+-> per-asset factory routing
+-> Scenario/Gemini recreation
+-> final-assets/ package and manifests
+```
+
+Useful resume/debug flags:
+
+```bash
+--skip-video-gemini      reuse manifests/01_gemini_video_manifest.json
+--skip-extraction        reuse manifests/03_extracted_assets_manifest.json
+--dry-run-scenario       write the asset factory plan without spending Scenario credits
+--asset-id <id>          run only one asset, can be passed multiple times
+--limit <n>              process only the first n selected assets
+--force                  regenerate assets even if a completed result exists
+--stop-on-error          abort instead of checkpointing an asset error and continuing
+```
+
+The runner checkpoints after every asset in:
+
+```text
+runs/<video_id>/manifests/05_scenario_automation_manifest.json
+```
+
 ### Proven Missile Flow
 
 The B11 missile test showed the best default lane for small, compressed gameplay sprites:
@@ -121,6 +159,27 @@ backgrounds/structure_layer.png
 
 For playable ads, a faithful full plate is usually enough for speed. Layered backgrounds are useful when we want camera shake, parallax, or object reuse.
 
+### B11 Background Learning
+
+The B11 background smoke test worked well with the simple opaque-plate route:
+
+```text
+best background crop/frame -> Scenario Gemini 3.1 plate cleanup -> final opaque PNG
+```
+
+The successful output shape is:
+
+```text
+final-assets/backgrounds/bg_gameplay.png
+```
+
+Important details:
+
+- Do not run alpha removal on backgrounds.
+- Ask Gemini/Scenario to remove foreground characters, projectiles, UI, tutorial hands, and transient effects.
+- Ask for a rectangular opaque gameplay plate, not a poster, not a logo scene, and not a transparent sprite.
+- Keep background LoRA candidates available as A/B tests, but the default should remain the faithful `model_google-gemini-3-1-flash` plate cleanup until a LoRA clearly beats it.
+
 ### 4. Scenario Isolation And Enhancement
 
 Use Scenario as the asset cleanup/recreation layer.
@@ -205,6 +264,53 @@ characters/<asset_id>/
 
 PSB can be exported later for artist editing, but the playable should use layered PNGs and JSON transforms because they are smaller and easier to animate in canvas.
 
+### B11 Character Learning
+
+The B11 skeleton test established the current best character route:
+
+```text
+best isolated character crop
+-> Scenario Gemini 3.1 clean full-body seed
+-> background removal with Photoroom, falling back to Pixa when needed
+-> Scenario Gemini 3.1 generated 4x2 character parts sheet
+-> local slicing into parts/*.png
+-> emit rig.json
+```
+
+The successful package shape is:
+
+```text
+characters/<asset_id>/
+  full.png
+  parts_sheet.png
+  parts/
+    head.png
+    body.png
+    arm_front.png
+    arm_back.png
+    leg_front.png
+    leg_back.png
+    weapon.png
+    shadow.png
+  rig.json
+  asset_manifest.json
+```
+
+This worked better than asking SAM to semantically extract body parts from the final character. `model_meta-sam-3-1-image` is useful for masks and broad object segmentation, but in this test it returned mask-like output and failed on most tiny semantic parts. The default should therefore be generated color parts from the clean seed, with SAM/Qwen kept as optional fallback/evidence tools.
+
+Default character parts-sheet prompt:
+
+```text
+Using the clean full-body character reference, create a production-ready transparent character parts sheet for 2D playable animation.
+Output one image with a 4-column by 2-row layout.
+Slot order:
+top row: head, body, arm_front, arm_back
+bottom row: leg_front, leg_back, weapon, shadow
+Preserve identity, palette, outline style, facing direction, weapon style, and proportions.
+Draw usable color sprites, not white masks.
+No labels, text, grid lines, scenery, UI, or full assembled character.
+```
+
 For animated objects, do not generate frames independently. Use one approved seed frame and ask Scenario Gemini for a complete strip in one edit request:
 
 ```text
@@ -215,6 +321,26 @@ Use one consistent scale and anchor across all frames.
 ```
 
 Then normalize the strip into fixed-size frames and emit `rig.json` or frame metadata. Character part extraction should use `model_meta-sam-3-1-image` or `model_qwen-image-layered` after the clean full-body seed exists.
+
+### VFX Route
+
+The default VFX route should be procedural instead of image-generation first:
+
+```text
+VFX crop -> Gemini visual/code analysis -> particle config JSON -> TypeScript helper -> browser preview
+```
+
+For the B11 explosion test, Gemini emitted a Phaser helper with generated smoke, debris, sparks, a crack decal, timing, and cleanup. This is preferable for playable ads because it avoids shipping extra sprite sheets and lets the gameplay code tune timing, position, scale, and blend modes.
+
+Recommended output shape:
+
+```text
+vfx/<asset_id>/
+  <asset_id>.json
+  <asset_id>.ts
+  preview.html
+  asset_manifest.json
+```
 
 ### 6. Asset Packaging
 
