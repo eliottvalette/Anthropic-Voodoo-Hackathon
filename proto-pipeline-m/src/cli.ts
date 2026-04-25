@@ -94,6 +94,25 @@ async function runP2Only(args: string[]): Promise<void> {
   }
 }
 
+async function runP3Only(args: string[]): Promise<void> {
+  const runId = getFlag(args, "--run");
+  const variant = getFlag(args, "--variant") ?? "_default";
+  if (!runId) {
+    console.error(
+      "Usage: bun run pipeline --p3-only --run <id> [--variant <id>]\n" +
+        "(requires outputs/<id>/01_video.json and 02_assets.json)",
+    );
+    process.exit(1);
+  }
+  const { writeP3 } = await import("./pipeline/p3_aggregator.ts");
+  const { outDir, output } = await writeP3(runId, variant);
+  console.log(`wrote ${outDir}/03_game_spec.json + 03_codegen_prompt.txt + meta`);
+  console.log(JSON.stringify(output.meta, null, 2));
+  console.log(`mechanic_name: ${output.gameSpec.mechanic_name}`);
+  console.log(`genre: ${output.gameSpec.game_identity.genre}`);
+  console.log(`render_mode: ${output.gameSpec.render_mode}`);
+}
+
 async function runVerify(args: string[]): Promise<void> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const htmlPath = positional[1];
@@ -137,6 +156,11 @@ async function main(): Promise<void> {
 
   if (args.includes("--p2-only")) {
     await runP2Only(args);
+    return;
+  }
+
+  if (args.includes("--p3-only")) {
+    await runP3Only(args);
     return;
   }
 
