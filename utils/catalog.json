@@ -145,6 +145,18 @@
             "celebration",
             "ribbon"
           ]
+        },
+        {
+          "name": "lightning",
+          "file": "vfx/lightning.js",
+          "demo": "vfx/demos/lightning.html",
+          "signature": "spawnLightning(bolts, ax, ay, bx, by, opts?)",
+          "description": "Jagged midpoint-displaced bolt between two points. 3-pass glow stroke (soft halo + mid + bright core), recursive side branches, periodic path regen for crackle flicker.",
+          "tags": [
+            "electric",
+            "bolt",
+            "chain"
+          ]
         }
       ]
     },

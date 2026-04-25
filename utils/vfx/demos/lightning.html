@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>lightning demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../lightning.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const bolts = [];
+        const colors = ['#a8e3ff', '#ffd84a', '#ff8be0', '#a4ff7a', '#ffffff'];
+        let last = 0;
+
+        function fireBolt(tx, ty) {
+            const c = colors[Math.floor(Math.random() * colors.length)];
+            spawnLightning(bolts, 180, 80, tx, ty, { color: c, life: 280, displace: 36, branchProb: 0.4 });
+        }
+
+        cv.addEventListener('pointerdown', e => {
+            const r = cv.getBoundingClientRect();
+            fireBolt((e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height);
+        });
+
+        let auto = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now; auto += dt;
+            if (auto > 700) {
+                fireBolt(50 + Math.random() * 260, 360 + Math.random() * 240);
+                auto = 0;
+            }
+            updateLightning(bolts, dt);
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            // Source orb so the bolts have an emitter
+            const g = ctx.createRadialGradient(180, 80, 4, 180, 80, 26);
+            g.addColorStop(0, 'rgba(255,255,255,0.95)');
+            g.addColorStop(1, 'rgba(168,227,255,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(150, 50, 60, 60);
+            drawLightning(ctx, bolts);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
