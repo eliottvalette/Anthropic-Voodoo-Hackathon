@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>game-lost demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(160deg,#7da45c,#9fb978);border-radius:8px;cursor:pointer;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../game-lost.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const headlines = ['YOU LOST','GAME OVER','ENEMIES KILLED YOU','DEFEAT'];
+let i = 0;
+
+function draw() {
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // dummy "game scene"
+  ctx.fillStyle = '#0f1422';
+  ctx.fillRect(40,140, 280, 200);
+  ctx.fillStyle = '#27a8ff';
+  ctx.fillRect(80,200, 60,120);
+  ctx.fillStyle = '#ed2024';
+  ctx.fillRect(220,200, 60,120);
+  drawGameLost(ctx, cv.width, cv.height, { headline: headlines[i], cta: 'TRY AGAIN' });
+}
+draw();
+
+setInterval(() => { i = (i+1) % headlines.length; draw(); }, 1800);
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  if (isPointInCta(drawGameLost.lastCtaBounds, x, y)) {
+    alert('CTA hit — would open the store here');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>section-destroy demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(180deg,#7da45c,#9fb978);border-radius:8px;cursor:pointer;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../section-destroy.js"></script>
+<script src="../particles.js"></script>
+<script src="../smoke.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SECTIONS = makeSectionPolys(3);
+const rect = { x: 60, y: 130, w: 240, h: 380 };
+const particles = [];
+let hp = 3;
+let dying = [];
+let last = 0;
+
+// Fake "castle" — a synthetic sprite drawn into an offscreen canvas
+const off = document.createElement('canvas');
+off.width = 240; off.height = 380;
+const oc = off.getContext('2d');
+oc.fillStyle = '#9aa3b8';
+oc.fillRect(0, 60, 240, 320);
+// crenellations
+for (let i = 0; i < 6; i++) {
+  oc.fillRect(i * 40, 30, 24, 30);
+}
+oc.fillStyle = '#0F141C';
+oc.fillRect(96, 200, 48, 80);  // door
+oc.fillRect(40, 130, 30, 40);  // window
+oc.fillRect(170, 130, 30, 40);
+oc.fillStyle = '#27a8ff';
+oc.fillRect(40, 130, 30, 40);
+oc.fillStyle = '#27a8ff';
+oc.fillRect(170, 130, 30, 40);
+oc.fillStyle = '#0F141C';
+oc.fillRect(115, 0, 10, 40);
+oc.fillStyle = '#ed2024';
+oc.beginPath(); oc.moveTo(115,0); oc.lineTo(140,0); oc.lineTo(115,15); oc.fill();
+
+const img = { width: off.width, height: off.height };
+img.naturalWidth = off.width; img.naturalHeight = off.height;
+// Wrap as drawable: re-use offscreen canvas as image source
+const fakeImg = off;
+
+cv.addEventListener('pointerdown', () => {
+  if (hp <= 0) { hp = 3; dying = []; return; }
+  const sectionIndex = hp - 1;
+  hp--;
+  dying.push(makeDyingSection(sectionIndex, 'left'));
+  // Smoke at section center
+  const poly = SECTIONS[sectionIndex];
+  const cx = rect.x + (poly.reduce((s,p)=>s+p[0],0)/poly.length) * rect.w;
+  const cy = rect.y + (poly.reduce((s,p)=>s+p[1],0)/poly.length) * rect.h;
+  smoke(particles, cx, cy, 18);
+});
+
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  updateDyingSections(dying, dt);
+  updateParticles(particles, dt);
+
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // ground
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(0, 510, 360, 130);
+
+  // visible sections
+  for (let i = 0; i < hp; i++) drawSection(ctx, fakeImg, rect, SECTIONS[i]);
+  // dying sections
+  for (const d of dying) drawDyingSection(ctx, fakeImg, rect, d, SECTIONS);
+
+  drawParticles(ctx, particles);
+
+  // HP indicator
+  ctx.fillStyle = '#0F141C';
+  ctx.font = '900 14px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('TAP TO DAMAGE — HP ' + hp + '/3', 180, 30);
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

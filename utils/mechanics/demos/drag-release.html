@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>drag-release demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(180deg,#7da45c,#9fb978);border-radius:8px;touch-action:none;cursor:crosshair}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../drag-release.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const W = 360, H = 640;
+const origin = { x: 80, y: 480 };
+const target = { x: 290, y: 200, w: 50, h: 50 };
+const projectiles = [];
+let last = 0;
+
+const dr = createDragRelease(cv, {
+  getOrigin: () => origin,
+  pointerToWorld: e => {
+    const r = cv.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * W / r.width,
+      y: (e.clientY - r.top) * H / r.height,
+    };
+  },
+  activeRadius: 80,
+  pullRangeX: [10, 160],
+  pullRangeY: [-100, 130],
+  toVelocity: ({ pullX, pullY }) => ({
+    vx: 0.10 + pullX * 0.0035,
+    vy: -0.15 + pullY * 0.0028,
+  }),
+  onFire: ({ vx, vy }) => projectiles.push({ x: origin.x, y: origin.y - 20, vx, vy, age: 0 }),
+});
+
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.age += dt;
+    p.vy += 0.00078 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.x < -50 || p.x > W + 50 || p.y > H + 50 || p.age > 4000) projectiles.splice(i, 1);
+  }
+
+  ctx.clearRect(0,0,W,H);
+
+  // target
+  ctx.fillStyle = '#ed2024';
+  ctx.fillRect(target.x, target.y, target.w, target.h);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(target.x, target.y, target.w, target.h);
+
+  // origin (cannon)
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(origin.x - 20, origin.y - 8, 40, 28);
+  ctx.fillStyle = '#27a8ff';
+  ctx.beginPath();
+  ctx.arc(origin.x, origin.y - 22, 16, 0, Math.PI*2);
+  ctx.fill();
+
+  // trajectory preview
+  dr.drawTrajectory(ctx, 18, 4);
+
+  // projectiles
+  ctx.fillStyle = '#ffbf31';
+  for (const p of projectiles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

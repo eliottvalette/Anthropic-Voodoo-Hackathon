@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>burst demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../particles.js"></script>
+<script src="../burst.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const particles = [];
+const colors = ['#ff4141','#ffbf31','#73f03f','#27a8ff','#e93cff'];
+let last = 0;
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  burst(particles, x, y, colors[Math.floor(Math.random()*colors.length)], 28, 0.22);
+});
+
+let auto = 0;
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  auto += dt;
+  if (auto > 1200) {
+    burst(particles, 180, 320, colors[Math.floor(Math.random()*colors.length)], 28, 0.22);
+    auto = 0;
+  }
+  updateParticles(particles, dt);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawParticles(ctx, particles);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
