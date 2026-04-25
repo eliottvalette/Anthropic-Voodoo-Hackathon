@@ -1,5 +1,23 @@
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile, stat } from "node:fs/promises";
 import { resolve, join } from "node:path";
+
+async function resolveUniqueRunId(runId: string): Promise<string> {
+  const exists = async (p: string) => {
+    try { await stat(p); return true; } catch { return false; }
+  };
+  if (!(await exists(resolve("outputs", runId)))) return runId;
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const stamp =
+    `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}` +
+    `-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  let candidate = `${runId}_${stamp}`;
+  let i = 2;
+  while (await exists(resolve("outputs", candidate))) {
+    candidate = `${runId}_${stamp}_${i++}`;
+  }
+  return candidate;
+}
 import { writeProbe } from "./probe.ts";
 import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
@@ -48,11 +66,11 @@ function retryAddendum(r: VerifyReport): string {
   const fixes: string[] = [];
   if (!r.canvasNonBlank)
     fixes.push(
-      "- Draw something to the canvas IMMEDIATELY on init (before assets load) so the canvas is never blank. Use a fillRect background as fallback.",
+      "- The canvas appears uniform-colored. Draw varied content (background fill PLUS placeholder shapes for any not-yet-loaded asset) on EVERY frame, including the first. Verify samples a 6x6 grid; a single solid color anywhere it lands fails this check.",
     );
   if (!r.interactionStateChange)
     fixes.push(
-      "- Override window.__engineState.snapshot to return values that change on user interaction. e.g. snapshot:function(){return {entityCount: entities.length, score: score};}. Make sure pointer events update those values.",
+      "- Override window.__engineState.snapshot to return MONOTONIC counters that strictly increase on input. Example: let tapsTotal=0, dragsTotal=0; canvas.addEventListener('pointerdown',()=>tapsTotal++); window.__engineState.snapshot=function(){return {tapsTotal,dragsTotal,score};}; NEVER return only transient values like entities.length that reset to baseline between samples.",
     );
   if (!r.mechanicStringMatch)
     fixes.push(
@@ -71,12 +89,16 @@ function retryAddendum(r: VerifyReport): string {
 }
 
 export async function runPipeline(
-  runId: string,
+  requestedRunId: string,
   videoPath: string,
   assetsDir: string,
   variant = "_default",
   maxRetries = 2,
 ): Promise<RunMeta> {
+  const runId = await resolveUniqueRunId(requestedRunId);
+  if (runId !== requestedRunId) {
+    console.log(`[run] runId "${requestedRunId}" exists; using "${runId}" to avoid overwrite`);
+  }
   const t0 = Date.now();
   const startedAt = new Date().toISOString();
   const outDir = resolve("outputs", runId);
