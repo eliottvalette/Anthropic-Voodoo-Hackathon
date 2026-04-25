@@ -183,10 +183,11 @@ export async function runP1(
       ]
     : null;
 
+  const videoOpts: GenerateOptions = { mediaResolution: "high" };
   const [a, b, c, e] = await Promise.all([
-    runWithRetry("1a_timeline", MODELS.flash, TimelineSchema, p1a, userParts),
-    runWithRetry("1b_mechanics", MODELS.flash, MechanicsSchema, p1b, userParts),
-    runWithRetry("1c_visual_ui", MODELS.flash, VisualUiSchema, p1c, userParts),
+    runWithRetry("1a_timeline", MODELS.flash, TimelineSchema, p1a, userParts, videoOpts),
+    runWithRetry("1b_mechanics", MODELS.flash, MechanicsSchema, p1b, userParts, videoOpts),
+    runWithRetry("1c_visual_ui", MODELS.flash, VisualUiSchema, p1c, userParts, videoOpts),
     sheetCallParts
       ? runWithRetry(
           "1e_contact_sheet",
@@ -194,6 +195,7 @@ export async function runP1(
           ContactSheetAnalysisSchema,
           p1e,
           sheetCallParts,
+          videoOpts,
         )
       : Promise.resolve(null),
   ]);

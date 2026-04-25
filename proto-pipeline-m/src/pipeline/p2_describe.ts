@@ -52,6 +52,7 @@ async function describeOne(
       ];
       const r = await generateJson(MODELS.flash, prompt, userParts, {
         temperature: 0.3,
+        mediaResolution: "high",
       });
       const parsed = AssetDescriptionSchema.parse(r.data);
       return {
