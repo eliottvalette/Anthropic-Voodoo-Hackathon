@@ -1,11 +1,26 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, MODELS, type ContentPart } from "./gemini.ts";
+import { z } from "zod";
+import {
+  generateJson,
+  MODELS,
+  type ContentPart,
+  type GenerateOptions,
+  type GenerateResult,
+} from "./gemini.ts";
 import {
   AggregatorOutputSchema,
   type AggregatorOutput,
   type GameSpec,
 } from "../schemas/gameSpec.ts";
+import {
+  SubsystemBriefsSchema,
+  type SubsystemBriefs,
+  P3CritiqueSchema,
+  type P3Critique,
+  P3RoundtripSchema,
+  type P3Roundtrip,
+} from "../schemas/subsystemBriefs.ts";
 import { MergedVideoSchema } from "../schemas/video/merged.ts";
 import { AssetMappingSchema } from "../schemas/assets.ts";
 import { scaffoldCheck, ScaffoldError, REQUIRED_SECTIONS } from "./scaffoldCheck.ts";
@@ -22,6 +37,9 @@ type SubMeta = {
 export type P3Output = {
   gameSpec: GameSpec;
   codegenPrompt: string;
+  briefs: SubsystemBriefs;
+  critique: P3Critique;
+  roundtrip: P3Roundtrip;
   meta: {
     totalLatencyMs: number;
     totalTokensIn: number;
@@ -30,8 +48,89 @@ export type P3Output = {
   };
 };
 
-async function loadPrompt(variant: string): Promise<string> {
-  return await readFile(resolve("prompts", variant, "3_aggregator.md"), "utf8");
+async function loadPrompt(variant: string, name: string): Promise<string> {
+  return await readFile(resolve("prompts", variant, name), "utf8");
+}
+
+async function callJson<T>(
+  step: string,
+  schema: z.ZodType<T>,
+  systemInstruction: string,
+  userText: string,
+  options: GenerateOptions = {},
+): Promise<{ result: GenerateResult<unknown>; data: T; meta: SubMeta }> {
+  const userParts: ContentPart[] = [{ text: userText }];
+  let attempt = 0;
+  let lastErr: unknown;
+  let sys = systemInstruction;
+  while (attempt < 2) {
+    attempt++;
+    try {
+      const r = await generateJson(MODELS.pro, sys, userParts, options);
+      const parsed = schema.parse(r.data);
+      return {
+        result: r,
+        data: parsed,
+        meta: {
+          step,
+          model: MODELS.pro,
+          tokensIn: r.tokensIn,
+          tokensOut: r.tokensOut,
+          latencyMs: r.latencyMs,
+          attempt,
+        },
+      };
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[p3] ${step} attempt ${attempt} failed: ${(e as Error).message.slice(0, 250)}`);
+      if (attempt >= 2) break;
+      sys =
+        systemInstruction +
+        `\n\nThe previous response failed schema validation. Re-emit ONLY a JSON object exactly matching the schema. No markdown fences.`;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
+async function callAggregator(
+  systemBase: string,
+  userText: string,
+): Promise<{ data: AggregatorOutput; meta: SubMeta }> {
+  let attempt = 0;
+  let lastErr: unknown;
+  let sys = systemBase;
+  while (attempt < 2) {
+    attempt++;
+    try {
+      const r = await generateJson<AggregatorOutput>(MODELS.pro, sys, [
+        { text: userText },
+      ]);
+      const parsed = AggregatorOutputSchema.parse(r.data);
+      scaffoldCheck(parsed.codegen_prompt, parsed.game_spec.mechanic_name);
+      return {
+        data: parsed,
+        meta: {
+          step: "3_aggregator",
+          model: MODELS.pro,
+          tokensIn: r.tokensIn,
+          tokensOut: r.tokensOut,
+          latencyMs: r.latencyMs,
+          attempt,
+        },
+      };
+    } catch (e) {
+      lastErr = e;
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(`[p3] aggregator attempt ${attempt} failed: ${msg.slice(0, 300)}`);
+      if (attempt >= 2) break;
+      const reminder =
+        e instanceof ScaffoldError
+          ? `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`
+          : `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences.`;
+      sys = systemBase + "\n\n" + reminder;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 export async function runP3(
@@ -48,52 +147,93 @@ export async function runP3(
     JSON.parse(await readFile(join(outDir, "02_assets.json"), "utf8")),
   );
 
-  const systemBase = await loadPrompt(variant);
-  const userJson = JSON.stringify({ video: merged, assets }, null, 2);
-  const userParts: ContentPart[] = [{ text: userJson }];
-
   const subCalls: SubMeta[] = [];
-  let attempt = 0;
-  let lastErr: unknown;
-  let sys = systemBase;
+  const evidence = { video: merged, assets };
 
-  while (attempt < 2) {
-    attempt++;
-    try {
-      const r = await generateJson<AggregatorOutput>(MODELS.pro, sys, userParts);
-      const parsed = AggregatorOutputSchema.parse(r.data);
-      scaffoldCheck(parsed.codegen_prompt, parsed.game_spec.mechanic_name);
-      subCalls.push({
-        step: "3_aggregator",
-        model: MODELS.pro,
-        tokensIn: r.tokensIn,
-        tokensOut: r.tokensOut,
-        latencyMs: r.latencyMs,
-        attempt,
-      });
-      return {
-        gameSpec: parsed.game_spec,
-        codegenPrompt: parsed.codegen_prompt,
-        meta: {
-          totalLatencyMs: Date.now() - t0,
-          totalTokensIn: subCalls.reduce((s, x) => s + x.tokensIn, 0),
-          totalTokensOut: subCalls.reduce((s, x) => s + x.tokensOut, 0),
-          subCalls,
-        },
-      };
-    } catch (e) {
-      lastErr = e;
-      const msg = e instanceof Error ? e.message : String(e);
-      console.warn(`[p3] attempt ${attempt} failed: ${msg.slice(0, 300)}`);
-      if (attempt >= 2) break;
-      const reminder =
-        e instanceof ScaffoldError
-          ? `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`
-          : `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences.`;
-      sys = systemBase + "\n\n" + reminder;
-    }
+  const aggSystem = await loadPrompt(variant, "3_aggregator.md");
+  const critic = await loadPrompt(variant, "3_critic.md");
+  const rewriter = await loadPrompt(variant, "3_rewriter.md");
+  const briefs = await loadPrompt(variant, "3_briefs.md");
+  const roundtrip = await loadPrompt(variant, "3_roundtrip.md");
+
+  console.log(`[p3] stage A: aggregator...`);
+  const agg = await callAggregator(aggSystem, JSON.stringify(evidence, null, 2));
+  subCalls.push(agg.meta);
+
+  console.log(`[p3] stage A.5: critic...`);
+  const critiqueCall = await callJson(
+    "3_critique",
+    P3CritiqueSchema,
+    critic,
+    JSON.stringify({ candidate: agg.data, evidence }, null, 2),
+    { temperature: 0.2 },
+  );
+  subCalls.push(critiqueCall.meta);
+
+  let finalAgg: AggregatorOutput = agg.data;
+  if (critiqueCall.data.overall_severity !== "none") {
+    console.log(`[p3] rewriting (severity=${critiqueCall.data.overall_severity})...`);
+    const rewriteCall = await callJson(
+      "3_rewrite",
+      AggregatorOutputSchema,
+      rewriter,
+      JSON.stringify({ original: agg.data, critique: critiqueCall.data, evidence }, null, 2),
+      { temperature: 0.2 },
+    );
+    scaffoldCheck(
+      rewriteCall.data.codegen_prompt,
+      rewriteCall.data.game_spec.mechanic_name,
+    );
+    finalAgg = rewriteCall.data;
+    subCalls.push(rewriteCall.meta);
   }
-  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+
+  console.log(`[p3] stage B: subsystem briefs...`);
+  const briefsCall = await callJson(
+    "3_briefs",
+    SubsystemBriefsSchema,
+    briefs,
+    JSON.stringify(finalAgg.game_spec, null, 2),
+    { temperature: 0.3 },
+  );
+  subCalls.push(briefsCall.meta);
+
+  console.log(`[p3] stage C: round-trip validation...`);
+  const roundtripCall = await callJson(
+    "3_roundtrip",
+    P3RoundtripSchema,
+    roundtrip,
+    JSON.stringify(
+      {
+        game_spec: finalAgg.game_spec,
+        original_summary: merged.summary_one_sentence,
+      },
+      null,
+      2,
+    ),
+    { temperature: 0.2 },
+  );
+  subCalls.push(roundtripCall.meta);
+
+  if (roundtripCall.data.drift_severity !== "none") {
+    console.warn(
+      `[p3] roundtrip drift=${roundtripCall.data.drift_severity}. Missing: ${roundtripCall.data.missing_concepts.join("; ")}`,
+    );
+  }
+
+  return {
+    gameSpec: finalAgg.game_spec,
+    codegenPrompt: finalAgg.codegen_prompt,
+    briefs: briefsCall.data,
+    critique: critiqueCall.data,
+    roundtrip: roundtripCall.data,
+    meta: {
+      totalLatencyMs: Date.now() - t0,
+      totalTokensIn: subCalls.reduce((s, x) => s + x.tokensIn, 0),
+      totalTokensOut: subCalls.reduce((s, x) => s + x.tokensOut, 0),
+      subCalls,
+    },
+  };
 }
 
 export async function writeP3(
@@ -111,6 +251,21 @@ export async function writeP3(
   await writeFile(
     join(outDir, "03_codegen_prompt.txt"),
     output.codegenPrompt,
+    "utf8",
+  );
+  await writeFile(
+    join(outDir, "03_subsystem_briefs.json"),
+    JSON.stringify(output.briefs, null, 2),
+    "utf8",
+  );
+  await writeFile(
+    join(outDir, "03_critique.json"),
+    JSON.stringify(output.critique, null, 2),
+    "utf8",
+  );
+  await writeFile(
+    join(outDir, "03_roundtrip.json"),
+    JSON.stringify(output.roundtrip, null, 2),
     "utf8",
   );
   await writeFile(
