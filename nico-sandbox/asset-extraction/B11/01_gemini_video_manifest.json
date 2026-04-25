@@ -1,0 +1,412 @@
+{
+  "video_summary": "A 2D side-scrolling battle game where two castles on tank treads fight each other. The player controls units inside their castle to aim and fire various projectiles at the enemy castle, aiming to reduce its health to zero. The video ends with the player's castle being destroyed, leading to a 'Battle Failed' screen and an end card.",
+  "gameplay_loop": "The player selects a unit from the bottom panel, drags to aim their weapon using a trajectory line, and releases to fire. Projectiles damage the enemy castle. The enemy castle automatically fires back. The loop continues until one castle is destroyed.",
+  "camera_and_canvas": "The camera is a static 2D orthographic side-view, capturing both castles. The canvas is in portrait orientation, with UI elements at the top (health bars) and bottom (unit selection).",
+  "assets": [
+    {
+      "asset_id": "bg_gameplay",
+      "name": "Gameplay Background",
+      "category": "background",
+      "visual_description": "A grassy landscape with rolling hills, trees, fences, and a cloudy sky.",
+      "gameplay_role": "Provides the environment for the battle.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        2.0,
+        5.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "priority": 5
+    },
+    {
+      "asset_id": "castle_player",
+      "name": "Player Castle",
+      "category": "castle",
+      "visual_description": "A tall stone castle with blue roofs, mounted on two large tank treads.",
+      "gameplay_role": "The player's base, which houses units and takes damage from enemy attacks.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        1.0,
+        2.0
+      ],
+      "approx_box_2d": [
+        250,
+        0,
+        800,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 5
+    },
+    {
+      "asset_id": "castle_enemy",
+      "name": "Enemy Castle",
+      "category": "castle",
+      "visual_description": "A tall stone castle with red roofs, mounted on two large tank treads.",
+      "gameplay_role": "The opponent's base, which the player must destroy.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        1.0,
+        2.0
+      ],
+      "approx_box_2d": [
+        250,
+        500,
+        800,
+        1000
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 5
+    },
+    {
+      "asset_id": "ui_top_bar",
+      "name": "Top UI Bar",
+      "category": "ui",
+      "visual_description": "A UI element at the top containing a 'VS' logo, blue and red health bars, and castle icons with percentage text.",
+      "gameplay_role": "Displays the current health status of both castles.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        5.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        150,
+        1000
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 5
+    },
+    {
+      "asset_id": "ui_unit_panel",
+      "name": "Unit Selection Panel",
+      "category": "ui",
+      "visual_description": "A panel at the bottom of the screen showing three square icons for different units.",
+      "gameplay_role": "Allows the player to select which unit to control.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        6.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        800,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 5
+    },
+    {
+      "asset_id": "char_cyclops_red",
+      "name": "Red Cyclops Unit",
+      "category": "character",
+      "visual_description": "A small, red, one-eyed character holding a cannon.",
+      "gameplay_role": "A playable unit that fires fireball projectiles.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        6.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        500,
+        200,
+        650,
+        350
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "char_skeleton",
+      "name": "Skeleton Unit",
+      "category": "character",
+      "visual_description": "A small skeleton character holding a multi-barrel gun.",
+      "gameplay_role": "A playable unit that fires missile projectiles.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        6.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        350,
+        100,
+        500,
+        250
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "char_goblin_green",
+      "name": "Green Goblin Unit",
+      "category": "character",
+      "visual_description": "A small green goblin character with horns, holding a cannon.",
+      "gameplay_role": "A playable unit that fires poison projectiles.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        6.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        650,
+        100,
+        800,
+        250
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "ui_hand_cursor",
+      "name": "Hand Cursor",
+      "category": "ui",
+      "visual_description": "A cartoonish hand with a pointing index finger.",
+      "gameplay_role": "Guides the player on how to interact with the game (selecting and aiming).",
+      "best_timestamp_s": 7.4,
+      "fallback_timestamps_s": [
+        8.0,
+        9.0
+      ],
+      "approx_box_2d": [
+        500,
+        400,
+        700,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "ui_aim_trajectory",
+      "name": "Aiming Trajectory",
+      "category": "ui",
+      "visual_description": "A dotted white line indicating the path a projectile will take.",
+      "gameplay_role": "Helps the player aim their shots.",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [
+        8.5,
+        9.0
+      ],
+      "approx_box_2d": [
+        300,
+        300,
+        500,
+        800
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "proj_missile",
+      "name": "Missile Projectile",
+      "category": "projectile",
+      "visual_description": "A small grey missile with a red tip, leaving a smoke trail.",
+      "gameplay_role": "Deals damage to the enemy castle upon impact.",
+      "best_timestamp_s": 9.4,
+      "fallback_timestamps_s": [
+        10.0,
+        11.0
+      ],
+      "approx_box_2d": [
+        300,
+        400,
+        400,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "vfx_explosion",
+      "name": "Explosion Effect",
+      "category": "effect",
+      "visual_description": "A burst of fire, smoke, and flying debris.",
+      "gameplay_role": "Visual feedback for a projectile hitting a castle.",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        2.0,
+        11.0
+      ],
+      "approx_box_2d": [
+        400,
+        400,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 3
+    },
+    {
+      "asset_id": "proj_fireball",
+      "name": "Fireball Projectile",
+      "category": "projectile",
+      "visual_description": "A glowing orange fireball leaving a fiery trail.",
+      "gameplay_role": "Deals damage to the enemy castle upon impact.",
+      "best_timestamp_s": 29.4,
+      "fallback_timestamps_s": [
+        30.0,
+        31.0
+      ],
+      "approx_box_2d": [
+        400,
+        400,
+        500,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "proj_poison",
+      "name": "Poison Projectile",
+      "category": "projectile",
+      "visual_description": "A green blob of poison leaving a green trail.",
+      "gameplay_role": "Deals damage to the enemy castle upon impact.",
+      "best_timestamp_s": 39.4,
+      "fallback_timestamps_s": [
+        40.0,
+        41.0
+      ],
+      "approx_box_2d": [
+        500,
+        500,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 4
+    },
+    {
+      "asset_id": "char_ninja",
+      "name": "Ninja Unit",
+      "category": "character",
+      "visual_description": "A small character dressed in purple ninja garb.",
+      "gameplay_role": "A unit that appears later and performs a special attack.",
+      "best_timestamp_s": 44.6,
+      "fallback_timestamps_s": [
+        45.0,
+        46.0
+      ],
+      "approx_box_2d": [
+        600,
+        150,
+        750,
+        300
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 3
+    },
+    {
+      "asset_id": "vfx_ninja_attack",
+      "name": "Ninja Attack Effect",
+      "category": "effect",
+      "visual_description": "A burst of pink star-shaped particles.",
+      "gameplay_role": "Visual feedback for the ninja's attack.",
+      "best_timestamp_s": 46.4,
+      "fallback_timestamps_s": [
+        46.6,
+        46.8
+      ],
+      "approx_box_2d": [
+        300,
+        300,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 3
+    },
+    {
+      "asset_id": "ui_battle_failed",
+      "name": "Battle Failed Banner",
+      "category": "ui",
+      "visual_description": "A red banner sliding in from the right with the text 'BATTLE FAILED'.",
+      "gameplay_role": "Indicates the player has lost the game.",
+      "best_timestamp_s": 49.8,
+      "fallback_timestamps_s": [
+        50.0,
+        50.5
+      ],
+      "approx_box_2d": [
+        200,
+        500,
+        400,
+        1000
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 2
+    },
+    {
+      "asset_id": "bg_endcard",
+      "name": "End Card Background",
+      "category": "background",
+      "visual_description": "A static background showing characters running towards a castle.",
+      "gameplay_role": "The background for the final call-to-action screen.",
+      "best_timestamp_s": 51.4,
+      "fallback_timestamps_s": [
+        52.0,
+        53.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "priority": 2
+    },
+    {
+      "asset_id": "ui_logo",
+      "name": "Game Logo",
+      "category": "ui",
+      "visual_description": "The 'CASTLE CLASHERS' logo with a wooden sign aesthetic.",
+      "gameplay_role": "Displays the name of the game on the end card.",
+      "best_timestamp_s": 51.4,
+      "fallback_timestamps_s": [
+        52.0,
+        53.0
+      ],
+      "approx_box_2d": [
+        50,
+        100,
+        350,
+        900
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 2
+    },
+    {
+      "asset_id": "ui_play_button",
+      "name": "Play Button",
+      "category": "ui",
+      "visual_description": "A wooden button with the word 'PLAY' on it.",
+      "gameplay_role": "Call-to-action button to download or play the game.",
+      "best_timestamp_s": 51.4,
+      "fallback_timestamps_s": [
+        52.0,
+        53.0
+      ],
+      "approx_box_2d": [
+        750,
+        200,
+        900,
+        800
+      ],
+      "isolate_with_background_removal": true,
+      "priority": 2
+    }
+  ],
+  "_gemini_model": "gemini-3.1-pro-preview",
+  "_gemini_file": {
+    "name": "files/jflywjd99673",
+    "uri": "https://generativelanguage.googleapis.com/v1beta/files/jflywjd99673"
+  }
+}
