@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useState, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface DropZoneProps {
   label: string
   sublabel: string
   accept: string
   multiple?: boolean
+  folder?: boolean
   onFiles: (files: File[]) => void
   files: File[]
   icon: React.ReactNode
@@ -21,23 +22,74 @@ function isAccepted(file: File, accept: string): boolean {
   })
 }
 
-export default function DropZone({ label, sublabel, accept, multiple = false, onFiles, files, icon }: DropZoneProps) {
+async function readEntry(entry: FileSystemEntry): Promise<File[]> {
+  if (entry.isFile) {
+    return new Promise(resolve => {
+      (entry as FileSystemFileEntry).file(
+        file => resolve([file]),
+        () => resolve([])
+      )
+    })
+  }
+
+  if (entry.isDirectory) {
+    const reader = (entry as FileSystemDirectoryEntry).createReader()
+    const all: File[] = []
+
+    const readBatch = (): Promise<FileSystemEntry[]> =>
+      new Promise(resolve => reader.readEntries(resolve, () => resolve([])))
+
+    let batch: FileSystemEntry[]
+    do {
+      batch = await readBatch()
+      for (const e of batch) {
+        all.push(...await readEntry(e))
+      }
+    } while (batch.length > 0)
+
+    return all
+  }
+
+  return []
+}
+
+export default function DropZone({
+  label, sublabel, accept, multiple = false, folder = false, onFiles, files, icon
+}: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  useEffect(() => {
+    if (inputRef.current && folder) {
+      inputRef.current.webkitdirectory = true
+    }
+  }, [folder])
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    const dropped = Array.from(e.dataTransfer.files).filter(f => isAccepted(f, accept))
-    if (dropped.length) onFiles(dropped)
+
+    const items = Array.from(e.dataTransfer.items)
+    const all: File[] = []
+
+    for (const item of items) {
+      if (item.kind !== 'file') continue
+      const entry = item.webkitGetAsEntry()
+      if (!entry) continue
+      all.push(...await readEntry(entry))
+    }
+
+    const filtered = all.filter(f => isAccepted(f, accept))
+    if (filtered.length) onFiles(filtered)
   }, [accept, onFiles])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) onFiles(Array.from(e.target.files))
-  }, [onFiles])
+    if (!e.target.files?.length) return
+    const filtered = Array.from(e.target.files).filter(f => isAccepted(f, accept))
+    if (filtered.length) onFiles(filtered)
+  }, [accept, onFiles])
 
   const hasFiles = files.length > 0
-  const active = isDragging || hasFiles
 
   return (
     <div
@@ -60,7 +112,7 @@ export default function DropZone({ label, sublabel, accept, multiple = false, on
         ref={inputRef}
         type="file"
         accept={accept}
-        multiple={multiple}
+        multiple={folder || multiple}
         onChange={handleChange}
         className="hidden"
       />
@@ -88,7 +140,7 @@ export default function DropZone({ label, sublabel, accept, multiple = false, on
         </div>
       ) : (
         <>
-          <div className={`transition-colors duration-150 ${active ? 'text-[#0055FF]' : 'text-gray-300'}`}>
+          <div className={`transition-colors duration-150 ${isDragging ? 'text-[#0055FF]' : 'text-gray-300'}`}>
             {icon}
           </div>
           <div className="text-center">

@@ -1,18 +1,26 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 interface PlayableViewerProps {
   html: string
 }
 
 export default function PlayableViewer({ html }: PlayableViewerProps) {
-  const handleDownload = () => {
+  const [blobUrl, setBlobUrl] = useState<string>('')
+
+  useEffect(() => {
     const blob = new Blob([html], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
+    setBlobUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [html])
+
+  const handleDownload = () => {
     const a = document.createElement('a')
-    a.href = url
+    a.href = blobUrl
     a.download = 'playable.html'
     a.click()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
@@ -33,19 +41,20 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
         </button>
       </div>
 
-      {/* Mobile-ratio frame */}
       <div className="flex justify-center">
         <div
           className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-black"
           style={{ width: 360, height: 640 }}
         >
-          <iframe
-            srcDoc={html}
-            className="w-full h-full"
-            style={{ border: 'none' }}
-            title="Playable Preview"
-            sandbox="allow-scripts"
-          />
+          {blobUrl && (
+            <iframe
+              src={blobUrl}
+              className="w-full h-full"
+              style={{ border: 'none' }}
+              title="Playable Preview"
+              sandbox="allow-scripts allow-same-origin"
+            />
+          )}
         </div>
       </div>
     </div>
