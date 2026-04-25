@@ -2,3 +2,5 @@
 .claude/*
 .env
 .agents/*
+*node_modules
+*.next
