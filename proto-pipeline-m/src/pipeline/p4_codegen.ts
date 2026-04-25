@@ -1,25 +1,22 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { GEMINI_API_KEY } from "../env.ts";
-import { MODELS } from "./gemini.ts";
 import {
   buildAssetsBlock,
-  injectAssets,
-  stripFences,
   assertSize,
 } from "./assemble.ts";
+import { fillPreamble } from "../engine/preamble.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
-
-const API_BASE = "https://generativelanguage.googleapis.com";
-
-type SubMeta = {
-  step: string;
-  model: string;
-  tokensIn: number;
-  tokensOut: number;
-  latencyMs: number;
-  attempt: number;
-};
+import {
+  SubsystemBriefsSchema,
+  type SubsystemBriefs,
+} from "../schemas/subsystemBriefs.ts";
+import {
+  runP4Subsystems,
+  type SubMeta,
+  type SubsystemName,
+} from "./p4_subsystems.ts";
+import { aggregateCreativeSlot } from "./p4_aggregator.ts";
+import { runP4Lint } from "./p4_lint.ts";
 
 export type P4Output = {
   htmlPath: string;
@@ -32,83 +29,70 @@ export type P4Output = {
   };
 };
 
-async function generateHtml(
-  systemInstruction: string,
-  userPrompt: string,
-): Promise<{ html: string; tokensIn: number; tokensOut: number; latencyMs: number }> {
-  const url = `${API_BASE}/v1beta/models/${MODELS.pro}:generateContent?key=${GEMINI_API_KEY}`;
-  const body = {
-    systemInstruction: { parts: [{ text: systemInstruction }] },
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-    generationConfig: { temperature: 0.5, maxOutputTokens: 32768 },
-  };
-  const t0 = Date.now();
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const latencyMs = Date.now() - t0;
-  if (!res.ok) {
-    throw new Error(`P4 generateContent ${res.status}: ${await res.text()}`);
-  }
-  const j = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
-  };
-  const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  if (!text) throw new Error(`Empty P4 response: ${JSON.stringify(j)}`);
-  return {
-    html: stripFences(text),
-    tokensIn: j.usageMetadata?.promptTokenCount ?? 0,
-    tokensOut: j.usageMetadata?.candidatesTokenCount ?? 0,
-    latencyMs,
-  };
-}
+export type P4RunOptions = {
+  retryOnly?: SubsystemName[];
+};
 
 export async function runP4(
   runId: string,
   assetsDir: string,
   variant = "_default",
-  extraUserAddendum = "",
+  options: P4RunOptions = {},
 ): Promise<P4Output> {
   const t0 = Date.now();
   const outDir = resolve("outputs", runId);
+  await mkdir(outDir, { recursive: true });
 
-  const systemInstruction = await readFile(
-    resolve("prompts", variant, "4_codegen.md"),
-    "utf8",
-  );
-  const userPrompt =
-    (await readFile(join(outDir, "03_codegen_prompt.txt"), "utf8")) +
-    (extraUserAddendum ? `\n\n${extraUserAddendum}` : "");
   const gameSpec: GameSpec = GameSpecSchema.parse(
     JSON.parse(await readFile(join(outDir, "03_game_spec.json"), "utf8")),
   );
+  const briefs: SubsystemBriefs = SubsystemBriefsSchema.parse(
+    JSON.parse(await readFile(join(outDir, "03_subsystem_briefs.json"), "utf8")),
+  );
 
-  console.log(`[p4] generating HTML on ${MODELS.pro}...`);
-  const gen = await generateHtml(systemInstruction, userPrompt);
-  console.log(`[p4] received ${gen.html.length} chars, injecting assets...`);
+  const regenerate = options.retryOnly;
+  if (regenerate === undefined) {
+    console.log(`[p4] running 5 subsystems x best-of-3 + judge...`);
+  } else if (regenerate.length === 0) {
+    console.log(`[p4] re-aggregating + re-linting only (no subsystem regeneration)...`);
+  } else {
+    console.log(`[p4] regenerating subsystems: ${regenerate.join(", ")}`);
+  }
+  const subs = await runP4Subsystems(runId, variant, regenerate);
+  const subCalls: SubMeta[] = [...subs.meta.subCalls];
+
+  console.log(`[p4] aggregating creative slot...`);
+  const creativeSlotRaw = aggregateCreativeSlot(gameSpec, subs.winners);
+  await writeFile(join(outDir, "04_creative_slot_pre_lint.js"), creativeSlotRaw, "utf8");
+
+  console.log(`[p4] running lint pass...`);
+  const lint = await runP4Lint(runId, variant, creativeSlotRaw, gameSpec, briefs);
+  subCalls.push(lint.meta);
+  const creativeSlot = lint.patchedSource;
+  await writeFile(join(outDir, "04_creative_slot.js"), creativeSlot, "utf8");
 
   const assetsBlock = await buildAssetsBlock(assetsDir, gameSpec.asset_role_map);
-  const final = injectAssets(gen.html, assetsBlock);
+  // Embed assets into window.__A so subsystems can read them
+  const assetsScript = `(function(){
+${assetsBlock}
+for (var k in A) window.__A[k] = A[k];
+})();`;
+  const final = fillPreamble(assetsScript, creativeSlot);
   assertSize(final);
 
   const htmlPath = join(outDir, "playable.html");
   await writeFile(htmlPath, final, "utf8");
 
-  const meta: SubMeta = {
-    step: "4_codegen",
-    model: MODELS.pro,
-    tokensIn: gen.tokensIn,
-    tokensOut: gen.tokensOut,
-    latencyMs: gen.latencyMs,
-    attempt: 1,
-  };
   await writeFile(
     join(outDir, "04_codegen_meta.json"),
     JSON.stringify(
-      { totalLatencyMs: Date.now() - t0, subCalls: [meta] },
+      {
+        totalLatencyMs: Date.now() - t0,
+        lint_severity: lint.severity,
+        lint_patches_applied: lint.patchesApplied,
+        lint_patches_skipped: lint.patchesSkipped,
+        subCalls,
+      },
       null,
       2,
     ),
@@ -120,9 +104,9 @@ export async function runP4(
     bytes: Buffer.byteLength(final, "utf8"),
     meta: {
       totalLatencyMs: Date.now() - t0,
-      totalTokensIn: meta.tokensIn,
-      totalTokensOut: meta.tokensOut,
-      subCalls: [meta],
+      totalTokensIn: subCalls.reduce((s, x) => s + x.tokensIn, 0),
+      totalTokensOut: subCalls.reduce((s, x) => s + x.tokensOut, 0),
+      subCalls,
     },
   };
 }
