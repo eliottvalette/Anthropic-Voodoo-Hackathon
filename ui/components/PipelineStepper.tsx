@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-export type StepStatus = 'idle' | 'active' | 'done' | 'error'
+export type StepStatus = 'idle' | 'active' | 'awaiting' | 'done' | 'error'
 
 export interface Step {
   id: string
@@ -28,6 +28,14 @@ function StepDot({ status }: { status: StepStatus }) {
   if (status === 'active') {
     return (
       <div className="w-6 h-6 rounded-full bg-[#0055FF] flex-shrink-0 z-10 pulse-dot" />
+    )
+  }
+
+  if (status === 'awaiting') {
+    return (
+      <div className="w-6 h-6 rounded-full border-2 border-[#0F141C] bg-white flex items-center justify-center flex-shrink-0 z-10">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#0F141C]" />
+      </div>
     )
   }
 
@@ -68,7 +76,7 @@ function ElapsedTimer({ startedAt, doneAt, estimate, status }: {
   if (status === 'active') {
     return <span className="text-xs text-[#0055FF] font-mono tabular-nums">{elapsed}s</span>
   }
-  if ((status === 'done' || status === 'error') && startedAt && doneAt) {
+  if ((status === 'done' || status === 'awaiting' || status === 'error') && startedAt && doneAt) {
     return (
       <span className="text-xs text-gray-400 font-mono tabular-nums">
         {((doneAt - startedAt) / 1000).toFixed(1)}s
@@ -83,7 +91,7 @@ export default function PipelineStepper({ steps }: { steps: Step[] }) {
     <div className="flex flex-col">
       {steps.map((step, i) => {
         const isLast = i === steps.length - 1
-        const lineColor = step.status === 'done' ? '#0F141C' : step.status === 'active' ? '#0055FF' : '#E5E7EB'
+        const lineColor = step.status === 'done' || step.status === 'awaiting' ? '#0F141C' : step.status === 'active' ? '#0055FF' : '#E5E7EB'
 
         return (
           <div key={step.id} className="flex gap-4">
