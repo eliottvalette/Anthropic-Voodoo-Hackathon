@@ -25,7 +25,7 @@
       "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/sprites/tombstone_prop.png"
     },
     "prompts": {
-      "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: RIP Tombstone\nCategory: other\nDescription: A small grey tombstone with 'RIP' written on it. Thick black outlines.\nGameplay role: Appears where a unit has been defeated.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: RIP Tombstone\nCategory: other\nDescription: A small grey tombstone with 'RIP' written on it. Thick black outlines.\nGameplay role: Appears where a unit has been defeated.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.\n\n--- USER REFINEMENT (apply on top of everything above, do not contradict the STYLE LOCK) ---\nno ice thing on top of the tombstone"
     },
     "notes": [
       "Video crop is reference evidence; Scenario recreation supplies final pixels."
@@ -38,7 +38,7 @@
     "route": "static_sprite",
     "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/tombstone_prop.png",
     "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/sprites/tombstone_prop.png",
-    "scenario_asset_id": "asset_1oa3DuuNBYZYhq3FJrPmUXQh",
+    "scenario_asset_id": "asset_363V2KVk5ignKkUHozQHZE29",
     "steps": [
       {
         "step": "upload_reference_crop",
@@ -47,32 +47,29 @@
       {
         "step": "reference_guided_sprite_recreation",
         "model_id": "model_google-gemini-3-1-flash",
-        "job_id": "job_FH5PJZrw1mkT9XZsibucoNkc",
+        "job_id": "job_anrrZxZbst7Ra1FTrQwVfPtZ",
         "asset_ids": [
-          "asset_SHUn35RNaiJxuLQxapAf9nWT",
-          "asset_MpTjqqH9g3GC5i493cDE3kPp",
-          "asset_prQ6RBaweCUPCqH4ES21XBW7",
-          "asset_P7foiBzS1S1XnHPQvsBdkU5J"
+          "asset_zwZ561c511WHpHhuEJP8rrHt"
         ],
-        "selected_asset_id": "asset_P7foiBzS1S1XnHPQvsBdkU5J"
+        "selected_asset_id": "asset_zwZ561c511WHpHhuEJP8rrHt"
       },
       {
         "step": "background_removal",
         "model_id": "model_pixa-background-removal",
-        "job_id": "job_x4L7tN5bTJGZTF8imtnJwrAa",
-        "asset_id": "asset_X1LRftzdnLbPrSorGf1UUogk",
+        "job_id": "job_YMM5um4Z5UESpyXB3kzaauQK",
+        "asset_id": "asset_Vzt6iRw9jBUdvSUv9uzS14rD",
         "fallback_from": [
           {
             "model_id": "model_photoroom-background-removal",
-            "error": "Scenario job job_CswmZWuJo9KVW3TXq72Q8Snm ended with status failure: {'jobId': 'job_CswmZWuJo9KVW3TXq72Q8Snm', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_P7foiBzS1S1XnHPQvsBdkU5J'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T17:07:23.297Z', 'updatedAt': '2026-04-25T17:07:31.245Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T17:07:23.297Z'}, {'status': 'in-progress', 'date': '2026-04-25T17:07:23.993Z'}, {'status': 'failure', 'date': '2026-04-25T17:07:31.245Z'}], 'progress': 1}"
+            "error": "Scenario job job_fH2Ht18DuEfcRQFMrwsaM81r ended with status failure: {'jobId': 'job_fH2Ht18DuEfcRQFMrwsaM81r', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_zwZ561c511WHpHhuEJP8rrHt'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T17:43:21.375Z', 'updatedAt': '2026-04-25T17:43:29.508Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T17:43:21.375Z'}, {'status': 'in-progress', 'date': '2026-04-25T17:43:21.904Z'}, {'status': 'failure', 'date': '2026-04-25T17:43:29.508Z'}], 'progress': 1}"
           }
         ]
       },
       {
         "step": "transparent_padding_trim",
         "model_id": "model_scenario-padding-remover",
-        "job_id": "job_o4fUsgbeksViwwPnVi54kqLr",
-        "asset_id": "asset_1oa3DuuNBYZYhq3FJrPmUXQh"
+        "job_id": "job_GVeWzU1AGoaUzGc88yHwZqwT",
+        "asset_id": "asset_363V2KVk5ignKkUHozQHZE29"
       }
     ]
   }

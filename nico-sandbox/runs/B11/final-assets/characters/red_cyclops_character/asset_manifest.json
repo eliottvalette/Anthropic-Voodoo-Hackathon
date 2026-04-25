@@ -162,7 +162,7 @@
       }
     },
     "prompts": {
-      "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Red Cyclops Unit\nDescription: A small, red, one-eyed cartoon character holding a red cannon. Thick black outlines and flat colors.\nGameplay role: A player unit that shoots fireballs.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Red Cyclops Unit\nDescription: A small, red, one-eyed cartoon character holding a red cannon. Thick black outlines and flat colors.\nGameplay role: A player unit that shoots fireballs.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.\n\n--- USER REFINEMENT (apply on top of everything above, do not contradict the STYLE LOCK) ---\nmake the character colors more like the real one",
       "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
       "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
     },
@@ -178,7 +178,7 @@
     "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/red_cyclops_character.png",
     "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/full.png",
     "rig_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/rig.json",
-    "scenario_asset_id": "asset_Kv7SAFFrp2HjYz56VWEguQLP",
+    "scenario_asset_id": "asset_D5o7bTDJieXDnMMVXd9MJzbJ",
     "part_errors": [],
     "steps": [
       {
@@ -188,32 +188,29 @@
       {
         "step": "reference_guided_character_seed",
         "model_id": "model_google-gemini-3-1-flash",
-        "job_id": "job_iM4Fdk6raGfMsUCHVtxQqM2R",
+        "job_id": "job_aHjYbz1KBnen1bnfUnuCiG3J",
         "asset_ids": [
-          "asset_W6KUuZNqMkScAkwFp6gkejxa",
-          "asset_hxbwjKppxkn2qaY1sNVwFXmM",
-          "asset_Uk7csWCFAStU6EQpk8dt63wN",
-          "asset_XgQYkREVzqPmMFc9MXtSdR5o"
+          "asset_aN6jc5Lg3o9GjrGvzdu6MjeQ"
         ],
-        "selected_asset_id": "asset_XgQYkREVzqPmMFc9MXtSdR5o"
+        "selected_asset_id": "asset_aN6jc5Lg3o9GjrGvzdu6MjeQ"
       },
       {
         "step": "background_removal",
         "model_id": "model_pixa-background-removal",
-        "job_id": "job_En8PkWmrnHAGFNXwFHWYMAq7",
-        "asset_id": "asset_VtVskAbk7t6Xse5F5nXS1Aiq",
+        "job_id": "job_KWePpdchipB81iAwacvWd753",
+        "asset_id": "asset_rkg1R8mYDeDdZ5dtsNAUMaPF",
         "fallback_from": [
           {
             "model_id": "model_photoroom-background-removal",
-            "error": "Scenario job job_YYPnFhkn4FbBdUpxJqcqAWgW ended with status failure: {'jobId': 'job_YYPnFhkn4FbBdUpxJqcqAWgW', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_XgQYkREVzqPmMFc9MXtSdR5o'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T16:49:17.461Z', 'updatedAt': '2026-04-25T16:49:25.132Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T16:49:17.460Z'}, {'status': 'in-progress', 'date': '2026-04-25T16:49:18.045Z'}, {'status': 'failure', 'date': '2026-04-25T16:49:25.132Z'}], 'progress': 1}"
+            "error": "Scenario job job_41Yhnp1yq1hTvyUoDvXNqXR3 ended with status failure: {'jobId': 'job_41Yhnp1yq1hTvyUoDvXNqXR3', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_aN6jc5Lg3o9GjrGvzdu6MjeQ'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T17:42:49.297Z', 'updatedAt': '2026-04-25T17:42:57.510Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T17:42:49.297Z'}, {'status': 'in-progress', 'date': '2026-04-25T17:42:50.384Z'}, {'status': 'failure', 'date': '2026-04-25T17:42:57.510Z'}], 'progress': 1}"
           }
         ]
       },
       {
         "step": "transparent_padding_trim",
         "model_id": "model_scenario-padding-remover",
-        "job_id": "job_4qmHKMRvr63ujfaZen78uw85",
-        "asset_id": "asset_Kv7SAFFrp2HjYz56VWEguQLP"
+        "job_id": "job_zJ9Lv1dybuf6RhqJaFMAmb7z",
+        "asset_id": "asset_D5o7bTDJieXDnMMVXd9MJzbJ"
       },
       {
         "step": "emit_rig_json",
@@ -222,24 +219,24 @@
       {
         "step": "character_parts_sheet_generation",
         "model_id": "model_google-gemini-3-1-flash",
-        "job_id": "job_6XXhgrzqimMBdBLv3BLdUTbW",
-        "asset_id": "asset_YWHp2JyxUkB12wBtdyNrWeWX"
+        "job_id": "job_zzGPP7QHYS1C1MS4LUUp7hWh",
+        "asset_id": "asset_BPfSAhCQ8dqRytccVTAawgF1"
       },
       {
         "step": "parts_sheet_background_removal",
         "model_id": "model_pixa-background-removal",
-        "job_id": "job_CFnG1CZivVQWoxdFvLtH1K8d",
-        "asset_id": "asset_THQpPfxQBhVjqS2hQNtne5gm",
+        "job_id": "job_ZPWReDoxCw8nNZh4e8KcBiG7",
+        "asset_id": "asset_JDCbstBvrCuyauZkU7nDHGF5",
         "fallback_from": [
           {
             "model_id": "model_photoroom-background-removal",
-            "error": "Scenario job job_1HiZyGUxkCrSyQd1VmrqKpga ended with status failure: {'jobId': 'job_1HiZyGUxkCrSyQd1VmrqKpga', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_YWHp2JyxUkB12wBtdyNrWeWX'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T16:50:25.088Z', 'updatedAt': '2026-04-25T16:50:33.909Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T16:50:25.088Z'}, {'status': 'in-progress', 'date': '2026-04-25T16:50:26.517Z'}, {'status': 'failure', 'date': '2026-04-25T16:50:33.909Z'}], 'progress': 1}"
+            "error": "Scenario job job_owjU8Qfb84yn7eMZTDZUYxRs ended with status failure: {'jobId': 'job_owjU8Qfb84yn7eMZTDZUYxRs', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_BPfSAhCQ8dqRytccVTAawgF1'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T17:43:56.318Z', 'updatedAt': '2026-04-25T17:44:04.334Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T17:43:56.318Z'}, {'status': 'in-progress', 'date': '2026-04-25T17:43:57.035Z'}, {'status': 'failure', 'date': '2026-04-25T17:44:04.334Z'}], 'progress': 1}"
           }
         ]
       },
       {
         "step": "download_parts_sheet",
-        "asset_id": "asset_THQpPfxQBhVjqS2hQNtne5gm",
+        "asset_id": "asset_JDCbstBvrCuyauZkU7nDHGF5",
         "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts_sheet.png"
       },
       {
@@ -249,64 +246,64 @@
             "part": "head",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/head.png",
             "size": [
-              294,
-              357
+              274,
+              217
             ]
           },
           {
             "part": "body",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/body.png",
             "size": [
-              190,
-              370
+              204,
+              203
             ]
           },
           {
             "part": "arm_front",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/arm_front.png",
             "size": [
-              202,
-              321
+              169,
+              192
             ]
           },
           {
             "part": "arm_back",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/arm_back.png",
             "size": [
-              214,
-              317
+              200,
+              167
             ]
           },
           {
             "part": "leg_front",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/leg_front.png",
             "size": [
-              139,
-              320
+              83,
+              162
             ]
           },
           {
             "part": "leg_back",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/leg_back.png",
             "size": [
-              138,
-              320
+              83,
+              161
             ]
           },
           {
             "part": "weapon",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/weapon.png",
             "size": [
-              271,
-              270
+              265,
+              148
             ]
           },
           {
             "part": "shadow",
             "path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts/shadow.png",
             "size": [
-              233,
-              159
+              246,
+              68
             ]
           }
         ]
