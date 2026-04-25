@@ -1,0 +1,41 @@
+{
+  "asset_id": "fireball_smoke_trail",
+  "name": "Fireball Smoke Trail",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/fireball_smoke_trail.png",
+  "payload": {
+    "summary": "A procedural cartoon smoke trail effect using overlapping 'puffy' cloud particles. The effect generates distinct tan/orange clusters that expand slightly and fade out as the projectile moves, creating a thick, opaque trail typical of 2D side-scrollers.",
+    "duration_ms": 1200,
+    "palette": [
+      "#D29B6C",
+      "#B07D50",
+      "#8B5E3C",
+      "#F4D1A6"
+    ],
+    "particle_config": {
+      "lifespan": 1200,
+      "frequency": 50,
+      "quantity": 1,
+      "scale": {
+        "start": 0.4,
+        "end": 1.5
+      },
+      "alpha": {
+        "start": 1,
+        "end": 0
+      },
+      "rotate": {
+        "min": 0,
+        "max": 360
+      },
+      "speed": {
+        "min": 10,
+        "max": 30
+      },
+      "blendMode": "NORMAL"
+    },
+    "typescript": "export function createSmokeTrail(scene: Phaser.Scene, projectile: Phaser.GameObjects.Components.Transform) {\n  // Create a procedural 'puffy cloud' texture\n  const graphics = scene.make.graphics({ x: 0, y: 0, add: false });\n  graphics.fillStyle(0xffffff);\n  // Draw 4 overlapping circles to create a puff shape\n  graphics.fillCircle(16, 16, 12);\n  graphics.fillCircle(10, 12, 8);\n  graphics.fillCircle(22, 12, 8);\n  graphics.fillCircle(16, 22, 10);\n  graphics.generateTexture('smoke_puff', 32, 32);\n\n  const particles = scene.add.particles(0, 0, 'smoke_puff', {\n    follow: projectile,\n    lifespan: 1200,\n    speed: { min: 5, max: 20 },\n    angle: { min: 0, max: 360 },\n    scale: { start: 0.5, end: 1.8 },\n    alpha: { start: 1, end: 0 },\n    rotate: { min: 0, max: 360 },\n    tint: [0xD29B6C, 0xB07D50, 0xF4D1A6],\n    frequency: 60,\n    blendMode: 'NORMAL',\n    emitCallback: (particle) => {\n        // Add slight random offset to make it look less uniform\n        particle.x += Phaser.Math.Between(-5, 5);\n        particle.y += Phaser.Math.Between(-5, 5);\n    }\n  });\n\n  return particles;\n}"
+  }
+}

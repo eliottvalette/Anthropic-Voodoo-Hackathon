@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Damage Pop-up Numbers",
+      "box_2d": [
+        537,
+        453,
+        562,
+        529
+      ],
+      "confidence": 0.95,
+      "notes": "White text with black outline showing '-44' damage."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

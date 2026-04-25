@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Green Poison Blob",
+      "box_2d": [
+        530,
+        340,
+        558,
+        395
+      ],
+      "confidence": 0.9,
+      "notes": "A small green poison blob projectile being fired from the goblin's launcher."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}
