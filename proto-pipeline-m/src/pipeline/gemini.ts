@@ -165,6 +165,6 @@ export async function generateJson<T = unknown>(
 }
 
 export const MODELS = {
-  flash: "gemini-2.5-flash",
-  pro: "gemini-2.5-pro",
+  flash: "gemini-3.1-pro-preview",
+  pro: "gemini-3.1-pro-preview",
 } as const;
