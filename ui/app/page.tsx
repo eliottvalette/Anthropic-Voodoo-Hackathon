@@ -67,6 +67,20 @@ function SidebarItem({ icon, active = false, onClick }: { icon: React.ReactNode;
   )
 }
 
+function assetKind(name: string): { label: string; tag: string } {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+    return { label: 'IMG', tag: 'bg-indigo-50 text-indigo-700 border-indigo-100' }
+  }
+  if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
+    return { label: 'SFX', tag: 'bg-violet-50 text-violet-700 border-violet-100' }
+  }
+  if (['mp4', 'mov', 'webm'].includes(ext)) {
+    return { label: 'VID', tag: 'bg-emerald-50 text-emerald-700 border-emerald-100' }
+  }
+  return { label: ext.toUpperCase() || 'FILE', tag: 'bg-gray-50 text-gray-500 border-gray-100' }
+}
+
 function VideoAnalysisView({
   merged, alternate, tags,
 }: {
@@ -95,14 +109,14 @@ function VideoAnalysisView({
       </header>
 
       {merged?.defining_hook && (
-        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 border-l-[#0055FF] p-3.5">
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5">
           <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Defining hook</div>
           <p className="text-sm text-[#0F141C] leading-relaxed">{merged.defining_hook}</p>
         </div>
       )}
 
       {merged?.summary_one_sentence && (
-        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 border-l-gray-300 p-3.5">
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5">
           <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Summary</div>
           <p className="text-sm text-[#0F141C] leading-relaxed">{merged.summary_one_sentence}</p>
         </div>
@@ -309,13 +323,19 @@ export default function Home() {
       </header>
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-[#0F141C]">Assets ({p.assets.length})</h3>
-        <div className="rounded-xl border border-gray-100 max-h-44 overflow-auto">
-          {p.assets.slice(0, 30).map((a, i) => (
-            <div key={a.name} className={`flex items-center justify-between px-3 py-1.5 text-xs ${i % 2 ? 'bg-[#FBFCFE]' : 'bg-white'}`}>
-              <span className="font-mono text-[#0F141C] truncate">{a.name}</span>
-              <span className="text-gray-400 tabular-nums shrink-0 ml-3">{(a.sizeBytes / 1024).toFixed(0)} KB</span>
-            </div>
-          ))}
+        <div className="rounded-xl border border-gray-100 overflow-hidden">
+          {p.assets.map((a, i) => {
+            const t = assetKind(a.name)
+            return (
+              <div key={a.name} className={`flex items-center gap-3 px-3 py-2 text-xs ${i % 2 ? 'bg-[#FBFCFE]' : 'bg-white'}`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold uppercase border shrink-0 ${t.tag}`}>
+                  {t.label}
+                </span>
+                <span className="font-mono text-[#0F141C] truncate flex-1" title={a.name}>{a.name}</span>
+                <span className="text-gray-400 tabular-nums shrink-0">{(a.sizeBytes / 1024).toFixed(0)} KB</span>
+              </div>
+            )
+          })}
         </div>
       </section>
     </div>

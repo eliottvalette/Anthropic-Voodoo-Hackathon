@@ -65,23 +65,23 @@ export default function GameSpecCard({ spec }: { spec: GameSpecLite }) {
       {(spec.defining_hook || spec.core_loop_one_sentence) && (
         <div className="grid gap-3">
           {spec.defining_hook && (
-            <InfoCard label="Defining hook" tone="blue">
+            <InfoCard label="Defining hook">
               <p className="text-sm text-[#0F141C] leading-relaxed">{spec.defining_hook}</p>
             </InfoCard>
           )}
           {spec.core_loop_one_sentence && (
-            <InfoCard label="Core loop" tone="slate">
+            <InfoCard label="Core loop">
               <p className="text-sm text-[#0F141C] leading-relaxed">{spec.core_loop_one_sentence}</p>
             </InfoCard>
           )}
         </div>
       )}
 
-      {/* Game parameters — colored stat strip */}
+      {/* Game parameters — 4-column equal strip */}
       {(spec.mechanic_name || spec.template_id !== undefined || typeof spec.tutorial_loss_at_seconds === 'number' || spec.first_5s_script) && (
         <section className="space-y-3">
           <SectionTitle>Game parameters</SectionTitle>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {spec.mechanic_name && (
               <StatCard tone="indigo" label="Mechanic" value={spec.mechanic_name} mono />
             )}
@@ -94,9 +94,8 @@ export default function GameSpecCard({ spec }: { spec: GameSpecLite }) {
             {spec.first_5s_script && (
               <StatCard
                 tone="emerald"
-                label="First 5s script"
+                label="First 5s"
                 value={spec.first_5s_script}
-                fullWidth
                 clamp={!scriptExpanded}
                 onToggle={() => setScriptExpanded(s => !s)}
                 expanded={scriptExpanded}
@@ -157,10 +156,9 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h3 className="text-sm font-semibold text-[#0F141C]">{children}</h3>
 }
 
-function InfoCard({ label, tone, children }: { label: string; tone: 'blue' | 'slate'; children: React.ReactNode }) {
-  const accent = tone === 'blue' ? 'border-l-[#0055FF]' : 'border-l-gray-300'
+function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 ${accent} p-3.5`}>
+    <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5">
       <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">{label}</div>
       {children}
     </div>
@@ -176,37 +174,34 @@ const TONE_STYLE: Record<Tone, { bg: string; border: string; label: string; dot:
 }
 
 function StatCard({
-  tone, label, value, mono, fullWidth, clamp, expanded, onToggle,
+  tone, label, value, mono, clamp, expanded, onToggle,
 }: {
   tone: Tone
   label: string
   value: string
   mono?: boolean
-  fullWidth?: boolean
   clamp?: boolean
   expanded?: boolean
   onToggle?: () => void
 }) {
   const t = TONE_STYLE[tone]
   return (
-    <div
-      className={`rounded-xl border ${t.border} ${t.bg} p-3 ${fullWidth ? 'sm:col-span-2' : ''}`}
-    >
-      <div className="flex items-center gap-1.5 mb-1">
+    <div className={`rounded-xl border ${t.border} ${t.bg} p-3 flex flex-col min-w-0`}>
+      <div className="flex items-center gap-1.5 mb-1.5">
         <span className={`w-1.5 h-1.5 rounded-full ${t.dot}`} />
         <span className={`text-[10px] font-semibold uppercase tracking-widest ${t.label}`}>{label}</span>
       </div>
       <div
         className={`text-sm font-semibold text-[#0F141C] break-words ${mono ? 'font-mono' : ''} ${
-          clamp ? 'line-clamp-2' : ''
+          clamp ? 'line-clamp-3' : ''
         }`}
       >
         {value}
       </div>
-      {onToggle && value.length > 80 && (
+      {onToggle && value.length > 50 && (
         <button
           onClick={onToggle}
-          className="mt-1 text-[11px] font-medium text-[#0055FF] hover:underline"
+          className="mt-1 text-[11px] font-medium text-[#0055FF] hover:underline self-start"
         >
           {expanded ? 'Show less' : 'Show more'}
         </button>

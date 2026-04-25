@@ -14,23 +14,24 @@ const CONFIDENCE_STYLE: Record<'high' | 'medium' | 'low', string> = {
 
 export default function RoleTable({ rows, showLegend = true }: { rows: RoleRow[]; showLegend?: boolean }) {
   const hasConfidence = rows.some(r => r.match_confidence)
+  const cols = hasConfidence ? 'grid-cols-[1fr_auto_1.4fr]' : 'grid-cols-[1fr_1.4fr]'
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="rounded-xl border border-gray-100 overflow-hidden">
         <div
-          className={`grid ${hasConfidence ? 'grid-cols-[1fr_auto_1.4fr]' : 'grid-cols-[1fr_1.4fr]'} gap-3 px-3 py-2 bg-[#F6F9FC] border-b border-gray-100 text-[10px] font-semibold text-gray-500 uppercase tracking-widest`}
+          className={`grid ${cols} gap-3 px-3 py-2 bg-[#F6F9FC] border-b border-gray-100 text-[10px] font-semibold text-gray-500 uppercase tracking-widest`}
         >
-          <span>Role</span>
+          <span className="text-left">Role</span>
           {hasConfidence && <span className="text-center">Match</span>}
-          <span>File</span>
+          <span className="text-right">File</span>
         </div>
         {rows.map((r, i) => (
           <div
             key={r.role}
-            className={`grid ${hasConfidence ? 'grid-cols-[1fr_auto_1.4fr]' : 'grid-cols-[1fr_1.4fr]'} gap-3 items-center px-3 py-2 text-xs ${i % 2 ? 'bg-[#FBFCFE]' : 'bg-white'}`}
+            className={`grid ${cols} gap-3 items-center px-3 py-2 text-xs ${i % 2 ? 'bg-[#FBFCFE]' : 'bg-white'}`}
           >
-            <span className="font-mono text-[#0F141C] truncate" title={r.role}>{r.role}</span>
+            <span className="font-mono text-[#0F141C] truncate text-left" title={r.role}>{r.role}</span>
             {hasConfidence && (
               <span
                 className={`justify-self-center px-1.5 py-0.5 rounded-full text-[9.5px] font-semibold uppercase border ${
@@ -41,7 +42,7 @@ export default function RoleTable({ rows, showLegend = true }: { rows: RoleRow[]
               </span>
             )}
             <span
-              className="font-mono text-gray-600 truncate"
+              className="font-mono text-gray-600 truncate text-right"
               title={r.filename ?? 'no match'}
             >
               {r.filename ?? <span className="text-gray-300 italic">unmatched</span>}
@@ -51,8 +52,8 @@ export default function RoleTable({ rows, showLegend = true }: { rows: RoleRow[]
       </div>
 
       {showLegend && hasConfidence && (
-        <div className="flex flex-wrap items-center gap-3 px-1 text-[10px] text-gray-400">
-          <span className="font-medium uppercase tracking-widest text-gray-400">Match</span>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-600">
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Match</span>
           <Legend color="emerald" label="high — confident asset match" />
           <Legend color="amber" label="medium — ambiguous" />
           <Legend color="red" label="low — no match" />
@@ -67,7 +68,7 @@ function Legend({ color, label }: { color: 'emerald' | 'amber' | 'red'; label: s
     color === 'emerald' ? 'bg-emerald-400' : color === 'amber' ? 'bg-amber-400' : 'bg-red-400'
   return (
     <span className="flex items-center gap-1.5">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      <span className={`w-2 h-2 rounded-full ${dot}`} />
       <span>{label}</span>
     </span>
   )
