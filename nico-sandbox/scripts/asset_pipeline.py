@@ -131,6 +131,27 @@ Use a transparent background PNG when supported. If transparency is not preserve
 Do not add new objects or change the gameplay read.
 """.strip()
 
+SCENARIO_PROJECTILE_PROMPT_TEMPLATE = """
+Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.
+
+Asset: {name}
+Description: {description}
+Gameplay role: {role}
+
+Reproduce the projectile's shape, silhouette, color, and art style exactly.
+Center it on a transparent background with comfortable padding.
+
+STRICT EXCLUSIONS — do NOT include any of the following:
+- smoke trails, exhaust plumes, fire trails, or motion streaks
+- launch effects, impact particles, or debris
+- glow auras, light flares, or bloom
+- any visual effect that is NOT the hard body of the projectile
+
+The game engine will add all visual effects (trails, explosions, glows) at runtime.
+This sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion.
+""".strip()
+
+
 SCENARIO_BACKGROUND_PROMPT_TEMPLATE = """
 Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.
 
@@ -341,6 +362,8 @@ def scenario_prompt_for_candidate(candidate: Candidate) -> str:
         return SCENARIO_BACKGROUND_PROMPT_TEMPLATE.format(**values)
     if candidate.category == "character" or strategy in {"animated_character_sheet", "layered_character_parts"}:
         return SCENARIO_CHARACTER_PROMPT_TEMPLATE.format(**values)
+    if candidate.category == "projectile":
+        return SCENARIO_PROJECTILE_PROMPT_TEMPLATE.format(**values)
     return SCENARIO_SPRITE_PROMPT_TEMPLATE.format(**values)
 
 
