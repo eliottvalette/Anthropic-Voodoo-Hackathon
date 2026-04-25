@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>shake demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../shake.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const sh = createShake(0.045);
+let last = 0;
+
+cv.addEventListener('pointerdown', () => sh.trigger(14));
+
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  sh.update(dt);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.save();
+  const o = sh.offset();
+  ctx.translate(o.x, o.y);
+  // dummy scene
+  ctx.fillStyle = '#0f1422';
+  ctx.fillRect(40,140, 280, 200);
+  ctx.fillStyle = '#27a8ff';
+  ctx.fillRect(80,180, 80,80);
+  ctx.fillStyle = '#ff4141';
+  ctx.fillRect(200,180, 80,80);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('SHAKE ME', 180, 320);
+  ctx.restore();
+  ctx.fillStyle = '#9aa3b8';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('intensity: ' + sh.intensity.toFixed(2), 180, 30);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

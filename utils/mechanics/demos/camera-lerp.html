@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>camera-lerp demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(180deg,#3a4660,#1e2436);border-radius:8px;touch-action:none;cursor:pointer}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../camera-lerp.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const W = 360, H = 640;
+const cam = createCamera({ x: 360, y: 320, zoom: 0.8, smoothMs: 280 });
+let last = 0;
+
+const points = [
+  { x: 80,  y: 200, color: '#27a8ff' },
+  { x: 640, y: 200, color: '#ed2024' },
+  { x: 360, y: 480, color: '#73f03f' },
+];
+
+cv.addEventListener('pointerdown', e => {
+  const w = cam.pointerToWorld(e, cv, W, H);
+  let best = null, bd = 1e9;
+  for (const p of points) {
+    const d = Math.hypot(p.x - w.x, p.y - w.y);
+    if (d < bd) { bd = d; best = p; }
+  }
+  if (best) cam.setTarget({ x: best.x, y: best.y, zoom: 1.6 });
+  else cam.setTarget({ x: 360, y: 320, zoom: 0.8 });
+});
+
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  cam.update(dt);
+
+  ctx.save();
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#3a4660';
+  ctx.fillRect(0,0,W,H);
+
+  cam.apply(ctx, W, H);
+  // grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 800; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 640); ctx.stroke();
+  }
+  for (let y = 0; y < 640; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+  }
+  for (const p of points) {
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 30, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = '#9aa3b8';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('cam x:'+cam.x.toFixed(0)+' y:'+cam.y.toFixed(0)+' zoom:'+cam.zoom.toFixed(2), 10, 622);
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

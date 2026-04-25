@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>float-text demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../float-text.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const floats = [];
+const damages = [{t:'-44',c:'#73f03f'},{t:'-72',c:'#ff8a27'},{t:'-100',c:'#ff4141'},{t:'CRIT',c:'#ffbf31'}];
+let last = 0;
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  const d = damages[Math.floor(Math.random()*damages.length)];
+  spawnFloat(floats, x, y, d.t, d.c);
+});
+
+let auto = 0;
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  auto += dt;
+  if (auto > 700) {
+    const d = damages[Math.floor(Math.random()*damages.length)];
+    spawnFloat(floats, 100 + Math.random()*160, 250 + Math.random()*150, d.t, d.c);
+    auto = 0;
+  }
+  updateFloats(floats, dt);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawFloats(ctx, floats);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

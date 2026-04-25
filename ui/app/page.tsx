@@ -6,9 +6,10 @@ import PipelineStepper, { Step, StepStatus } from '@/components/PipelineStepper'
 import ReviewPanel from '@/components/ReviewPanel'
 import PlayableViewer from '@/components/PlayableViewer'
 import HistoryView from '@/components/HistoryView'
+import UtilsView from '@/components/UtilsView'
 import { createClient } from '@/utils/supabase/client'
 
-type View = 'generator' | 'history'
+type View = 'generator' | 'history' | 'library'
 
 const INITIAL_STEPS: Step[] = [
   { id: 'metadata', label: 'Metadata + Asset Inventory', estimate: '~0s',  status: 'idle' },
@@ -352,6 +353,19 @@ export default function Home() {
               </svg>
             }
           />
+          {/* Library */}
+          <SidebarItem
+            active={view === 'library'}
+            onClick={() => setView('library')}
+            icon={
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="8" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="2" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            }
+          />
         </div>
 
         {/* User avatar + logout */}
@@ -378,7 +392,7 @@ export default function Home() {
             <path d="M1 1l4 4-4 4" stroke="#D1D5DB" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="text-xs font-semibold text-[#0F141C]">
-            {view === 'history' ? 'History' : 'Playable Generator'}
+            {view === 'history' ? 'History' : view === 'library' ? 'Library' : 'Playable Generator'}
           </span>
 
           <div className="ml-auto flex items-center gap-3">
@@ -424,6 +438,8 @@ export default function Home() {
 
           {view === 'history' ? (
             <HistoryView />
+          ) : view === 'library' ? (
+            <UtilsView />
           ) : (
             <>
               {/* ── Pre-run: centered upload ── */}

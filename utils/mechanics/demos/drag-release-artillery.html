@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>drag-release artillery demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(180deg,#7da45c,#9fb978);border-radius:8px;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../drag-release.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const W = 360, H = 640;
+const origin = { x: 70, y: 510 };
+const target = { x: 270, y: 200, w: 60, h: 80 };
+const projectiles = [];
+let last = 0, score = 0;
+
+const dr = createDragRelease(cv, {
+  getOrigin: () => origin,
+  pointerToWorld: e => {
+    const r = cv.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * W / r.width,
+      y: (e.clientY - r.top) * H / r.height,
+    };
+  },
+  activeRadius: 70,
+  // Artillery: pull only backward (positive pullX = drag left of origin)
+  // pullY allows up & down to control arc height
+  pullRangeX: [22, 130],
+  pullRangeY: [-90, 110],
+  // Castle Clashers-flavored arc velocity
+  toVelocity: ({ pullX, pullY }) => ({
+    vx: 0.16 + pullX * 0.0040,
+    vy: -0.28 + pullY * 0.0028,
+  }),
+  gravity: 0.00078,    // ballistic arc preview
+  minPull: 4,
+  onFire: ({ vx, vy }) => projectiles.push({ x: origin.x, y: origin.y - 18, vx, vy, age: 0 }),
+});
+
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.age += dt;
+    p.vy += 0.00078 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.x >= target.x && p.x <= target.x + target.w && p.y >= target.y && p.y <= target.y + target.h) {
+      score++;
+      projectiles.splice(i, 1);
+      continue;
+    }
+    if (p.x < -40 || p.x > W + 40 || p.y > H + 40 || p.age > 4500) projectiles.splice(i, 1);
+  }
+
+  ctx.clearRect(0,0,W,H);
+
+  // Target (castle silhouette)
+  ctx.fillStyle = '#0F141C';
+  ctx.beginPath();
+  ctx.moveTo(target.x, target.y);
+  ctx.lineTo(target.x + 12, target.y - 18);
+  ctx.lineTo(target.x + 24, target.y);
+  ctx.lineTo(target.x + 36, target.y - 18);
+  ctx.lineTo(target.x + 48, target.y);
+  ctx.lineTo(target.x + 60, target.y - 18);
+  ctx.lineTo(target.x + 60, target.y + target.h);
+  ctx.lineTo(target.x, target.y + target.h);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ed2024';
+  ctx.fillRect(target.x + 22, target.y + 38, 16, 28);
+
+  // Ground line
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(0, 540, W, H - 540);
+
+  // Active radius
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.arc(origin.x, origin.y, 70, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+
+  // Cannon
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(origin.x - 22, origin.y - 8, 44, 30);
+  ctx.fillStyle = '#27a8ff';
+  ctx.beginPath(); ctx.arc(origin.x, origin.y - 22, 18, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 3; ctx.stroke();
+
+  // Trajectory preview (ballistic arc)
+  dr.drawTrajectory(ctx, 22, 4);
+
+  // Projectiles
+  for (const p of projectiles) {
+    ctx.fillStyle = '#ffbf31';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // Hint
+  if (!dr.isDragging() && projectiles.length === 0) {
+    ctx.fillStyle = '#0F141C';
+    ctx.font = '900 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PULL BACK FROM CANNON → BALLISTIC ARC', W / 2, 30);
+  }
+
+  // Score
+  ctx.fillStyle = '#0F141C';
+  ctx.font = '900 14px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText('hits: ' + score, W - 14, 24);
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

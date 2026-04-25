@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>vs-bar-top demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:linear-gradient(180deg,#7da45c,#9fb978);border-radius:8px}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../vs-bar-top.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let p = 100, e = 100, dir = -1;
+
+function draw() {
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawVsBarTop(ctx, {
+    playerHpPct: p,
+    enemyHpPct: e,
+    playerColor: '#08aeea',
+    enemyColor: '#e80e16',
+  });
+  p += dir * 0.6;
+  e += dir * 0.4;
+  if (p <= 0 || e <= 0) dir = 1;
+  if (p >= 100 && e >= 100) dir = -1;
+  p = Math.max(0, Math.min(100, p));
+  e = Math.max(0, Math.min(100, e));
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

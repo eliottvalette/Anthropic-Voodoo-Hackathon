@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>smoke demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../particles.js"></script>
+<script src="../smoke.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const particles = [];
+let last = 0;
+
+function emit(e) {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  smoke(particles, x, y, 14);
+}
+cv.addEventListener('pointerdown', emit);
+cv.addEventListener('pointermove', e => { if (e.buttons) emit(e); });
+
+// Auto-emit demo
+let auto = 0;
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  auto += dt;
+  if (auto > 600) {
+    smoke(particles, 180 + Math.sin(now/800)*100, 460, 10);
+    auto = 0;
+  }
+  updateParticles(particles, dt);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawParticles(ctx, particles);
+  ctx.fillStyle = '#9aa3b8';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('particles: ' + particles.length, 180, 30);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

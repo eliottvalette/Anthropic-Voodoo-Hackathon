@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>debris demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;touch-action:none}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../debris.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const debris = [];
+let last = 0;
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  spawnDebris(debris, x, y, x < 180 ? 'left' : 'right', 18);
+});
+
+let auto = 0;
+function loop(now) {
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  auto += dt;
+  if (auto > 1000) {
+    spawnDebris(debris, 80, 320, 'left', 12);
+    spawnDebris(debris, 280, 320, 'right', 12);
+    auto = 0;
+  }
+  updateDebris(debris, dt);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawDebris(ctx, debris);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
