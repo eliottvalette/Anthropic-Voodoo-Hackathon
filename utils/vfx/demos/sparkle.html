@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>sparkle demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../sparkle.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const sparkles = [];
+        const colors = ['#ffd84a', '#ffffff', '#7ef3ff', '#ff8be0', '#a4ff7a'];
+        let last = 0, t = 0;
+
+        cv.addEventListener('pointerdown', e => {
+            const r = cv.getBoundingClientRect();
+            const x = (e.clientX - r.left) * cv.width / r.width;
+            const y = (e.clientY - r.top) * cv.height / r.height;
+            spawnSparkleBurst(sparkles, x, y, colors[Math.floor(Math.random() * colors.length)], 10, 30);
+        });
+
+        let auto = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now; t += dt; auto += dt;
+
+            // Ambient pulsing field — sprinkle a couple per second around a moving target
+            if (auto > 60) {
+                auto = 0;
+                const cx = 180 + Math.cos(t / 700) * 90;
+                const cy = 320 + Math.sin(t / 520) * 110;
+                spawnSparkle(
+                    sparkles,
+                    cx + (Math.random() - 0.5) * 60,
+                    cy + (Math.random() - 0.5) * 60,
+                    colors[Math.floor(Math.random() * colors.length)],
+                    6 + Math.random() * 9,
+                    500 + Math.random() * 350
+                );
+            }
+
+            // Background "treasure" glow so sparkles read
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const g = ctx.createRadialGradient(180, 320, 10, 180, 320, 220);
+            g.addColorStop(0, 'rgba(255, 220, 120, 0.18)');
+            g.addColorStop(1, 'rgba(255, 220, 120, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, cv.width, cv.height);
+
+            updateSparkles(sparkles, dt);
+            drawSparkles(ctx, sparkles);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>

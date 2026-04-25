@@ -121,6 +121,18 @@
             "screen",
             "feedback"
           ]
+        },
+        {
+          "name": "sparkle",
+          "file": "vfx/sparkle.js",
+          "demo": "vfx/demos/sparkle.html",
+          "signature": "spawnSparkle(sparkles, x, y, color?, size?, life?) / spawnSparkleBurst(sparkles, x, y, color?, count?, radius?)",
+          "description": "4-point twinkle stars for pickups, coins, magic, level-up. Cross of two slim diamonds + bright hot-spot, sine-curve scale.",
+          "tags": [
+            "pickup",
+            "magic",
+            "twinkle"
+          ]
         }
       ]
     },
