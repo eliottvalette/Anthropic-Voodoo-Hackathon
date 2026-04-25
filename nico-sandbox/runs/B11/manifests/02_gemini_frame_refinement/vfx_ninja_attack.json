@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Ninja Attack Effect",
+      "box_2d": [
+        458,
+        393,
+        526,
+        501
+      ],
+      "confidence": 0.95,
+      "notes": "A burst of pink star-shaped particles representing the ninja's attack effect."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

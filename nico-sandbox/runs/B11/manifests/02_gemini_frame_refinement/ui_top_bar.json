@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Top UI Bar",
+      "box_2d": [
+        0,
+        0,
+        191,
+        1000
+      ],
+      "confidence": 0.95,
+      "notes": "The top UI bar containing the VS logo, health bars, and castle icons with percentages."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

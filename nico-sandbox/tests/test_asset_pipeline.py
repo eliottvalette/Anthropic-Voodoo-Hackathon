@@ -1,5 +1,9 @@
 import json
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from asset_pipeline import box_1000_to_pixels, extract_json_payload, padded_box
 
