@@ -7,3 +7,4 @@ proto-pipeline-m/IMPLEMENTATION_PROMPT.md
 proto-pipeline-m/PLAN.md
 *node_modules
 .agent/
+*.next
