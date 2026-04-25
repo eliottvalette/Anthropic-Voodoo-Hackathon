@@ -12,8 +12,14 @@
           "demo": "vfx/demos/smoke.html",
           "signature": "smoke(particles, x, y, count = 14)",
           "description": "Rising gray puffs — destruction, impact, respawn dust",
-          "depends": ["particles"],
-          "tags": ["destruction", "impact", "particles"]
+          "depends": [
+            "particles"
+          ],
+          "tags": [
+            "destruction",
+            "impact",
+            "particles"
+          ]
         },
         {
           "name": "burst",
@@ -21,8 +27,14 @@
           "demo": "vfx/demos/burst.html",
           "signature": "burst(particles, x, y, color, count = 20, power = 0.18)",
           "description": "Radial particle explosion in a single color",
-          "depends": ["particles"],
-          "tags": ["impact", "hit", "particles"]
+          "depends": [
+            "particles"
+          ],
+          "tags": [
+            "impact",
+            "hit",
+            "particles"
+          ]
         },
         {
           "name": "trail",
@@ -30,8 +42,14 @@
           "demo": "vfx/demos/trail.html",
           "signature": "spawnTrail(particles, x, y, color, count = 1, spread = 4)",
           "description": "Trailing particles behind a moving object — projectiles, dashes",
-          "depends": ["particles"],
-          "tags": ["projectile", "motion", "particles"]
+          "depends": [
+            "particles"
+          ],
+          "tags": [
+            "projectile",
+            "motion",
+            "particles"
+          ]
         },
         {
           "name": "shake",
@@ -39,7 +57,11 @@
           "demo": "vfx/demos/shake.html",
           "signature": "createShake(decay = 0.045)",
           "description": "Camera/screen shake with linear decay",
-          "tags": ["camera", "impact", "feedback"]
+          "tags": [
+            "camera",
+            "impact",
+            "feedback"
+          ]
         },
         {
           "name": "float-text",
@@ -47,7 +69,11 @@
           "demo": "vfx/demos/float-text.html",
           "signature": "spawnFloat(floats, x, y, text, color?, life?)",
           "description": "Floating damage / score numbers that rise and fade",
-          "tags": ["feedback", "ui", "text"]
+          "tags": [
+            "feedback",
+            "ui",
+            "text"
+          ]
         },
         {
           "name": "debris",
@@ -55,7 +81,10 @@
           "demo": "vfx/demos/debris.html",
           "signature": "spawnDebris(debris, x, y, side, count = 14)",
           "description": "Physics chunks for wall break, prop destruction",
-          "tags": ["destruction", "physics"]
+          "tags": [
+            "destruction",
+            "physics"
+          ]
         },
         {
           "name": "section-destroy",
@@ -63,7 +92,23 @@
           "demo": "vfx/demos/section-destroy.html",
           "signature": "makeSectionPolys(n) / drawSection / makeDyingSection / updateDyingSections",
           "description": "Polygon-based sprite destruction — splits a sprite into pieces that fall one by one as HP drops",
-          "tags": ["destruction", "polygon", "hp"]
+          "tags": [
+            "destruction",
+            "polygon",
+            "hp"
+          ]
+        },
+        {
+          "name": "shockwave",
+          "file": "vfx/shockwave.js",
+          "demo": "vfx/demos/shockwave.html",
+          "signature": "spawnShockwave(waves, x, y, color?, maxRadius?, life?, lineWidth?)",
+          "description": "Expanding ring on impact — explosions, ground-pound, big hits. Eased radius growth, alpha falloff, line-width thinning.",
+          "tags": [
+            "impact",
+            "explosion",
+            "ring"
+          ]
         }
       ]
     },
@@ -78,7 +123,11 @@
           "demo": "hud/demos/vs-bar-top.html",
           "signature": "drawVsBarTop(ctx, { playerHpPct, enemyHpPct, ... })",
           "description": "Two-player VS top header (Castle Clashers style trapezoids)",
-          "tags": ["pvp", "header", "hp"]
+          "tags": [
+            "pvp",
+            "header",
+            "hp"
+          ]
         },
         {
           "name": "hp-segmented",
@@ -86,7 +135,10 @@
           "demo": "hud/demos/hp-segmented.html",
           "signature": "drawHpSegmented(ctx, x, y, { current, max, ... })",
           "description": "Discrete chunks (3 hearts, 5 chunks, 10 slim segments)",
-          "tags": ["hp", "segmented"]
+          "tags": [
+            "hp",
+            "segmented"
+          ]
         },
         {
           "name": "hp-percentage",
@@ -94,7 +146,10 @@
           "demo": "hud/demos/hp-percentage.html",
           "signature": "drawHpPercentage(ctx, x, y, w, h, { pct, ... })",
           "description": "Continuous HP bar with numeric percentage label",
-          "tags": ["hp", "continuous"]
+          "tags": [
+            "hp",
+            "continuous"
+          ]
         },
         {
           "name": "timer",
@@ -102,7 +157,10 @@
           "demo": "hud/demos/timer.html",
           "signature": "drawTimer(ctx, x, y, seconds, { size?, urgentBelow? })",
           "description": "Countdown display, MM:SS, urgent color when low",
-          "tags": ["timer", "countdown"]
+          "tags": [
+            "timer",
+            "countdown"
+          ]
         }
       ]
     },
@@ -117,7 +175,11 @@
           "demo": "end-screens/demos/game-lost.html",
           "signature": "drawGameLost(ctx, W, H, { headline, cta, ... })",
           "description": "Diagonal split, right side red, replaceable headline + CTA",
-          "tags": ["end", "lose", "cta"]
+          "tags": [
+            "end",
+            "lose",
+            "cta"
+          ]
         },
         {
           "name": "game-won",
@@ -125,7 +187,11 @@
           "demo": "end-screens/demos/game-won.html",
           "signature": "drawGameWon(ctx, W, H, { headline, cta, ... })",
           "description": "Diagonal split, right side blue, confetti, replaceable headline + CTA",
-          "tags": ["end", "win", "cta"]
+          "tags": [
+            "end",
+            "win",
+            "cta"
+          ]
         },
         {
           "name": "try-again",
@@ -133,7 +199,11 @@
           "demo": "end-screens/demos/try-again.html",
           "signature": "drawTryAgain(ctx, W, H, { headline, cta, ... })",
           "description": "Neutral 'almost there' overlay with amber ribbon — encourages retry",
-          "tags": ["end", "neutral", "cta"]
+          "tags": [
+            "end",
+            "neutral",
+            "cta"
+          ]
         }
       ]
     },
@@ -148,7 +218,12 @@
           "demo": "mechanics/demos/drag-release.html",
           "signature": "createDragRelease(canvas, { pullRangeX:[-140,140], toVelocity:directly, gravity:0 })",
           "description": "True 360° slingshot — drag in any direction, fires opposite. No gravity.",
-          "tags": ["input", "drag", "slingshot", "360"]
+          "tags": [
+            "input",
+            "drag",
+            "slingshot",
+            "360"
+          ]
         },
         {
           "name": "drag-release · artillery",
@@ -156,7 +231,13 @@
           "demo": "mechanics/demos/drag-release-artillery.html",
           "signature": "createDragRelease(canvas, { pullRangeX:[22,130], gravity:0.00078, toVelocity:arc })",
           "description": "Ballistic artillery — pull back to fire arc. Gravity-aware trajectory preview. Castle Clashers-style.",
-          "tags": ["input", "drag", "ballistic", "arc", "physics"]
+          "tags": [
+            "input",
+            "drag",
+            "ballistic",
+            "arc",
+            "physics"
+          ]
         },
         {
           "name": "camera-lerp",
@@ -164,7 +245,10 @@
           "demo": "mechanics/demos/camera-lerp.html",
           "signature": "createCamera({ x, y, zoom, smoothMs }) → { setTarget, update, apply, pointerToWorld }",
           "description": "2D camera (x, y, zoom) with dt-based lerp + reverse pointer transform",
-          "tags": ["camera", "input"]
+          "tags": [
+            "camera",
+            "input"
+          ]
         },
         {
           "name": "turn-queue",
@@ -172,7 +256,11 @@
           "demo": "mechanics/demos/turn-queue.html",
           "signature": "createTurnQueue(order) → { current, advance, peek, reset, isFirstOfRound }",
           "description": "Round-robin turn manager for PvP / multi-actor games",
-          "tags": ["turn", "pvp", "flow"]
+          "tags": [
+            "turn",
+            "pvp",
+            "flow"
+          ]
         },
         {
           "name": "cta-trigger",
@@ -180,7 +268,11 @@
           "demo": "mechanics/demos/cta-trigger.html",
           "signature": "openStore(url)",
           "description": "Resolve store-open across Voodoo VSDK, MRAID, and parent postMessage fallbacks",
-          "tags": ["cta", "store", "voodoo"]
+          "tags": [
+            "cta",
+            "store",
+            "voodoo"
+          ]
         },
         {
           "name": "audio",
@@ -188,7 +280,12 @@
           "demo": "mechanics/demos/audio.html",
           "signature": "startMusic() / stopMusic() / playSfx(kind) / setMusicVolume / setSfxVolume",
           "description": "Web Audio API procedural music + SFX on separate gain busses — SFX layer over music without interrupting. No external audio files.",
-          "tags": ["audio", "sound", "music", "sfx"]
+          "tags": [
+            "audio",
+            "sound",
+            "music",
+            "sfx"
+          ]
         }
       ]
     },
@@ -203,7 +300,11 @@
           "demo": "templates/playable-shell.html",
           "signature": "<canvas id=\"game\" width=\"360\" height=\"640\">",
           "description": "Self-contained 360×640 portrait shell — viewport, no-scroll body, base64-asset slot, CTA-ready",
-          "tags": ["shell", "scaffold", "portrait"]
+          "tags": [
+            "shell",
+            "scaffold",
+            "portrait"
+          ]
         }
       ]
     }
