@@ -53,6 +53,40 @@
   .preview-layer {
     position: absolute; inset: 0; z-index: 2; pointer-events: none;
   }
+  .editor-click-hand {
+    position: absolute;
+    left: var(--anchor-x); top: var(--anchor-y);
+    width: 96px; height: 108px;
+    background-image: var(--hand-img); background-size: contain; background-repeat: no-repeat;
+    transform-origin: 12% 8%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: editor-click-tap 1800ms cubic-bezier(.18,.9,.18,1) var(--delay, 0ms) var(--iter, infinite);
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,.4));
+  }
+  .editor-click-pulse {
+    position: absolute;
+    left: var(--pulse-x); top: var(--pulse-y);
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.96);
+    box-shadow: 0 0 14px rgba(255,255,255,.7), 0 0 26px rgba(86,202,255,.45);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(.4);
+    opacity: 0;
+    animation: editor-click-pulse 1800ms ease-out var(--delay, 0ms) var(--iter, infinite);
+  }
+  @keyframes editor-click-tap {
+    0%, 13%   { opacity: 0; transform: rotate(20deg) scale(.74); }
+    28%       { opacity: 1; transform: rotate(20deg) scale(1.05); }
+    46%       { opacity: 1; transform: rotate(20deg) scale(.9); }
+    64%       { opacity: 1; transform: rotate(20deg) scale(1.03); }
+    86%, 100% { opacity: 0; transform: rotate(20deg) scale(.8); }
+  }
+  @keyframes editor-click-pulse {
+    0%, 33%   { opacity: 0; transform: translate(-50%, -50%) scale(.25); }
+    43%       { opacity: 1; transform: translate(-50%, -50%) scale(.62); }
+    78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(4.2); }
+  }
   .marker-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
   .anchor-dot {
     position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px;
@@ -426,12 +460,41 @@
     });
   }
 
+  const HAND_IMG_URL = new URL("../runs/B11/final-assets-v1/ui/ui_hand_cursor.png", location.href).href;
+
+  function renderClickHand(rect, g) {
+    const p = pctToPx(g.at, rect);
+    const hand = document.createElement("div");
+    hand.className = "editor-click-hand";
+    hand.style.setProperty("--hand-img", `url("${HAND_IMG_URL}")`);
+    // anchor at hotspot ~ (12%, 8%) of hand box
+    hand.style.setProperty("--anchor-x", (p.x - 96 * 0.12) + "px");
+    hand.style.setProperty("--anchor-y", (p.y - 108 * 0.08) + "px");
+    hand.style.setProperty("--delay", (g.delay || 0) + "ms");
+    hand.style.setProperty("--iter", g.repeat ? "infinite" : "1");
+    els.preview.appendChild(hand);
+
+    const pulse = document.createElement("div");
+    pulse.className = "editor-click-pulse";
+    pulse.style.setProperty("--pulse-x", p.x + "px");
+    pulse.style.setProperty("--pulse-y", p.y + "px");
+    pulse.style.setProperty("--delay", (g.delay || 0) + "ms");
+    pulse.style.setProperty("--iter", g.repeat ? "infinite" : "1");
+    els.preview.appendChild(pulse);
+
+    return { remove() { hand.remove(); pulse.remove(); } };
+  }
+
   function renderPreview() {
     clearPreview();
     const rect = els.preview.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
     renderMarkers(rect);
     state.gestures.forEach(g => {
+      if (g.mode === "click") {
+        state.handles.push(renderClickHand(rect, g));
+        return;
+      }
       const opts = {
         container: els.preview,
         mode: g.mode,
@@ -439,14 +502,10 @@
         fit: "stretch",
         delay: g.delay || 0,
         duration: g.duration,
-        repeat: !!g.repeat
+        repeat: !!g.repeat,
+        from: pctToPx(g.from, rect),
+        to: pctToPx(g.to, rect)
       };
-      if (g.mode === "click") {
-        opts.at = pctToPx(g.at, rect);
-      } else {
-        opts.from = pctToPx(g.from, rect);
-        opts.to = pctToPx(g.to, rect);
-      }
       try {
         const h = window.TutorialHand.show(opts);
         state.handles.push(h);
@@ -541,6 +600,20 @@
     }
   }
 
+  async function fetchHandImageDataUrl() {
+    if (state.handImgDataUrl) return state.handImgDataUrl;
+    const res = await fetch(HAND_IMG_URL);
+    if (!res.ok) throw new Error("Couldn't fetch hand image: HTTP " + res.status);
+    const blob = await res.blob();
+    state.handImgDataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+    return state.handImgDataUrl;
+  }
+
   async function fetchPlayableSource() {
     const url = els.urlInput.value.trim();
     const res = await fetch(url);
@@ -548,7 +621,7 @@
     return res.text();
   }
 
-  function buildInjection(runtimeSrc, gestures) {
+  function buildInjection(runtimeSrc, gestures, handImgDataUrl) {
     const safeGestures = gestures.map(g => {
       const base = {
         id: g.id,
@@ -566,22 +639,98 @@
     return `
 <!-- Tutorial hand runtime injected by hand_editor.html -->
 <script>${runtimeSrc}<\/script>
+<style>
+.editor-click-hand {
+  position: absolute;
+  left: var(--anchor-x); top: var(--anchor-y);
+  width: 96px; height: 108px;
+  background-image: var(--hand-img); background-size: contain; background-repeat: no-repeat;
+  transform-origin: 12% 8%;
+  pointer-events: none;
+  z-index: 2147483000;
+  will-change: transform, opacity;
+  animation: editor-click-tap 1800ms cubic-bezier(.18,.9,.18,1) var(--delay, 0ms) var(--iter, infinite);
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.4));
+}
+.editor-click-pulse {
+  position: absolute;
+  left: var(--pulse-x); top: var(--pulse-y);
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.96);
+  box-shadow: 0 0 14px rgba(255,255,255,.7), 0 0 26px rgba(86,202,255,.45);
+  pointer-events: none;
+  z-index: 2147483000;
+  transform: translate(-50%, -50%) scale(.4);
+  opacity: 0;
+  animation: editor-click-pulse 1800ms ease-out var(--delay, 0ms) var(--iter, infinite);
+}
+@keyframes editor-click-tap {
+  0%, 13%   { opacity: 0; transform: rotate(20deg) scale(.74); }
+  28%       { opacity: 1; transform: rotate(20deg) scale(1.05); }
+  46%       { opacity: 1; transform: rotate(20deg) scale(.9); }
+  64%       { opacity: 1; transform: rotate(20deg) scale(1.03); }
+  86%, 100% { opacity: 0; transform: rotate(20deg) scale(.8); }
+}
+@keyframes editor-click-pulse {
+  0%, 33%   { opacity: 0; transform: translate(-50%, -50%) scale(.25); }
+  43%       { opacity: 1; transform: translate(-50%, -50%) scale(.62); }
+  78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(4.2); }
+}
+<\/style>
 <script>
 (function () {
   var GESTURES = ${JSON.stringify(safeGestures, null, 2)};
-  // Auto-dismiss tolerances (relative to the playable container)
-  var CLICK_RADIUS_FRAC = 0.12;       // tap within 12% of max(w,h) of target
-  var SWIPE_START_RADIUS_FRAC = 0.20; // swipe start within 20% of "from"
-  var SWIPE_MIN_LENGTH_FRAC = 0.40;   // user swipe length >= 40% of expected length
-  var SWIPE_DIRECTION_DOT = 0.5;      // direction within ~60 degrees of expected
+  var HAND_IMG = ${JSON.stringify(handImgDataUrl)};
+  var CLICK_RADIUS_FRAC = 0.12;
+  var SWIPE_START_RADIUS_FRAC = 0.20;
+  var SWIPE_MIN_LENGTH_FRAC = 0.40;
+  var SWIPE_DIRECTION_DOT = 0.5;
 
   function pctToPx(p, rect) { return { x: p.x * rect.width / 100, y: p.y * rect.height / 100 }; }
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
   function relPoint(ev, rect) { return { x: ev.clientX - rect.left, y: ev.clientY - rect.top }; }
 
+  function renderClickHand(container, g) {
+    var r = container.getBoundingClientRect();
+    var p = pctToPx(g.at, r);
+    var hand = document.createElement("div");
+    hand.className = "editor-click-hand";
+    hand.style.setProperty("--hand-img", "url(\\"" + HAND_IMG + "\\")");
+    hand.style.setProperty("--anchor-x", (p.x - 96 * 0.12) + "px");
+    hand.style.setProperty("--anchor-y", (p.y - 108 * 0.08) + "px");
+    hand.style.setProperty("--delay", (g.delay || 0) + "ms");
+    hand.style.setProperty("--iter", g.repeat ? "infinite" : "1");
+    container.appendChild(hand);
+
+    var pulse = document.createElement("div");
+    pulse.className = "editor-click-pulse";
+    pulse.style.setProperty("--pulse-x", p.x + "px");
+    pulse.style.setProperty("--pulse-y", p.y + "px");
+    pulse.style.setProperty("--delay", (g.delay || 0) + "ms");
+    pulse.style.setProperty("--iter", g.repeat ? "infinite" : "1");
+    container.appendChild(pulse);
+
+    return {
+      remove: function () { hand.remove(); pulse.remove(); },
+      fadeRemove: function () {
+        [hand, pulse].forEach(function (el) {
+          var current = parseFloat(getComputedStyle(el).opacity) || 1;
+          el.style.animation = "none";
+          el.style.opacity = current;
+          el.offsetHeight;
+          el.style.transition = "opacity 360ms ease, transform 360ms ease";
+          el.style.opacity = "0";
+          el.style.transform = (el.className.indexOf("pulse") >= 0 ? "translate(-50%,-50%) scale(2.6)" : "rotate(20deg) scale(1.18)");
+        });
+        setTimeout(function () { hand.remove(); pulse.remove(); }, 420);
+      }
+    };
+  }
+
   function bootHands() {
     var container = document.getElementById("GameDiv") || document.body;
-    var slots = []; // { gesture, handle, dismissed }
+    if (getComputedStyle(container).position === "static") container.style.position = "relative";
+    var slots = [];
 
     function rect() { return container.getBoundingClientRect(); }
 
@@ -591,6 +740,11 @@
       var r = rect();
       if (r.width === 0 || r.height === 0) return;
       var g = slot.gesture;
+      if (g.mode === "click") {
+        try { slot.handle = renderClickHand(container, g); }
+        catch (err) { console.error("[hand-tutorial] click failed", g, err); }
+        return;
+      }
       var opts = {
         container: container,
         mode: g.mode,
@@ -598,18 +752,34 @@
         fit: "stretch",
         delay: g.delay,
         duration: g.duration,
-        repeat: g.repeat
+        repeat: g.repeat,
+        from: pctToPx(g.from, r),
+        to: pctToPx(g.to, r),
+        handSrc: HAND_IMG
       };
-      if (g.mode === "click") opts.at = pctToPx(g.at, r);
-      else { opts.from = pctToPx(g.from, r); opts.to = pctToPx(g.to, r); }
       try { slot.handle = window.TutorialHand.show(opts); }
-      catch (err) { console.error("[hand-tutorial] gesture failed", g, err); }
+      catch (err) { console.error("[hand-tutorial] swipe failed", g, err); }
     }
 
     function dismissSlot(slot) {
       if (slot.dismissed) return;
       slot.dismissed = true;
-      if (slot.handle) { try { slot.handle.remove(); } catch (e) {} slot.handle = null; }
+      var h = slot.handle;
+      slot.handle = null;
+      if (!h) return;
+      try {
+        if (typeof h.fadeRemove === "function") {
+          h.fadeRemove();
+        } else if (h.element) {
+          // swipe via TutorialHand: fade the layer, then remove
+          var layer = h.element;
+          layer.style.transition = "opacity 360ms ease";
+          layer.style.opacity = "0";
+          setTimeout(function () { try { h.remove(); } catch (e) {} }, 420);
+        } else {
+          h.remove();
+        }
+      } catch (err) { console.error(err); }
     }
 
     function showAll() {
@@ -689,8 +859,12 @@
       return;
     }
     try {
-      const [runtimeSrc, playableSrc] = await Promise.all([fetchRuntimeSource(), fetchPlayableSource()]);
-      const injection = buildInjection(runtimeSrc, state.gestures);
+      const [runtimeSrc, playableSrc, handImgDataUrl] = await Promise.all([
+        fetchRuntimeSource(),
+        fetchPlayableSource(),
+        fetchHandImageDataUrl()
+      ]);
+      const injection = buildInjection(runtimeSrc, state.gestures, handImgDataUrl);
       let patched;
       if (/<\/body>/i.test(playableSrc)) {
         patched = playableSrc.replace(/<\/body>/i, injection + "</body>");
