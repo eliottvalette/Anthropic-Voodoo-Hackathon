@@ -113,6 +113,24 @@ async function runP3Only(args: string[]): Promise<void> {
   console.log(`render_mode: ${output.gameSpec.render_mode}`);
 }
 
+async function runP4Only(args: string[]): Promise<void> {
+  const runId = getFlag(args, "--run");
+  const assets = getFlag(args, "--assets");
+  const variant = getFlag(args, "--variant") ?? "_default";
+  if (!runId || !assets) {
+    console.error(
+      "Usage: bun run pipeline --p4-only --run <id> --assets <dir> [--variant <id>]",
+    );
+    process.exit(1);
+  }
+  const { writeP4 } = await import("./pipeline/p4_codegen.ts");
+  const out = await writeP4(runId, assets, variant);
+  console.log(
+    `wrote ${out.htmlPath} (${(out.bytes / 1024).toFixed(1)} KB)`,
+  );
+  console.log(JSON.stringify(out.meta, null, 2));
+}
+
 async function runVerify(args: string[]): Promise<void> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const htmlPath = positional[1];
@@ -161,6 +179,11 @@ async function main(): Promise<void> {
 
   if (args.includes("--p3-only")) {
     await runP3Only(args);
+    return;
+  }
+
+  if (args.includes("--p4-only")) {
+    await runP4Only(args);
     return;
   }
 
