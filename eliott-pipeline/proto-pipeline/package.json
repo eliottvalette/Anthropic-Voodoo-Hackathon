@@ -1,0 +1,14 @@
+{
+  "name": "proto-pipeline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "b01": "node src/cli.ts --run b01 --video \"../../ressources/Video Example/B01.mp4\" --assets \"../../ressources/Castle Clashers Assets\"",
+    "b11": "node src/cli.ts --run b11 --video \"../../ressources/Video Example/B11.mp4\" --assets \"../../ressources/Castle Clashers Assets\"",
+    "list-models": "node src/cli.ts --list-models"
+  },
+  "engines": {
+    "node": ">=25.0.0"
+  }
+}
+
