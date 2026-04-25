@@ -4,10 +4,11 @@ Usage:
   bun run pipeline --help
   bun run pipeline --list-models
   bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>]
+  bun run pipeline --probe-only --run <id> --video <path> --assets <dir>
   bun run verify <html-path> [--mechanic <name>]
   bun run bench --variants <list> --videos <list>
 
-Wired so far: --help, --list-models, verify.
+Wired so far: --help, --list-models, verify, --probe-only.
 `;
 
 async function listModels(): Promise<void> {
@@ -25,6 +26,32 @@ async function listModels(): Promise<void> {
 function getFlag(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
   return i >= 0 && i + 1 < args.length ? args[i + 1] : undefined;
+}
+
+async function runProbeOnly(args: string[]): Promise<void> {
+  const runId = getFlag(args, "--run");
+  const video = getFlag(args, "--video");
+  const assets = getFlag(args, "--assets");
+  if (!runId || !video || !assets) {
+    console.error(
+      "Usage: bun run pipeline --probe-only --run <id> --video <path> --assets <dir>",
+    );
+    process.exit(1);
+  }
+  const { writeProbe } = await import("./pipeline/probe.ts");
+  const { outPath, report } = await writeProbe(runId, video, assets);
+  console.log(`wrote ${outPath}`);
+  console.log(
+    JSON.stringify(
+      {
+        video: report.video,
+        assetCount: report.assets.length,
+        sample: report.assets.slice(0, 3),
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 async function runVerify(args: string[]): Promise<void> {
@@ -55,6 +82,11 @@ async function main(): Promise<void> {
 
   if (args[0] === "verify") {
     await runVerify(args);
+    return;
+  }
+
+  if (args.includes("--probe-only")) {
+    await runProbeOnly(args);
     return;
   }
 
