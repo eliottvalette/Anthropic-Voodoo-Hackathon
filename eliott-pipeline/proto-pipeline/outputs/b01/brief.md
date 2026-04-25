@@ -1,35 +1,37 @@
-# castle_clashers_lite
+# Castle_Clashers_Playable
 
 ## Video Understanding
-- Core loop: Players take turns aiming and firing various weapons at an enemy castle to destroy its structure and deplete its health before their own castle is destroyed.
+- Core loop: Players aim and fire various projectiles from their mobile castle to destroy the opponent's castle before their own is destroyed.
 - Player goal: Reduce the enemy castle's health to 0% by hitting it with projectiles.
-- Fun driver: Satisfying physics-based destruction, visual feedback of crumbling castles, and the tactical choice of different projectile types.
+- Fun driver: Satisfying physics destruction, tactical aiming, and discovering different projectile types.
 
 ## Playable Spec
-- Summary: A 2D turn-based artillery game utilizing an inlined lightweight physics engine (e.g., Matter.js). To achieve the requested block-based destruction using the provided single-image castle assets, the implementation will slice the castle images into a grid of rectangular physics bodies at runtime. The player drags anywhere on screen to aim (rendering a dotted trajectory line) and releases to fire. The AI takes a simplified automated turn after the player.
-- Objective: Destroy the enemy's red castle before they destroy your blue castle.
-- Primary interaction: Drag and hold to draw a trajectory line, release to fire a projectile.
-- Win condition: Enemy castle health reaches 0%.
+- Summary: A 2D artillery game using Canvas 2D. Players drag on their castle to aim a trajectory line and release to fire projectiles at the enemy castle. Simple ballistic physics and AABB rectangle collisions are used to detect hits, reducing castle health. The enemy auto-fires on a timer. The game ends when either castle's health reaches zero, triggering an end card.
+- Objective: Destroy the enemy red castle before your blue castle is destroyed.
+- Primary interaction: Drag to aim (showing a dotted trajectory line) and release to fire a projectile.
+- Win condition: Enemy castle health reaches 0.
 
 ## Assets
-- Background.png: Environment background (Compress to JPEG, scale down to max 1280px height to save space, base64 encode.)
-- Blue Castle.png: Player base (Base64 encode. Will be drawn onto a canvas and sliced into blocks at runtime.)
-- Red Castle.png: Enemy base (Base64 encode. Will be drawn onto a canvas and sliced into blocks at runtime.)
-- Character_Orc.psb: Player avatar (Convert to PNG during build, scale down to 128x128, base64 encode.)
-- Projectile_1.png: Player weapon (Scale down to 64x64, base64 encode.)
-- Projectile_2.png: Enemy weapon (Scale down to 64x64, base64 encode.)
-- Sfx.wav: Impact and explosion sound (Convert to MP3, compress bitrate, base64 encode.)
+- Background.png: Background environment (Scale to fit height, center horizontally)
+- Blue Castle.png: Player base (Scale down to fit left side of screen)
+- Red Castle.png: Enemy base (Scale down to fit right side of screen)
+- Weapon_1.png: Player launcher visual (Anchor at center-left for rotation)
+- Weapon_2.png: Enemy launcher visual (Anchor at center-right for rotation)
+- Projectile_1.png: Player ammo (Scale down, rotate along velocity vector during flight)
+- Projectile_2.png: Enemy ammo (Scale down, rotate along velocity vector during flight)
+- Music.ogg: Background music (Loop, start on first interaction)
+- Sfx.wav: Explosion/Hit sound (Play on projectile collision)
 
 ## Variation Parameters
-- projectile_impulse = 0.05: Determines how violently the castle blocks fly apart upon impact.
-- gravity_scale = 1: Affects the arc of the trajectory and how heavy the falling castle blocks feel.
-- enemy_accuracy = 0.8: Determines how close the enemy's automated shot lands to the center of the player's castle.
-- castle_grid_size = 5: Number of columns/rows the castle image is sliced into. Higher means more granular destruction but lower performance.
+- player_damage = 34: Determines how many hits it takes to destroy the enemy castle (default 3 hits for 100 health).
+- enemy_damage = 20: Determines how quickly the player loses if they miss.
+- gravity = 900: Affects the arc of the projectiles and aiming difficulty.
+- enemy_fire_rate_ms = 3000: Controls the pressure on the player to aim and fire quickly.
 
 ## Acceptance Criteria
-- Entire playable is contained within a single HTML file under 5MB.
-- No external network requests are made for scripts, images, or audio.
-- Castle images are dynamically sliced into physics-enabled blocks that react to collisions.
-- Player can drag to aim with a visible trajectory line and release to fire.
-- Game alternates turns between player and an automated enemy.
-- Health bars update dynamically based on castle damage.
+- Game renders entirely in a single HTML file using Canvas 2D.
+- Dragging produces a visible dotted trajectory line.
+- Releasing fires a projectile that follows the trajectory.
+- Projectiles colliding with castles reduce the respective health bar.
+- Enemy fires back automatically on a timer.
+- End card displays when either castle's health reaches 0.

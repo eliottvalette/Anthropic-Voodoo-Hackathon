@@ -25,3 +25,8 @@ eliott-pipeline/proto-pipeline/outputs/<run>/
 
 Runs are intentionally not timestamped. Re-running the same `--run` overwrites the previous output.
 
+The final playable is:
+
+```text
+eliott-pipeline/proto-pipeline/outputs/<run>/playable.html
+```

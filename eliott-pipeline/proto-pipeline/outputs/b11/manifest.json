@@ -1,20 +1,20 @@
 {
-  "created_at": "2026-04-25T14:05:31.413Z",
-  "run": "b01",
-  "video": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Video Example/B01.mp4",
+  "created_at": "2026-04-25T14:08:32.825Z",
+  "run": "b11",
+  "video": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Video Example/B11.mp4",
   "assets": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets",
   "model": "gemini-3.1-pro-preview",
   "fallback_model": "gemini-2.5-pro",
-  "output_dir": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/eliott-pipeline/proto-pipeline/outputs/b01",
+  "output_dir": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/eliott-pipeline/proto-pipeline/outputs/b11",
   "status": "completed",
   "uploaded_file": {
-    "name": "files/h84m3z32kmv3",
-    "uri": "https://generativelanguage.googleapis.com/v1beta/files/h84m3z32kmv3",
+    "name": "files/spsvkthhahq8",
+    "uri": "https://generativelanguage.googleapis.com/v1beta/files/spsvkthhahq8",
     "mimeType": "video/mp4",
     "state": "ACTIVE"
   },
   "playable_html": {
-    "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/eliott-pipeline/proto-pipeline/outputs/b01/playable.html",
+    "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/eliott-pipeline/proto-pipeline/outputs/b11/playable.html",
     "sizeBytes": 3066660,
     "selectedAssets": [
       "background",

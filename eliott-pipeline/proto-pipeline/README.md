@@ -27,6 +27,18 @@ Output:
 eliott-pipeline/proto-pipeline/outputs/b01/
 ```
 
+Important output files:
+
+```text
+video_breakdown.json          Gemini video understanding
+playable_feature_spec.json    Machine-readable playable spec
+brief.md                      Human-readable summary
+playable.html                 Final single-file playable prototype
+manifest.json                 Run metadata and generated HTML size
+```
+
+`playable.html` is generated deterministically from the feature spec and local assets. It uses Canvas 2D, inlined images/audio, no CDN, and fails the run if it exceeds 5 MB.
+
 Useful commands:
 
 ```sh
@@ -35,4 +47,3 @@ node eliott-pipeline/proto-pipeline/src/cli.ts --help
 ```
 
 The script reads `GEMINI_API_KEY` from the environment or the repo `.env`.
-

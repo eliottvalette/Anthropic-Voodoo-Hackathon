@@ -9,6 +9,7 @@ import { loadApiKey } from "./env.ts";
 import { extractJsonObject, generateJson, listModels, uploadFile, waitUntilActive } from "./gemini.ts";
 import { inventoryAssets, videoMetadata } from "./metadata.ts";
 import { prepareOutputDir, writeJson, writeText } from "./outputs.ts";
+import { generatePlayableHtml } from "./playableHtml.ts";
 
 type Args = {
   run: string;
@@ -113,7 +114,14 @@ async function main(): Promise<void> {
   await writeJson(outputDir, "playable_feature_spec.json", featureSpec);
 
   await writeText(outputDir, "brief.md", renderBrief(videoBreakdown, featureSpec));
-  await writeJson(outputDir, "manifest.json", { ...manifest, status: "completed", uploaded_file: uploaded });
+  console.log("Generating playable.html...");
+  const playableHtml = await generatePlayableHtml({ outputDir, assetDir, featureSpec });
+  await writeJson(outputDir, "manifest.json", {
+    ...manifest,
+    status: "completed",
+    uploaded_file: uploaded,
+    playable_html: playableHtml,
+  });
   console.log(`Saved outputs to ${outputDir}`);
 }
 
@@ -203,4 +211,3 @@ main().catch(async (error: unknown) => {
   console.error(message);
   process.exitCode = 1;
 });
-
