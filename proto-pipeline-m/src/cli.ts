@@ -72,6 +72,28 @@ async function runP1Only(args: string[]): Promise<void> {
   console.log(output.merged.summary_one_sentence);
 }
 
+async function runP2Only(args: string[]): Promise<void> {
+  const runId = getFlag(args, "--run");
+  const variant = getFlag(args, "--variant") ?? "_default";
+  if (!runId) {
+    console.error(
+      "Usage: bun run pipeline --p2-only --run <id> [--variant <id>]\n" +
+        "(requires outputs/<id>/00_probe.json and 01_video.json)",
+    );
+    process.exit(1);
+  }
+  const { writeP2 } = await import("./pipeline/p2_assets.ts");
+  const { outDir, output } = await writeP2(runId, variant);
+  console.log(`wrote ${outDir}/02_assets.json + meta`);
+  console.log(JSON.stringify(output.meta, null, 2));
+  console.log("--- roles ---");
+  for (const r of output.mapping.roles) {
+    console.log(
+      `${r.role.padEnd(28)} ${r.match_confidence.padEnd(6)} ${r.filename ?? "(null)"}`,
+    );
+  }
+}
+
 async function runVerify(args: string[]): Promise<void> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const htmlPath = positional[1];
@@ -110,6 +132,11 @@ async function main(): Promise<void> {
 
   if (args.includes("--p1-only")) {
     await runP1Only(args);
+    return;
+  }
+
+  if (args.includes("--p2-only")) {
+    await runP2Only(args);
     return;
   }
 
