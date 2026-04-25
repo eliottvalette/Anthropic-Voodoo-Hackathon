@@ -379,6 +379,7 @@ def crop_candidate(
     expanded = padded_box(pixel_box, width=width, height=height)
     crop = image.crop(expanded)
     crop_path = crops_dir / f"{candidate.asset_id}.png"
+    crop_path.parent.mkdir(parents=True, exist_ok=True)
     crop.save(crop_path)
 
     debug = image.copy()
