@@ -169,6 +169,18 @@
             "impact",
             "rings"
           ]
+        },
+        {
+          "name": "muzzle-flash",
+          "file": "vfx/muzzle-flash.js",
+          "demo": "vfx/demos/muzzle-flash.html",
+          "signature": "spawnMuzzleFlash(flashes, x, y, angleRad, opts?)",
+          "description": "Directional cone polygon flash + radial glow + radial spike lines — cannon fire, gunshot, projectile-launch frame. Sin-curve scale punch.",
+          "tags": [
+            "projectile",
+            "launch",
+            "cannon"
+          ]
         }
       ]
     },

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>muzzle-flash demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../muzzle-flash.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const flashes = [];
+        const projectiles = [];
+        let last = 0;
+
+        const cannon = { x: 80, y: 540, angle: -Math.PI / 4 };
+
+        function fire() {
+            const tip = {
+                x: cannon.x + Math.cos(cannon.angle) * 38,
+                y: cannon.y + Math.sin(cannon.angle) * 38,
+            };
+            spawnMuzzleFlash(flashes, tip.x, tip.y, cannon.angle, { length: 70, width: 22, life: 130, spikes: 6 });
+            projectiles.push({
+                x: tip.x, y: tip.y,
+                vx: Math.cos(cannon.angle) * 0.55,
+                vy: Math.sin(cannon.angle) * 0.55,
+                life: 1400,
+            });
+        }
+
+        cv.addEventListener('pointerdown', e => {
+            const r = cv.getBoundingClientRect();
+            const x = (e.clientX - r.left) * cv.width / r.width;
+            const y = (e.clientY - r.top) * cv.height / r.height;
+            cannon.angle = Math.atan2(y - cannon.y, x - cannon.x);
+            fire();
+        });
+
+        let auto = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now; auto += dt;
+            if (auto > 850) {
+                cannon.angle = -Math.PI / 4 + (Math.random() - 0.5) * 0.7;
+                fire();
+                auto = 0;
+            }
+
+            // Update & cull projectiles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.0006 * dt; p.life -= dt;
+                if (p.life <= 0 || p.x < -20 || p.x > cv.width + 20 || p.y > cv.height + 20) projectiles.splice(i, 1);
+            }
+            updateMuzzleFlashes(flashes, dt);
+
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            // Cannon body
+            ctx.save();
+            ctx.translate(cannon.x, cannon.y);
+            ctx.rotate(cannon.angle);
+            ctx.fillStyle = '#3a4252';
+            ctx.fillRect(-6, -10, 38, 20);
+            ctx.restore();
+            ctx.fillStyle = '#1f2937';
+            ctx.beginPath(); ctx.arc(cannon.x, cannon.y, 16, 0, Math.PI * 2); ctx.fill();
+
+            // Projectiles
+            ctx.fillStyle = '#ffd84a';
+            for (const p of projectiles) {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+            }
+
+            drawMuzzleFlashes(ctx, flashes);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
