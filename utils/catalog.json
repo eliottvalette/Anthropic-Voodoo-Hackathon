@@ -181,6 +181,14 @@
           "signature": "openStore(url)",
           "description": "Resolve store-open across Voodoo VSDK, MRAID, and parent postMessage fallbacks",
           "tags": ["cta", "store", "voodoo"]
+        },
+        {
+          "name": "audio",
+          "file": "mechanics/audio.js",
+          "demo": "mechanics/demos/audio.html",
+          "signature": "startMusic() / stopMusic() / playSfx(kind) / setMusicVolume / setSfxVolume",
+          "description": "Web Audio API procedural music + SFX on separate gain busses — SFX layer over music without interrupting. No external audio files.",
+          "tags": ["audio", "sound", "music", "sfx"]
         }
       ]
     },

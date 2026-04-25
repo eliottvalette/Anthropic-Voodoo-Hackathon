@@ -1,6 +1,6 @@
 {
   "output": "playable.html",
-  "bytes": 3633823,
+  "bytes": 3062353,
   "assets": [
     "background",
     "castlePlayer",
@@ -10,8 +10,22 @@
     "unitPoison",
     "projFire",
     "projMissile",
-    "projPoison",
-    "endOverlay"
+    "projPoison"
   ],
-  "generated_at": "2026-04-25T20:39:57.816Z"
+  "utils": [
+    "vfx/particles.js",
+    "vfx/smoke.js",
+    "vfx/burst.js",
+    "vfx/trail.js",
+    "vfx/shake.js",
+    "vfx/float-text.js",
+    "vfx/debris.js",
+    "vfx/section-destroy.js",
+    "hud/vs-bar-top.js",
+    "end-screens/game-lost.js",
+    "end-screens/game-won.js",
+    "mechanics/cta-trigger.js",
+    "mechanics/audio.js"
+  ],
+  "generated_at": "2026-04-25T22:09:26.751Z"
 }

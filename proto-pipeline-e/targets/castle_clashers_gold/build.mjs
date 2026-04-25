@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const sourceDir = resolve(here, "source");
 const distDir = resolve(here, "dist");
+const utilsRoot = resolve(here, "../../../utils");
 
 const mimeByExt = {
   ".png": "image/png",
@@ -19,11 +20,33 @@ function mimeFor(path) {
   return mimeByExt[ext] || "application/octet-stream";
 }
 
-const [styles, game, manifestRaw] = await Promise.all([
+// Utils bank: bundled in order so deps load first.
+const utilFiles = [
+  "vfx/particles.js",
+  "vfx/smoke.js",
+  "vfx/burst.js",
+  "vfx/trail.js",
+  "vfx/shake.js",
+  "vfx/float-text.js",
+  "vfx/debris.js",
+  "vfx/section-destroy.js",
+  "hud/vs-bar-top.js",
+  "end-screens/game-lost.js",
+  "end-screens/game-won.js",
+  "mechanics/cta-trigger.js",
+  "mechanics/audio.js"
+];
+
+const [styles, game, manifestRaw, ...utilSources] = await Promise.all([
   readFile(resolve(sourceDir, "styles.css"), "utf8"),
   readFile(resolve(sourceDir, "game.js"), "utf8"),
-  readFile(resolve(sourceDir, "assets.json"), "utf8")
+  readFile(resolve(sourceDir, "assets.json"), "utf8"),
+  ...utilFiles.map(f => readFile(resolve(utilsRoot, f), "utf8"))
 ]);
+
+const utilBundle = utilFiles
+  .map((f, i) => `/* ── ${f} ── */\n${utilSources[i]}`)
+  .join("\n\n");
 
 const manifest = JSON.parse(manifestRaw);
 const inlinedAssets = {};
@@ -40,6 +63,9 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Castle Clashers Gold Target</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
 <style>${styles}</style>
 </head>
 <body>
@@ -47,6 +73,7 @@ const html = `<!doctype html>
 <canvas id="game" width="360" height="640"></canvas>
 </main>
 <script>window.CC_ASSETS=${JSON.stringify(inlinedAssets)};</script>
+<script>${utilBundle}</script>
 <script>${game}</script>
 </body>
 </html>
@@ -61,6 +88,7 @@ await writeFile(
       output: "playable.html",
       bytes: Buffer.byteLength(html),
       assets: Object.keys(inlinedAssets),
+      utils: utilFiles,
       generated_at: new Date().toISOString()
     },
     null,
@@ -68,4 +96,4 @@ await writeFile(
   )
 );
 
-console.log(`Wrote ${resolve(distDir, "playable.html")} (${Buffer.byteLength(html)} bytes)`);
+console.log(`Wrote ${resolve(distDir, "playable.html")} (${Buffer.byteLength(html)} bytes, ${utilFiles.length} utils bundled)`);
