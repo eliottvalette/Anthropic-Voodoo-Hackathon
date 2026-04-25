@@ -1,30 +1,27 @@
-# Gemini video probe
+# Eliott Pipeline
 
-Small sandbox for testing what Gemini can extract from the Castle Clashers gameplay videos.
+Personal sandbox for the video-to-playable experiments.
 
-Current default model: `gemini-3.1-pro-preview`.
+Canonical pipeline:
 
-## Run
+```text
+eliott-pipeline/proto-pipeline/
+```
+
+Run from the repo root:
 
 ```sh
-node eliott-pipeline/gemini-video-probe.ts \
+node eliott-pipeline/proto-pipeline/src/cli.ts \
+  --run b01 \
   --video "ressources/Video Example/B01.mp4" \
-  --out-dir eliott-pipeline/runs/b01_gemini31
+  --assets "ressources/Castle Clashers Assets"
 ```
 
-Useful options:
+All generated outputs are confined to:
 
-```sh
-node eliott-pipeline/gemini-video-probe.ts --list-models
-node eliott-pipeline/gemini-video-probe.ts --video "ressources/Video Example/B11.mp4" --model gemini-3.1-pro-preview
-node eliott-pipeline/gemini-video-probe.ts --video "ressources/Video Example/B01.mp4" --fps 2
+```text
+eliott-pipeline/proto-pipeline/outputs/<run>/
 ```
 
-The script reads `GEMINI_API_KEY` from the environment, or from the repo `.env` file.
-It saves raw API JSON plus extracted text/JSON artifacts in the output directory.
+Runs are intentionally not timestamped. Re-running the same `--run` overwrites the previous output.
 
-The TypeScript is written with erasable syntax so it can run directly on Node 25:
-
-```sh
-node eliott-pipeline/gemini-video-probe.ts --help
-```
