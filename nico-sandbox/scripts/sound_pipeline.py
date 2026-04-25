@@ -11,12 +11,10 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import imageio_ffmpeg
 import requests
 from google import genai
 from google.genai import types
@@ -352,28 +350,26 @@ def process_sound_event(
     sound: dict[str, Any],
     run_dir: Path,
 ) -> dict[str, Any]:
-    """Process one sound event: extract or generate, then return a result dict."""
+    """Generate one sound event via Scenario and return a result dict."""
     sound_id = str(sound.get("sound_id", "sound"))
     sound_type = str(sound.get("type", "sfx"))
-    strategy = str(sound.get("extraction_strategy", "scenario_generate"))
+
+    if client is None:
+        raise RuntimeError("ScenarioClient required but not provided")
 
     base_result: dict[str, Any] = {
         "sound_id": sound_id,
         "type": sound_type,
         "name": sound.get("name"),
         "game_event": sound.get("game_event"),
-        "strategy": strategy,
+        "strategy": "scenario_generate",
     }
 
-    if strategy == "ffmpeg_extract":
+    if sound_type == "bgm":
         folder = run_dir / "final-assets" / "sounds" / "bgm"
         output_path = folder / f"{sound_id}.mp3"
-        extract_bgm_segment(video_path, sound, output_path)
-        return {**base_result, "final_path": str(output_path)}
-
-    # scenario_generate
-    if client is None:
-        raise RuntimeError("ScenarioClient required for scenario_generate but not provided")
+        scenario_result = generate_bgm_via_scenario(client, sound, output_path)
+        return {**base_result, **scenario_result}
 
     sound_subdir = "sfx" if sound_type == "sfx" else "ui"
     folder = run_dir / "final-assets" / "sounds" / sound_subdir
