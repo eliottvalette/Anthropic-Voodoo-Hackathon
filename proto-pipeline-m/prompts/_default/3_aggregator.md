@@ -54,10 +54,11 @@ codegen_prompt scaffold (use these exact section headers, in this order):
 
 # Constraints reminder
 - Fill /* CREATIVE_SLOT */ only. Do not touch the engine preamble.
-- Override window.__engineState.snapshot to return real {entityCount, score}.
+- Override window.__engineState.snapshot to return MONOTONIC counters that strictly increase on player input (e.g. tapsTotal, dragsTotal, shotsFired, score). Never return only transient values that can reset to baseline between samples.
 - The string "<mechanic_name>" must appear verbatim in your JS.
 - Do not import anything. Do not use setTimeout/setInterval. Use requestAnimationFrame.
 - The CTA element must call window.__cta(<cta_url>) on tap.
+- Draw the gameplay scene (background fill + placeholder shapes for any not-yet-loaded asset) on every frame from the very first frame, so the canvas is never a uniform single color.
 
 Rules:
 - Be specific about mechanics; vague prompts produce vague playables.
