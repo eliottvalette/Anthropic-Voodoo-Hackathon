@@ -127,29 +127,7 @@ export default function Home() {
     activateStep('codegen')
     await delay(2000)
 
-    const mockHtml = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Castle Clashers — Playable</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: system-ui, sans-serif; color: white; }
-    .card { background: #1a1a2e; border: 1px solid #0055FF33; border-radius: 16px; padding: 40px 32px; text-align: center; max-width: 300px; }
-    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    p  { font-size: 13px; color: #888; line-height: 1.5; margin-bottom: 24px; }
-    .badge { display: inline-block; background: #0055FF20; border: 1px solid #0055FF40; color: #6699FF; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 999px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Castle Clashers</h1>
-    <p>Connect the pipeline to render the real playable HTML here. This is a placeholder from the mock run.</p>
-    <span class="badge">Playable Generator · Mock</span>
-  </div>
-</body>
-</html>`
+    const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
 
     completeStep('codegen', (
       <div className="flex flex-wrap gap-x-6 gap-y-1">
@@ -201,9 +179,9 @@ export default function Home() {
             />
             <DropZone
               label="Game Assets"
-              sublabel="PNG, OGG, WAV · multiple"
+              sublabel="Drop a folder or files"
               accept=".png,.jpg,.jpeg,.ogg,.wav,.mp3"
-              multiple
+              folder
               onFiles={setAssetFiles}
               files={assetFiles}
               icon={<AssetsIcon />}
