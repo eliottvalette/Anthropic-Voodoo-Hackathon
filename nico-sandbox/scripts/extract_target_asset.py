@@ -193,7 +193,7 @@ def crop_target(frame_path: Path, target_id: str, target_name: str, refined: dic
     width, height = image.size
     box_2d = [int(v) for v in refined["box_2d"]]
     pixel_box = asset_pipeline.box_1000_to_pixels(box_2d, width=width, height=height)
-    padded = asset_pipeline.padded_box(pixel_box, width=width, height=height, pad_ratio=0.35, min_size=160)
+    padded = asset_pipeline.padded_box(pixel_box, width=width, height=height, pad_ratio=0.12, min_size=96)
 
     crop_dir = out_dir / "extracted" / "crops"
     crop_dir.mkdir(parents=True, exist_ok=True)
