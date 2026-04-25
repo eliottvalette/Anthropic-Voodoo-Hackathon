@@ -157,6 +157,18 @@
             "bolt",
             "chain"
           ]
+        },
+        {
+          "name": "ripple",
+          "file": "vfx/ripple.js",
+          "demo": "vfx/demos/ripple.html",
+          "signature": "spawnRipple(ripples, x, y, opts?)",
+          "description": "Concentric staggered rings drawn as ellipses (yScale squash) — water splashes, ground-pound, sonar, ability radius. Cubic ease-out radius growth.",
+          "tags": [
+            "water",
+            "impact",
+            "rings"
+          ]
         }
       ]
     },
