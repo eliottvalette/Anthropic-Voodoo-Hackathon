@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Ninja Unit",
+      "box_2d": [
+        583,
+        396,
+        617,
+        442
+      ],
+      "confidence": 0.95,
+      "notes": "A small character dressed in purple ninja garb located on the left side of the castle structure."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

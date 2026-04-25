@@ -1,0 +1,624 @@
+{
+  "assets": [
+    {
+      "asset_id": "bg_endcard",
+      "name": "End Card Background",
+      "category": "background",
+      "timestamp_s": 51.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/bg_endcard_51.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/bg_endcard.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/bg_endcard_debug.png",
+      "gemini_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "padded_bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": false,
+      "priority": 2,
+      "visual_description": "A static background showing characters running towards a castle."
+    },
+    {
+      "asset_id": "ui_battle_failed",
+      "name": "Battle Failed Banner",
+      "category": "ui",
+      "timestamp_s": 49.8,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_battle_failed_49.800s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_battle_failed.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_battle_failed_debug.png",
+      "gemini_box_2d": [
+        287,
+        542,
+        392,
+        1000
+      ],
+      "bbox_px": [
+        585,
+        551,
+        1080,
+        753
+      ],
+      "padded_bbox_px": [
+        496,
+        515,
+        1080,
+        789
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 2,
+      "visual_description": "A red banner sliding in from the right with the text 'BATTLE FAILED'."
+    },
+    {
+      "asset_id": "ui_logo",
+      "name": "Game Logo",
+      "category": "ui",
+      "timestamp_s": 51.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_logo_51.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_logo.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_logo_debug.png",
+      "gemini_box_2d": [
+        0,
+        0,
+        392,
+        865
+      ],
+      "bbox_px": [
+        0,
+        0,
+        934,
+        753
+      ],
+      "padded_bbox_px": [
+        0,
+        0,
+        1080,
+        889
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "priority": 2,
+      "visual_description": "The 'CASTLE CLASHERS' logo with a wooden sign aesthetic."
+    },
+    {
+      "asset_id": "ui_play_button",
+      "name": "Play Button",
+      "category": "ui",
+      "timestamp_s": 51.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_play_button_51.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_play_button.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_play_button_debug.png",
+      "gemini_box_2d": [
+        784,
+        275,
+        1000,
+        1000
+      ],
+      "bbox_px": [
+        297,
+        1505,
+        1080,
+        1920
+      ],
+      "padded_bbox_px": [
+        156,
+        1430,
+        1080,
+        1920
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 2,
+      "visual_description": "A wooden button with the word 'PLAY' on it."
+    },
+    {
+      "asset_id": "char_ninja",
+      "name": "Ninja Unit",
+      "category": "character",
+      "timestamp_s": 44.6,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/char_ninja_44.600s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_ninja.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/char_ninja_debug.png",
+      "gemini_box_2d": [
+        583,
+        396,
+        617,
+        442
+      ],
+      "bbox_px": [
+        428,
+        1119,
+        477,
+        1185
+      ],
+      "padded_bbox_px": [
+        405,
+        1104,
+        501,
+        1200
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 3,
+      "visual_description": "A small character dressed in purple ninja garb."
+    },
+    {
+      "asset_id": "vfx_explosion",
+      "name": "Explosion Effect",
+      "category": "effect",
+      "timestamp_s": 1.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/vfx_explosion_1.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/vfx_explosion.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/vfx_explosion_debug.png",
+      "gemini_box_2d": [
+        512,
+        343,
+        655,
+        520
+      ],
+      "bbox_px": [
+        370,
+        983,
+        562,
+        1258
+      ],
+      "padded_bbox_px": [
+        335,
+        933,
+        597,
+        1308
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 3,
+      "visual_description": "A burst of fire, smoke, and flying debris."
+    },
+    {
+      "asset_id": "vfx_ninja_attack",
+      "name": "Ninja Attack Effect",
+      "category": "effect",
+      "timestamp_s": 46.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/vfx_ninja_attack_46.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/vfx_ninja_attack.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/vfx_ninja_attack_debug.png",
+      "gemini_box_2d": [
+        458,
+        393,
+        526,
+        501
+      ],
+      "bbox_px": [
+        424,
+        879,
+        541,
+        1010
+      ],
+      "padded_bbox_px": [
+        403,
+        855,
+        562,
+        1034
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 3,
+      "visual_description": "A burst of pink star-shaped particles."
+    },
+    {
+      "asset_id": "char_cyclops_red",
+      "name": "Red Cyclops Unit",
+      "category": "character",
+      "timestamp_s": 5.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/char_cyclops_red_5.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_cyclops_red.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/char_cyclops_red_debug.png",
+      "gemini_box_2d": [
+        579,
+        438,
+        631,
+        500
+      ],
+      "bbox_px": [
+        473,
+        1112,
+        540,
+        1212
+      ],
+      "padded_bbox_px": [
+        459,
+        1094,
+        555,
+        1230
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A small, red, one-eyed character holding a cannon."
+    },
+    {
+      "asset_id": "char_goblin_green",
+      "name": "Green Goblin Unit",
+      "category": "character",
+      "timestamp_s": 5.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/char_goblin_green_5.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_goblin_green.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/char_goblin_green_debug.png",
+      "gemini_box_2d": [
+        579,
+        225,
+        632,
+        298
+      ],
+      "bbox_px": [
+        243,
+        1112,
+        322,
+        1213
+      ],
+      "padded_bbox_px": [
+        229,
+        1094,
+        336,
+        1231
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A small green goblin character with horns, holding a cannon."
+    },
+    {
+      "asset_id": "char_skeleton",
+      "name": "Skeleton Unit",
+      "category": "character",
+      "timestamp_s": 5.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/char_skeleton_5.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/char_skeleton.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/char_skeleton_debug.png",
+      "gemini_box_2d": [
+        462,
+        228,
+        513,
+        292
+      ],
+      "bbox_px": [
+        246,
+        887,
+        315,
+        985
+      ],
+      "padded_bbox_px": [
+        233,
+        869,
+        329,
+        1003
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A small skeleton character holding a multi-barrel gun."
+    },
+    {
+      "asset_id": "proj_fireball",
+      "name": "Fireball Projectile",
+      "category": "projectile",
+      "timestamp_s": 29.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/proj_fireball_29.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_fireball.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/proj_fireball_debug.png",
+      "gemini_box_2d": [
+        472,
+        298,
+        568,
+        778
+      ],
+      "bbox_px": [
+        322,
+        906,
+        840,
+        1091
+      ],
+      "padded_bbox_px": [
+        229,
+        873,
+        933,
+        1124
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A glowing orange fireball leaving a fiery trail."
+    },
+    {
+      "asset_id": "proj_missile",
+      "name": "Missile Projectile",
+      "category": "projectile",
+      "timestamp_s": 9.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/proj_missile_9.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_missile.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/proj_missile_debug.png",
+      "gemini_box_2d": [
+        489,
+        423,
+        519,
+        512
+      ],
+      "bbox_px": [
+        457,
+        939,
+        553,
+        996
+      ],
+      "padded_bbox_px": [
+        440,
+        920,
+        570,
+        1016
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A small grey missile with a red tip, leaving a smoke trail."
+    },
+    {
+      "asset_id": "proj_poison",
+      "name": "Poison Projectile",
+      "category": "projectile",
+      "timestamp_s": 39.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/proj_poison_39.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_poison.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/proj_poison_debug.png",
+      "gemini_box_2d": [
+        535,
+        496,
+        564,
+        541
+      ],
+      "bbox_px": [
+        536,
+        1027,
+        584,
+        1083
+      ],
+      "padded_bbox_px": [
+        512,
+        1007,
+        608,
+        1103
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A green blob of poison leaving a green trail."
+    },
+    {
+      "asset_id": "ui_aim_trajectory",
+      "name": "Aiming Trajectory",
+      "category": "ui",
+      "timestamp_s": 8.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_aim_trajectory_8.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_aim_trajectory.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_aim_trajectory_debug.png",
+      "gemini_box_2d": [
+        771,
+        703,
+        788,
+        737
+      ],
+      "bbox_px": [
+        759,
+        1480,
+        796,
+        1513
+      ],
+      "padded_bbox_px": [
+        730,
+        1449,
+        826,
+        1545
+      ],
+      "confidence": 0.8,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A dotted white line indicating the path a projectile will take."
+    },
+    {
+      "asset_id": "ui_hand_cursor",
+      "name": "Hand Cursor",
+      "category": "ui",
+      "timestamp_s": 7.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_hand_cursor_7.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_hand_cursor.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_hand_cursor_debug.png",
+      "gemini_box_2d": [
+        679,
+        472,
+        802,
+        665
+      ],
+      "bbox_px": [
+        510,
+        1304,
+        718,
+        1540
+      ],
+      "padded_bbox_px": [
+        473,
+        1262,
+        755,
+        1582
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "priority": 4,
+      "visual_description": "A cartoonish hand with a pointing index finger."
+    },
+    {
+      "asset_id": "bg_gameplay",
+      "name": "Gameplay Background",
+      "category": "background",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/bg_gameplay_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/bg_gameplay.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/bg_gameplay_debug.png",
+      "gemini_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "padded_bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": false,
+      "priority": 5,
+      "visual_description": "A grassy landscape with rolling hills, trees, fences, and a cloudy sky."
+    },
+    {
+      "asset_id": "castle_enemy",
+      "name": "Enemy Castle",
+      "category": "castle",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/castle_enemy_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/castle_enemy.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/castle_enemy_debug.png",
+      "gemini_box_2d": [
+        250,
+        183,
+        798,
+        827
+      ],
+      "bbox_px": [
+        198,
+        480,
+        893,
+        1532
+      ],
+      "padded_bbox_px": [
+        73,
+        291,
+        1018,
+        1721
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 5,
+      "visual_description": "A tall stone castle with red roofs, mounted on two large tank treads."
+    },
+    {
+      "asset_id": "castle_player",
+      "name": "Player Castle",
+      "category": "castle",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/castle_player_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/castle_player.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/castle_player_debug.png",
+      "gemini_box_2d": [
+        250,
+        183,
+        798,
+        828
+      ],
+      "bbox_px": [
+        198,
+        480,
+        894,
+        1532
+      ],
+      "padded_bbox_px": [
+        73,
+        291,
+        1019,
+        1721
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 5,
+      "visual_description": "A tall stone castle with blue roofs, mounted on two large tank treads."
+    },
+    {
+      "asset_id": "ui_top_bar",
+      "name": "Top UI Bar",
+      "category": "ui",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_top_bar_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_top_bar.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_top_bar_debug.png",
+      "gemini_box_2d": [
+        0,
+        0,
+        191,
+        1000
+      ],
+      "bbox_px": [
+        0,
+        0,
+        1080,
+        367
+      ],
+      "padded_bbox_px": [
+        0,
+        0,
+        1080,
+        433
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "priority": 5,
+      "visual_description": "A UI element at the top containing a 'VS' logo, blue and red health bars, and castle icons with percentage text."
+    },
+    {
+      "asset_id": "ui_unit_panel",
+      "name": "Unit Selection Panel",
+      "category": "ui",
+      "timestamp_s": 5.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/frames/ui_unit_panel_5.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_unit_panel.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/qa/debug-overlays/ui_unit_panel_debug.png",
+      "gemini_box_2d": [
+        803,
+        32,
+        957,
+        957
+      ],
+      "bbox_px": [
+        35,
+        1542,
+        1034,
+        1837
+      ],
+      "padded_bbox_px": [
+        0,
+        1489,
+        1080,
+        1890
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "priority": 5,
+      "visual_description": "A panel at the bottom of the screen showing three square icons for different units."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Red Cyclops Unit",
+      "box_2d": [
+        579,
+        438,
+        631,
+        500
+      ],
+      "confidence": 0.95,
+      "notes": "A small, red, one-eyed character holding a cannon, positioned on a platform within the castle structure."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

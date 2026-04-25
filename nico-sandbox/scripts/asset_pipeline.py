@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 VIDEO_PATH = ROOT / "ressources" / "Video Example" / "B11.mp4"
-OUTPUT_ROOT = ROOT / "nico-sandbox" / "asset-extraction" / "B11"
+OUTPUT_ROOT = ROOT / "nico-sandbox" / "runs" / "B11"
 
 VIDEO_MODELS = [
     "gemini-3.1-pro-preview",
@@ -269,7 +269,8 @@ def wait_for_file(client: genai.Client, name: str, timeout_s: int = 600) -> Any:
 
 def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> dict[str, Any]:
     client = gemini_client()
-    output_dir.mkdir(parents=True, exist_ok=True)
+    manifests_dir = output_dir / "manifests"
+    manifests_dir.mkdir(parents=True, exist_ok=True)
 
     uploaded = client.files.upload(
         file=str(video_path),
@@ -305,7 +306,7 @@ Prefer distinct reusable assets over transient duplicates.
     payload = json.loads(extract_json_payload(response.text or "{}"))
     payload["_gemini_model"] = model
     payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
-    write_json(output_dir / "01_gemini_video_manifest.json", payload)
+    write_json(manifests_dir / "01_gemini_video_manifest.json", payload)
     return payload
 
 
@@ -410,10 +411,10 @@ def crop_candidate(
 
 
 def extract_candidates(manifest: dict[str, Any], video_path: Path, output_dir: Path, refine: bool = True) -> list[dict[str, Any]]:
-    frames_dir = output_dir / "frames"
-    crops_dir = output_dir / "crops"
-    debug_dir = output_dir / "debug"
-    refined_dir = output_dir / "02_gemini_frame_refinement"
+    frames_dir = output_dir / "extracted" / "frames"
+    crops_dir = output_dir / "extracted" / "crops"
+    debug_dir = output_dir / "qa" / "debug-overlays"
+    refined_dir = output_dir / "manifests" / "02_gemini_frame_refinement"
     extracted: list[dict[str, Any]] = []
 
     seen: dict[str, int] = {}
@@ -444,8 +445,8 @@ def extract_candidates(manifest: dict[str, Any], video_path: Path, output_dir: P
 
         extracted.append(crop_candidate(frame_path, candidate, refined, crops_dir, debug_dir))
 
-    write_json(output_dir / "03_extracted_assets_manifest.json", {"assets": extracted})
-    build_contact_sheet(extracted, output_dir / "contact_sheet.png")
+    write_json(output_dir / "manifests" / "03_extracted_assets_manifest.json", {"assets": extracted})
+    build_contact_sheet(extracted, output_dir / "previews" / "extracted_assets_contact_sheet.png")
     return extracted
 
 
@@ -483,7 +484,7 @@ def main() -> None:
     args = parser.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    manifest_path = args.out / "01_gemini_video_manifest.json"
+    manifest_path = args.out / "manifests" / "01_gemini_video_manifest.json"
     if args.skip_video_gemini:
         manifest = read_json(manifest_path)
     else:

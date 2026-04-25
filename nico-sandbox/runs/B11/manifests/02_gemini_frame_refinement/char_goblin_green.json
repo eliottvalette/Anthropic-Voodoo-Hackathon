@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Green Goblin Unit",
+      "box_2d": [
+        579,
+        225,
+        632,
+        298
+      ],
+      "confidence": 0.9,
+      "notes": "A small green goblin character with horns, holding a cannon."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}
