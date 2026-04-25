@@ -39,3 +39,8 @@ body {
 .pulse-dot {
   animation: pulseDot 1.4s ease-in-out infinite;
 }
+
+.dot-grid {
+  background-image: radial-gradient(circle, #C9D2DC 1px, transparent 1px);
+  background-size: 22px 22px;
+}
