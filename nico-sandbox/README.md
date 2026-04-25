@@ -47,6 +47,22 @@ Key files:
 
 From the repository root:
 
+Run the full video-to-asset-kit pipeline:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/run_full_asset_pipeline.py "ressources/Video Example/B11.mp4" --out nico-sandbox/runs/B11_full
+```
+
+For a long full-quality run, use `--resolution 1K --num-outputs 4`. The script checkpoints after every processed asset in `manifests/05_scenario_automation_manifest.json`, so it can be resumed. Use `--force` only when you want to regenerate completed assets.
+
+Dry-run the Scenario/Gemini asset factory plan from existing B11 crops:
+
+```bash
+.venv/bin/python nico-sandbox/scripts/run_full_asset_pipeline.py "ressources/Video Example/B11.mp4" --out nico-sandbox/runs/B11 --skip-extraction --dry-run-scenario
+```
+
+Run only the extraction stage manually:
+
 ```bash
 .venv/bin/python nico-sandbox/scripts/asset_pipeline.py --video "ressources/Video Example/B11.mp4" --out nico-sandbox/runs/B11
 ```
@@ -78,14 +94,32 @@ Target one extracted asset:
 The current default sprite lane is the B11 missile-proven chain:
 
 ```text
-Gemini video selection -> local frame/crop -> Scenario Gemini reference recreation -> Photoroom alpha -> padding trim
+Gemini video selection -> local frame/crop -> Scenario Gemini reference recreation -> Photoroom/Pixa alpha -> padding trim
 ```
 
-Backgrounds use an opaque plate-cleanup prompt instead of alpha removal. Characters use a base-sprite prompt first; animation strips and layer/rig extraction are the next dedicated pass.
+Backgrounds use an opaque plate-cleanup prompt instead of alpha removal.
+
+Characters now use the B11 skeleton-proven route:
+
+```text
+clean full-body seed -> generated 4x2 parts sheet -> local part slicing -> rig.json
+```
+
+VFX use a procedural route by default:
+
+```text
+Gemini VFX analysis -> particle config JSON -> TypeScript helper -> preview.html
+```
+
+Open the current explosion preview at:
+
+```text
+runs/B11/final-assets/vfx/vfx_explosion/preview.html
+```
 
 ## Validate
 
 ```bash
 .venv/bin/python -m unittest discover -s nico-sandbox/tests -p "test_*.py"
-.venv/bin/python -m py_compile nico-sandbox/scripts/asset_pipeline.py nico-sandbox/scripts/extract_target_asset.py nico-sandbox/scripts/scenario_automation.py nico-sandbox/tests/test_asset_pipeline.py
+.venv/bin/python -m py_compile nico-sandbox/scripts/asset_pipeline.py nico-sandbox/scripts/extract_target_asset.py nico-sandbox/scripts/asset_factories.py nico-sandbox/scripts/scenario_automation.py nico-sandbox/scripts/run_full_asset_pipeline.py nico-sandbox/tests/test_asset_pipeline.py nico-sandbox/tests/test_asset_factories.py
 ```

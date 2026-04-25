@@ -16,3 +16,10 @@
 - Updated the pipeline docs and Gemini prompts to prefer isolation/zoom/low-blur selection and the reference-recreation-first Scenario lane for small sprites.
 - Added `scripts/scenario_automation.py` as the first headless Scenario REST automation pass for extracted crops.
 - Added Scenario API configuration placeholders to `.env.example` and configured the Project E220 Scenario IDs in `.env`.
+- Added `scripts/asset_factories.py` to route extracted assets into static sprites, character rigs, procedural VFX, background plates, and UI assets.
+- Validated B11 smoke routes for `char_skeleton`, `vfx_explosion`, and `bg_gameplay`.
+- Confirmed the best character route is clean full-body seed -> generated 4x2 parts sheet -> local slicing -> `parts/*.png` plus `rig.json`; direct SAM semantic part extraction was unreliable for the tiny skeleton.
+- Confirmed the background route should produce an opaque cleaned gameplay plate with no alpha removal.
+- Confirmed VFX can be emitted as procedural Phaser TypeScript plus JSON config; added a local preview HTML for the B11 explosion.
+- Added Pixa background removal as fallback when Photoroom quota is exhausted.
+- Added `scripts/run_full_asset_pipeline.py`, the one-command video path entrypoint that runs Gemini inventory/extraction and all per-asset Scenario/Gemini factory routes with checkpointed manifests.
