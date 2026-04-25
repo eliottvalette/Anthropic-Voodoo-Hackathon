@@ -1,0 +1,39 @@
+{
+  "totalLatencyMs": 46782,
+  "totalTokensIn": 18276,
+  "totalTokensOut": 2877,
+  "subCalls": [
+    {
+      "step": "1a_timeline",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5204,
+      "tokensOut": 791,
+      "latencyMs": 17500,
+      "attempt": 1
+    },
+    {
+      "step": "1b_mechanics",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5230,
+      "tokensOut": 766,
+      "latencyMs": 18652,
+      "attempt": 1
+    },
+    {
+      "step": "1c_visual_ui",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5151,
+      "tokensOut": 880,
+      "latencyMs": 19163,
+      "attempt": 1
+    },
+    {
+      "step": "1d_merge",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 2691,
+      "tokensOut": 440,
+      "latencyMs": 11977,
+      "attempt": 1
+    }
+  ]
+}

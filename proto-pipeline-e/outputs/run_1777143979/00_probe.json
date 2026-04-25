@@ -1,0 +1,84 @@
+{
+  "video": {
+    "path": "/Users/mathisvillaret/Documents (mac)/Le CODE/Anthropic-Voodoo-Hackathon/ressources/Castle Clashers/Video Example/B01.mp4",
+    "durationSec": 56.35,
+    "width": 1080,
+    "height": 1920,
+    "fps": 60,
+    "codec": "h264"
+  },
+  "assetsDir": "/Users/mathisvillaret/Documents (mac)/Le CODE/Anthropic-Voodoo-Hackathon/ressources/Castle Clashers/Assets",
+  "assets": [
+    {
+      "filename": "Red Castle.png",
+      "relpath": "Red Castle.png",
+      "kind": "image",
+      "width": 731,
+      "height": 958,
+      "bytes": 180828
+    },
+    {
+      "filename": "Projectile_1.png",
+      "relpath": "Projectile_1.png",
+      "kind": "image",
+      "width": 256,
+      "height": 256,
+      "bytes": 25264
+    },
+    {
+      "filename": "Music.ogg",
+      "relpath": "Music.ogg",
+      "kind": "audio",
+      "durationSec": 17.614694,
+      "bytes": 216016
+    },
+    {
+      "filename": "Projectile_2.png",
+      "relpath": "Projectile_2.png",
+      "kind": "image",
+      "width": 256,
+      "height": 256,
+      "bytes": 41619
+    },
+    {
+      "filename": "Background.png",
+      "relpath": "Background.png",
+      "kind": "image",
+      "width": 5084,
+      "height": 1830,
+      "bytes": 1125710
+    },
+    {
+      "filename": "Blue Castle.png",
+      "relpath": "Blue Castle.png",
+      "kind": "image",
+      "width": 731,
+      "height": 958,
+      "bytes": 184902
+    },
+    {
+      "filename": "Weapon_2.png",
+      "relpath": "Weapon_2.png",
+      "kind": "image",
+      "width": 256,
+      "height": 132,
+      "bytes": 12838
+    },
+    {
+      "filename": "Sfx.wav",
+      "relpath": "Sfx.wav",
+      "kind": "audio",
+      "durationSec": 2.773333,
+      "bytes": 489260
+    },
+    {
+      "filename": "Weapon_1.png",
+      "relpath": "Weapon_1.png",
+      "kind": "image",
+      "width": 256,
+      "height": 118,
+      "bytes": 14121
+    }
+  ],
+  "generatedAt": "2026-04-25T19:06:19.954Z"
+}

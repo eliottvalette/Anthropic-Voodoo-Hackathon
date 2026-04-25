@@ -1,0 +1,40 @@
+{
+  "source_video": "01_video.json",
+  "game_identity": {
+    "observed_title": null,
+    "genre": "artillery",
+    "visual_style": "2D cartoon"
+  },
+  "render_mode": "2d",
+  "mechanic_name": "drag_and_release_artillery",
+  "core_loop_one_sentence": "Select a unit, drag and release to aim and fire projectiles at the enemy castle while surviving automated counter-attacks.",
+  "asset_role_map": {
+    "player_castle": "Blue Castle.png",
+    "enemy_castle": "Red Castle.png",
+    "background": "Background.png",
+    "unit_weapon_1": "Weapon_1.png",
+    "unit_weapon_2": "Weapon_2.png",
+    "projectile_1": "Projectile_1.png",
+    "projectile_2": "Projectile_2.png",
+    "background_music": "Music.ogg",
+    "shoot_sfx": "Sfx.wav"
+  },
+  "numeric_params": {
+    "player_max_health": 100,
+    "enemy_max_health": 100,
+    "player_damage": 20,
+    "enemy_damage": 15,
+    "enemy_fire_rate_ms": 2500,
+    "gravity": 0.5,
+    "max_drag_distance": 150,
+    "projectile_speed_multiplier": 0.2
+  },
+  "win_condition": "Reduce the enemy (red) castle's health to 0%.",
+  "loss_condition": "The player's (blue) castle's health is reduced to 0%.",
+  "cta_url": "https://apps.apple.com/app/castle-clashers/id1641352927",
+  "open_questions": [
+    "Are there other unit types available to unlock or select?",
+    "Does the player have any defensive abilities, or is it purely a damage race?",
+    "How is the enemy auto-attack rate or damage determined?"
+  ]
+}

@@ -6,9 +6,8 @@ Usage:
   bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]
   bun run pipeline --probe-only --run <id> --video <path> --assets <dir>
   bun run verify <html-path> [--mechanic <name>]
-  bun run bench --variants <list> --videos <list>
-
-Wired so far: --help, --list-models, verify, --probe-only.
+  bun run bench --variants <csv> --videos <csv> [--assets <dir>] [--retries N]
+  bun run bench --aggregate-only --batch <timestamp>
 `;
 
 async function listModels(): Promise<void> {
@@ -163,6 +162,35 @@ async function runFull(args: string[]): Promise<void> {
   );
 }
 
+async function runBench(args: string[]): Promise<void> {
+  if (args.includes("--aggregate-only")) {
+    const batch = getFlag(args, "--batch");
+    if (!batch) {
+      console.error("Usage: bun run bench --aggregate-only --batch <timestamp>");
+      process.exit(1);
+    }
+    const { aggregateOnly } = await import("./bench/run.ts");
+    await aggregateOnly(batch);
+    return;
+  }
+  const variantsCsv = getFlag(args, "--variants");
+  const videosCsv = getFlag(args, "--videos");
+  const assets = getFlag(args, "--assets") ?? "../ressources/Castle Clashers Assets";
+  const retriesArg = getFlag(args, "--retries");
+  const retries = retriesArg !== undefined ? Number(retriesArg) : 2;
+  if (!variantsCsv || !videosCsv) {
+    console.error(
+      "Usage: bun run bench --variants <csv> --videos <csv> [--assets <dir>] [--retries N]",
+    );
+    process.exit(1);
+  }
+  const variants = variantsCsv.split(",").map((s) => s.trim()).filter(Boolean);
+  const videos = videosCsv.split(",").map((s) => s.trim()).filter(Boolean);
+  const { runBench } = await import("./bench/run.ts");
+  const batch = await runBench(variants, videos, assets, retries);
+  console.log(`[bench] batch ${batch} done`);
+}
+
 async function runVerify(args: string[]): Promise<void> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const htmlPath = positional[1];
@@ -191,6 +219,11 @@ async function main(): Promise<void> {
 
   if (args[0] === "verify") {
     await runVerify(args);
+    return;
+  }
+
+  if (args[0] === "bench" || args.includes("--bench")) {
+    await runBench(args);
     return;
   }
 
