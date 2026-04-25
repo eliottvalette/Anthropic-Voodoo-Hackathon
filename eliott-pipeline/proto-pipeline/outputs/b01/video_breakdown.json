@@ -1,0 +1,214 @@
+{
+  "game_identity": {
+    "observed_title": "Castle Clashers",
+    "genre": "Artillery / Physics-based Destruction",
+    "camera_and_orientation": "2D side-view, square aspect ratio",
+    "visual_style": "Cartoonish 2D vector art with physics-driven rigid bodies"
+  },
+  "core_loop": {
+    "one_sentence": "Players take turns aiming and firing various weapons at an enemy castle to destroy its structure and deplete its health before their own castle is destroyed.",
+    "player_goal": "Reduce the enemy castle's health to 0% by hitting it with projectiles.",
+    "failure_or_pressure": "The enemy castle fires back every turn, steadily destroying the player's castle and reducing its health.",
+    "why_it_is_fun": "Satisfying physics-based destruction, visual feedback of crumbling castles, and the tactical choice of different projectile types."
+  },
+  "player_controls": [
+    {
+      "gesture": "Drag and hold",
+      "target": "A specific character inside the player's castle",
+      "result": "Displays a dotted trajectory line indicating the path of the projectile",
+      "evidence_timestamps": [
+        "00:04",
+        "00:14",
+        "00:29",
+        "00:41"
+      ],
+      "confidence": "high"
+    },
+    {
+      "gesture": "Release",
+      "target": "Screen",
+      "result": "Fires the character's specific weapon along the aimed trajectory",
+      "evidence_timestamps": [
+        "00:06",
+        "00:16",
+        "00:31",
+        "00:43"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "visible_ui": [
+    {
+      "element": "Health Percentages",
+      "location": "Top left (Blue) and Top right (Red)",
+      "purpose": "Indicates the remaining health/structural integrity of each castle",
+      "evidence_timestamps": [
+        "00:00",
+        "00:53"
+      ]
+    },
+    {
+      "element": "VS Graphic",
+      "location": "Top center",
+      "purpose": "Emphasizes the competitive, head-to-head nature of the game",
+      "evidence_timestamps": [
+        "00:00",
+        "00:53"
+      ]
+    },
+    {
+      "element": "Trajectory Line",
+      "location": "Originating from the selected character",
+      "purpose": "Helps the player aim their shot before firing",
+      "evidence_timestamps": [
+        "00:04",
+        "00:14",
+        "00:29",
+        "00:41"
+      ]
+    },
+    {
+      "element": "End Card",
+      "location": "Full screen",
+      "purpose": "Displays the game title 'Castle Clashers' and a 'PLAY' call-to-action button",
+      "evidence_timestamps": [
+        "00:54"
+      ]
+    }
+  ],
+  "timeline_beats": [
+    {
+      "time_range": "00:00 - 00:03",
+      "event": "Enemy attacks",
+      "gameplay_meaning": "Establishes the threat and the turn-based nature of the game.",
+      "playable_relevance": "Good hook to show the player they are under attack and need to retaliate."
+    },
+    {
+      "time_range": "00:03 - 00:09",
+      "event": "Player's first turn (Red Robot)",
+      "gameplay_meaning": "Introduces the core aiming mechanic and single-projectile weapon.",
+      "playable_relevance": "The primary interaction the user will perform in the playable ad."
+    },
+    {
+      "time_range": "00:13 - 00:20",
+      "event": "Player's second turn (Skeleton)",
+      "gameplay_meaning": "Demonstrates weapon variety (multi-rocket attack) and significant physics destruction.",
+      "playable_relevance": "Shows progression and more satisfying visual feedback to keep the user engaged."
+    },
+    {
+      "time_range": "00:28 - 00:35",
+      "event": "Player's third turn (Goblin)",
+      "gameplay_meaning": "Shows another weapon type (energy beam/fireball).",
+      "playable_relevance": "Highlights character variety, though might be cut for a shorter playable ad."
+    },
+    {
+      "time_range": "00:54 - 00:56",
+      "event": "End screen appears",
+      "gameplay_meaning": "Game over/Call to action.",
+      "playable_relevance": "The final destination of the ad, prompting the app store click."
+    }
+  ],
+  "mechanics": [
+    {
+      "name": "Trajectory Aiming",
+      "description": "Dragging in the opposite direction of the desired shot to draw a predictive arc.",
+      "evidence_timestamps": [
+        "00:04",
+        "00:14"
+      ],
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Physics-Based Destruction",
+      "description": "Castles are made of individual blocks/pieces that break, turn black, and fall based on projectile impact.",
+      "evidence_timestamps": [
+        "00:08",
+        "00:18",
+        "00:33"
+      ],
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Turn-Based Combat",
+      "description": "The player and the AI take alternating turns firing at each other.",
+      "evidence_timestamps": [
+        "00:00",
+        "00:10",
+        "00:25"
+      ],
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Distinct Unit Attacks",
+      "description": "Different characters fire different projectiles (e.g., single rocket, spread rockets).",
+      "evidence_timestamps": [
+        "00:06",
+        "00:16",
+        "00:31"
+      ],
+      "implementation_priority": "should"
+    }
+  ],
+  "feedback_and_juice": [
+    {
+      "trigger": "Projectile hits castle",
+      "visual_or_audio_feedback": "Explosions, smoke particles, screen shake, and castle debris flying outward.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Castle takes damage",
+      "visual_or_audio_feedback": "Health percentage numbers update dynamically, and damaged sections turn black/charred.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Aiming",
+      "visual_or_audio_feedback": "A clear, dotted white line appears to guide the player's shot.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Character death",
+      "visual_or_audio_feedback": "A 'RIP' tombstone appears where the character was standing.",
+      "importance": "could"
+    }
+  ],
+  "playable_minimum": {
+    "must_include": [
+      "Drag-to-aim trajectory mechanic",
+      "One player character and one enemy castle",
+      "Satisfying block-based destruction upon impact",
+      "Health bars to show progress"
+    ],
+    "can_simplify": [
+      "Reduce the number of player characters to just one or two to avoid choice paralysis",
+      "Script the enemy's turns to be quick and predictable",
+      "Simplify the physics engine to ensure smooth performance on mobile web"
+    ],
+    "should_avoid": [
+      "Complex menus or character selection screens before gameplay",
+      "Long waiting times during the enemy's turn",
+      "Overly difficult aiming requirements"
+    ]
+  },
+  "variation_hooks": [
+    {
+      "parameter": "Projectile Type",
+      "effect": "Changes the visual explosion and the pattern of destruction (e.g., single massive hit vs. widespread scatter damage).",
+      "safe_range_or_values": "Single rocket, 3-way spread, heavy boulder"
+    },
+    {
+      "parameter": "Castle Layout",
+      "effect": "Alters the difficulty and the visual satisfaction of the collapse.",
+      "safe_range_or_values": "Tall tower, wide fortress, two separate pillars"
+    },
+    {
+      "parameter": "Enemy AI Difficulty",
+      "effect": "Changes how accurately the enemy hits the player's castle.",
+      "safe_range_or_values": "Always misses slightly, hits center mass, targets specific characters"
+    }
+  ],
+  "open_questions_or_assumptions": [
+    "Assumption: The player can choose which character to fire by tapping/dragging on them, rather than the game forcing a specific order.",
+    "Question: Does the health percentage calculate based on the number of remaining blocks, or is it a hidden HP pool for the overall structure?",
+    "Question: Is there a wind mechanic affecting the trajectory that isn't explicitly shown in the UI?"
+  ]
+}

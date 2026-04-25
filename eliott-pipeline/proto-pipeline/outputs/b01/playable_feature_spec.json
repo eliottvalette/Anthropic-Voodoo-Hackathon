@@ -1,0 +1,176 @@
+{
+  "prototype_name": "castle_clashers_lite",
+  "implementation_summary": "A 2D turn-based artillery game utilizing an inlined lightweight physics engine (e.g., Matter.js). To achieve the requested block-based destruction using the provided single-image castle assets, the implementation will slice the castle images into a grid of rectangular physics bodies at runtime. The player drags anywhere on screen to aim (rendering a dotted trajectory line) and releases to fire. The AI takes a simplified automated turn after the player.",
+  "screen": {
+    "orientation": "portrait",
+    "logical_width": 360,
+    "logical_height": 640,
+    "responsive_strategy": "letterbox_scale_to_fit"
+  },
+  "gameplay": {
+    "objective": "Destroy the enemy's red castle before they destroy your blue castle.",
+    "primary_interaction": "Drag and hold to draw a trajectory line, release to fire a projectile.",
+    "win_condition": "Enemy castle health reaches 0%.",
+    "loss_or_timeout_condition": "Player castle health reaches 0% or 30 seconds elapse.",
+    "session_length_seconds": 30
+  },
+  "entities": [
+    {
+      "id": "player_castle",
+      "role": "Player Base",
+      "asset": "Blue Castle.png",
+      "behavior": "Sliced into a grid of physics blocks. Blocks fall and turn dark when hit. Health decreases based on blocks displaced.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_castle",
+      "role": "Enemy Base",
+      "asset": "Red Castle.png",
+      "behavior": "Sliced into a grid of physics blocks. Takes damage from player projectiles.",
+      "priority": "must"
+    },
+    {
+      "id": "player_character",
+      "role": "Shooter Avatar",
+      "asset": "Character_Orc.psb",
+      "behavior": "Stands on/near the player castle. Acts as the origin point for the trajectory line and projectile.",
+      "priority": "should"
+    },
+    {
+      "id": "player_projectile",
+      "role": "Damage Dealer",
+      "asset": "Projectile_1.png",
+      "behavior": "Spawns on release, follows ballistic physics arc, applies explosive radial impulse on impact.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_projectile",
+      "role": "Incoming Threat",
+      "asset": "Projectile_2.png",
+      "behavior": "Fired by AI during enemy turn, targets player castle with slight random variance.",
+      "priority": "must"
+    },
+    {
+      "id": "background",
+      "role": "Environment",
+      "asset": "Background.png",
+      "behavior": "Static background, scaled to cover the screen.",
+      "priority": "must"
+    }
+  ],
+  "asset_plan": [
+    {
+      "asset_path": "Background.png",
+      "use": "Environment background",
+      "processing": "Compress to JPEG, scale down to max 1280px height to save space, base64 encode.",
+      "required": true
+    },
+    {
+      "asset_path": "Blue Castle.png",
+      "use": "Player base",
+      "processing": "Base64 encode. Will be drawn onto a canvas and sliced into blocks at runtime.",
+      "required": true
+    },
+    {
+      "asset_path": "Red Castle.png",
+      "use": "Enemy base",
+      "processing": "Base64 encode. Will be drawn onto a canvas and sliced into blocks at runtime.",
+      "required": true
+    },
+    {
+      "asset_path": "Character_Orc.psb",
+      "use": "Player avatar",
+      "processing": "Convert to PNG during build, scale down to 128x128, base64 encode.",
+      "required": false
+    },
+    {
+      "asset_path": "Projectile_1.png",
+      "use": "Player weapon",
+      "processing": "Scale down to 64x64, base64 encode.",
+      "required": true
+    },
+    {
+      "asset_path": "Projectile_2.png",
+      "use": "Enemy weapon",
+      "processing": "Scale down to 64x64, base64 encode.",
+      "required": true
+    },
+    {
+      "asset_path": "Sfx.wav",
+      "use": "Impact and explosion sound",
+      "processing": "Convert to MP3, compress bitrate, base64 encode.",
+      "required": true
+    }
+  ],
+  "interaction_flow": [
+    {
+      "step": 1,
+      "player_action": "Drag and hold anywhere on the screen",
+      "system_response": "Calculates drag vector, displays a dotted trajectory arc originating from the player character."
+    },
+    {
+      "step": 2,
+      "player_action": "Release touch",
+      "system_response": "Hides trajectory line, spawns player projectile with velocity based on drag vector. Camera slightly follows projectile."
+    },
+    {
+      "step": 3,
+      "player_action": "None (Wait)",
+      "system_response": "Projectile hits enemy castle. Plays Sfx.wav. Applies physics impulse to castle blocks. Updates enemy health UI."
+    },
+    {
+      "step": 4,
+      "player_action": "None (Wait)",
+      "system_response": "Enemy turn begins after 1 second. AI calculates arc and fires enemy projectile at player castle. Updates player health UI."
+    },
+    {
+      "step": 5,
+      "player_action": "Tap 'Play Now' on End Card",
+      "system_response": "Triggers CTA clickout to app store when win/loss condition is met."
+    }
+  ],
+  "parameters": [
+    {
+      "name": "projectile_impulse",
+      "type": "number",
+      "default": 0.05,
+      "variation_range": "0.01 - 0.1",
+      "gameplay_effect": "Determines how violently the castle blocks fly apart upon impact."
+    },
+    {
+      "name": "gravity_scale",
+      "type": "number",
+      "default": 1,
+      "variation_range": "0.5 - 2.0",
+      "gameplay_effect": "Affects the arc of the trajectory and how heavy the falling castle blocks feel."
+    },
+    {
+      "name": "enemy_accuracy",
+      "type": "number",
+      "default": 0.8,
+      "variation_range": "0.5 - 1.0",
+      "gameplay_effect": "Determines how close the enemy's automated shot lands to the center of the player's castle."
+    },
+    {
+      "name": "castle_grid_size",
+      "type": "number",
+      "default": 5,
+      "variation_range": "3 - 10",
+      "gameplay_effect": "Number of columns/rows the castle image is sliced into. Higher means more granular destruction but lower performance."
+    }
+  ],
+  "acceptance_criteria": [
+    "Entire playable is contained within a single HTML file under 5MB.",
+    "No external network requests are made for scripts, images, or audio.",
+    "Castle images are dynamically sliced into physics-enabled blocks that react to collisions.",
+    "Player can drag to aim with a visible trajectory line and release to fire.",
+    "Game alternates turns between player and an automated enemy.",
+    "Health bars update dynamically based on castle damage."
+  ],
+  "non_goals_v1": [
+    "Multiple selectable characters or weapons.",
+    "Complex wind mechanics or environmental hazards.",
+    "Multi-stage levels or panning camera beyond a slight screen shake/nudge.",
+    "Perfect pixel-by-pixel destruction (using grid-based slicing instead for performance)."
+  ]
+}
