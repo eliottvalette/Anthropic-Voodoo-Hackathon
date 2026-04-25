@@ -7,6 +7,10 @@ Constraints:
 - Use provided assets where useful; do not require video asset extraction.
 - Optimize for mobile jouability over pixel-perfect cloning.
 - The generator will be deterministic, so be explicit and practical.
+- The current deterministic generator supports Canvas 2D only: sprites, health bars, drag/release aiming, ballistic projectile arcs, simple rectangle collision, impact VFX, end card, and inline audio.
+- Do not require Matter.js, Pixi, Phaser, Three.js, VSDK, Cocos, external physics engines, external fonts, or CDN resources.
+- Do not require browser usage of `.psb` assets. Mark PSB files as unavailable unless explicitly converted in a future build step.
+- Prefer these web-ready assets when relevant: Background.png, Blue Castle.png, Red Castle.png, Projectile_1.png, Projectile_2.png, Weapon_1.png, Weapon_2.png, Music.ogg, Sfx.wav.
 
 Return this JSON schema:
 {
@@ -61,4 +65,3 @@ Return this JSON schema:
   "acceptance_criteria": ["string"],
   "non_goals_v1": ["string"]
 }
-

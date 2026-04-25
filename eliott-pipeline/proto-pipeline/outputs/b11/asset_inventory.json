@@ -1,0 +1,141 @@
+{
+  "asset_root": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets",
+  "total_files": 12,
+  "total_size_bytes": 3048844,
+  "assets": [
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Background.png",
+      "relative_path": "Background.png",
+      "size_bytes": 1125710,
+      "mime_type": "image/png",
+      "width": 5084,
+      "height": 1830
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Blue Castle.png",
+      "relative_path": "Blue Castle.png",
+      "size_bytes": 184902,
+      "mime_type": "image/png",
+      "width": 731,
+      "height": 958
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Character_Cyclop.psb",
+      "relative_path": "Character_Cyclop.psb",
+      "size_bytes": 247115,
+      "mime_type": "image/vnd.adobe.photoshop",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Character_Orc.psb",
+      "relative_path": "Character_Orc.psb",
+      "size_bytes": 260452,
+      "mime_type": "image/vnd.adobe.photoshop",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Character_Skeleton.psb",
+      "relative_path": "Character_Skeleton.psb",
+      "size_bytes": 250719,
+      "mime_type": "image/vnd.adobe.photoshop",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Music.ogg",
+      "relative_path": "Music.ogg",
+      "size_bytes": 216016,
+      "mime_type": "audio/ogg",
+      "ffprobe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "vorbis",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "duration": "17.614694"
+          }
+        ],
+        "format": {
+          "duration": "17.614694",
+          "size": "216016",
+          "bit_rate": "98107"
+        }
+      }
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Projectile_1.png",
+      "relative_path": "Projectile_1.png",
+      "size_bytes": 25264,
+      "mime_type": "image/png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Projectile_2.png",
+      "relative_path": "Projectile_2.png",
+      "size_bytes": 41619,
+      "mime_type": "image/png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Red Castle.png",
+      "relative_path": "Red Castle.png",
+      "size_bytes": 180828,
+      "mime_type": "image/png",
+      "width": 731,
+      "height": 958
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Sfx.wav",
+      "relative_path": "Sfx.wav",
+      "size_bytes": 489260,
+      "mime_type": "audio/wav",
+      "ffprobe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "duration": "2.773333"
+          }
+        ],
+        "format": {
+          "duration": "2.773333",
+          "size": "489260",
+          "bit_rate": "1411327"
+        }
+      }
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Weapon_1.png",
+      "relative_path": "Weapon_1.png",
+      "size_bytes": 14121,
+      "mime_type": "image/png",
+      "width": 256,
+      "height": 118
+    },
+    {
+      "path": "/Users/eliottvalette/Documents/Games/Voodoo-Track-2/ressources/Castle Clashers Assets/Weapon_2.png",
+      "relative_path": "Weapon_2.png",
+      "size_bytes": 12838,
+      "mime_type": "image/png",
+      "width": 256,
+      "height": 132
+    }
+  ]
+}

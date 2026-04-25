@@ -1,0 +1,216 @@
+{
+  "prototype_name": "Castle Clashers Playable",
+  "implementation_summary": "A 2D Canvas portrait auto-battler where the player drags weapon turrets from a bottom UI roster onto designated slots on their castle. Placed weapons automatically fire ballistic projectiles at the enemy castle. The game ends when either castle's health reaches zero.",
+  "screen": {
+    "orientation": "portrait",
+    "logical_width": 360,
+    "logical_height": 640,
+    "responsive_strategy": "scale-to-fit-center"
+  },
+  "gameplay": {
+    "objective": "Destroy the enemy castle before the player's castle is destroyed.",
+    "primary_interaction": "Drag and drop weapon icons from the bottom UI roster into empty slots on the player's castle.",
+    "win_condition": "Enemy castle health reaches 0.",
+    "loss_or_timeout_condition": "Player castle health reaches 0 or 30 seconds elapse.",
+    "session_length_seconds": 30
+  },
+  "entities": [
+    {
+      "id": "background",
+      "role": "Environment backdrop",
+      "asset": "Background.png",
+      "behavior": "Static image drawn at the back z-index, scaled to cover the canvas.",
+      "priority": "must"
+    },
+    {
+      "id": "player_castle",
+      "role": "Player base",
+      "asset": "Blue Castle.png",
+      "behavior": "Static structure on the left side. Has a health bar above it. Contains 3 invisible drop-target slots for weapons.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_castle",
+      "role": "Enemy base",
+      "asset": "Red Castle.png",
+      "behavior": "Static structure on the right side. Has a health bar above it. Pre-equipped with enemy weapons that auto-fire.",
+      "priority": "must"
+    },
+    {
+      "id": "player_weapon",
+      "role": "Draggable turret",
+      "asset": "Weapon_1.png",
+      "behavior": "Spawns in the bottom UI roster. Can be dragged. If released over a valid player_castle slot, it snaps into place and begins auto-firing player_projectiles on a timer.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_weapon",
+      "role": "Enemy turret",
+      "asset": "Weapon_2.png",
+      "behavior": "Pre-placed on the enemy castle. Auto-fires enemy_projectiles at the player castle on a timer.",
+      "priority": "should"
+    },
+    {
+      "id": "player_projectile",
+      "role": "Damage dealer (Player)",
+      "asset": "Projectile_1.png",
+      "behavior": "Spawns from placed player_weapons. Follows a ballistic arc (velocity + gravity) towards the enemy castle. On collision with enemy_castle AABB, deals damage, triggers explosion particles, and despawns.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_projectile",
+      "role": "Damage dealer (Enemy)",
+      "asset": "Projectile_2.png",
+      "behavior": "Spawns from enemy_weapons. Follows a ballistic arc towards the player castle. On collision, deals damage, triggers explosion particles, and despawns.",
+      "priority": "must"
+    },
+    {
+      "id": "ui_roster",
+      "role": "UI Container",
+      "asset": null,
+      "behavior": "A semi-transparent rectangle at the bottom of the screen holding draggable player_weapons.",
+      "priority": "must"
+    },
+    {
+      "id": "health_bars",
+      "role": "UI Indicators",
+      "asset": null,
+      "behavior": "Two filled rectangles (Blue for player, Red for enemy) drawn above the respective castles, width scaling with current health percentage.",
+      "priority": "must"
+    }
+  ],
+  "asset_plan": [
+    {
+      "asset_path": "Background.png",
+      "use": "Background image",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Blue Castle.png",
+      "use": "Player castle sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Red Castle.png",
+      "use": "Enemy castle sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Weapon_1.png",
+      "use": "Player draggable turret",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Weapon_2.png",
+      "use": "Enemy turret",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Projectile_1.png",
+      "use": "Player projectile sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Projectile_2.png",
+      "use": "Enemy projectile sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Music.ogg",
+      "use": "Background music",
+      "processing": "Base64 encode into HTML audio tag",
+      "required": true
+    },
+    {
+      "asset_path": "Sfx.wav",
+      "use": "Impact and placement sound effect",
+      "processing": "Base64 encode into HTML audio tag",
+      "required": true
+    }
+  ],
+  "interaction_flow": [
+    {
+      "step": 1,
+      "player_action": "None (Game Starts)",
+      "system_response": "Enemy castle begins firing projectiles slowly. UI roster populates with Weapon_1 icons."
+    },
+    {
+      "step": 2,
+      "player_action": "Touch and drag Weapon_1 from the UI roster",
+      "system_response": "Weapon sprite follows the pointer. Valid drop slots on the Blue Castle are highlighted."
+    },
+    {
+      "step": 3,
+      "player_action": "Release Weapon_1 over a valid slot on Blue Castle",
+      "system_response": "Weapon snaps to the slot, plays Sfx.wav, and immediately begins auto-firing Projectile_1 at the Red Castle."
+    },
+    {
+      "step": 4,
+      "player_action": "Observe auto-battle",
+      "system_response": "Projectiles follow ballistic arcs. Upon hitting castles, health bars decrease, floating damage numbers appear, and Sfx.wav plays."
+    },
+    {
+      "step": 5,
+      "player_action": "None (Health reaches 0)",
+      "system_response": "Losing castle triggers a particle explosion. End card overlay appears with a 'Play Now' CTA."
+    }
+  ],
+  "parameters": [
+    {
+      "name": "player_castle_health",
+      "type": "number",
+      "default": 1000,
+      "variation_range": "500-2000",
+      "gameplay_effect": "Determines how long the player can survive enemy fire."
+    },
+    {
+      "name": "enemy_castle_health",
+      "type": "number",
+      "default": 1500,
+      "variation_range": "1000-3000",
+      "gameplay_effect": "Determines how many player projectiles are needed to win."
+    },
+    {
+      "name": "player_fire_rate_ms",
+      "type": "number",
+      "default": 800,
+      "variation_range": "400-1500",
+      "gameplay_effect": "How often placed player weapons fire. Lower is faster."
+    },
+    {
+      "name": "enemy_fire_rate_ms",
+      "type": "number",
+      "default": 1200,
+      "variation_range": "800-2000",
+      "gameplay_effect": "How often the enemy castle fires. Controls difficulty pressure."
+    },
+    {
+      "name": "projectile_gravity",
+      "type": "number",
+      "default": 0.5,
+      "variation_range": "0.2-1.0",
+      "gameplay_effect": "Affects the arc and travel time of projectiles."
+    }
+  ],
+  "acceptance_criteria": [
+    "Game renders entirely in a single HTML file using Canvas 2D with no external dependencies.",
+    "Player can drag Weapon_1 from the bottom roster and drop it onto Blue Castle.",
+    "Placed weapons automatically fire Projectile_1 in a ballistic arc towards Red Castle.",
+    "Enemy castle automatically fires Projectile_2 in a ballistic arc towards Blue Castle.",
+    "Projectiles colliding with castles reduce the respective health bar and trigger a simple particle explosion.",
+    "Game ends and displays a CTA overlay when either health bar reaches 0.",
+    "Audio plays on weapon placement and projectile impact."
+  ],
+  "non_goals_v1": [
+    "Complex physics-based destruction of castle chunks (using simple health bars and particle bursts instead).",
+    "Unit mortality (placed weapons cannot be destroyed individually in V1).",
+    "Using .psb character assets (using Weapon_1 and Weapon_2 as the turrets to avoid unsupported formats)."
+  ]
+}
