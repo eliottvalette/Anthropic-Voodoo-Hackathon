@@ -11,6 +11,7 @@ import MockToggle from '@/components/MockToggle'
 import GameSpecCard, { GameSpecLite } from '@/components/GameSpecCard'
 import VerifyReportCard, { VerifyReportLite } from '@/components/VerifyReportCard'
 import MultiPassStepper, { SubCall } from '@/components/MultiPassStepper'
+import RoleTable from '@/components/RoleTable'
 import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { saveRun } from '@/lib/runs/store'
@@ -62,6 +63,87 @@ function SidebarItem({ icon, active = false, onClick }: { icon: React.ReactNode;
       }`}
     >
       {icon}
+    </div>
+  )
+}
+
+function VideoAnalysisView({
+  merged, alternate, tags,
+}: {
+  merged: { summary_one_sentence?: string; defining_hook?: string; genre?: string }
+  alternate?: { fits_evidence_better: boolean; alternate_genre: string; rationale: string }
+  tags: string[]
+}) {
+  const [showJson, setShowJson] = useState(false)
+  const jsonRef = useRef<HTMLPreElement | null>(null)
+
+  const toggleJson = () => {
+    const next = !showJson
+    setShowJson(next)
+    if (next) {
+      requestAnimationFrame(() => {
+        jsonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <header className="space-y-1">
+        <h2 className="text-2xl font-bold text-[#0F141C] leading-tight">Video analysis</h2>
+        <p className="text-sm text-gray-500">Merged summary across all passes</p>
+      </header>
+
+      {merged?.defining_hook && (
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 border-l-[#0055FF] p-3.5">
+          <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Defining hook</div>
+          <p className="text-sm text-[#0F141C] leading-relaxed">{merged.defining_hook}</p>
+        </div>
+      )}
+
+      {merged?.summary_one_sentence && (
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 border-l-gray-300 p-3.5">
+          <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Summary</div>
+          <p className="text-sm text-[#0F141C] leading-relaxed">{merged.summary_one_sentence}</p>
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map(t => (
+            <span key={t} className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-[11px] font-medium text-indigo-700">
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {alternate?.fits_evidence_better && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5">
+          <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-widest mb-1">Alternate genre proposal</div>
+          <p className="text-sm text-amber-900 leading-relaxed">
+            <span className="font-mono font-semibold">{alternate.alternate_genre}</span> — {alternate.rationale}
+          </p>
+        </div>
+      )}
+
+      <div className="pt-1">
+        <button
+          onClick={toggleJson}
+          className="text-[11px] font-semibold text-[#0055FF] hover:underline inline-flex items-center gap-1"
+        >
+          {showJson ? 'Hide raw JSON' : 'Show raw JSON'}
+          <span className={`transition-transform ${showJson ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+        {showJson && (
+          <pre
+            ref={jsonRef}
+            className="mt-2 text-[10.5px] leading-snug font-mono bg-[#0e1320] text-[#e6e9f0] rounded-xl p-3 max-h-72 overflow-auto whitespace-pre-wrap break-all"
+          >
+            <code>{JSON.stringify(merged, null, 2)}</code>
+          </pre>
+        )}
+      </div>
     </div>
   )
 }
@@ -214,78 +296,74 @@ export default function Home() {
 
   // ── Review content rendering per stage ──────────────────────────────────────
   const renderProbe = (p: ProbeReport): React.ReactNode => (
-    <div className="space-y-4">
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Probe</p>
-      <div>
-        <div className="text-2xl font-bold text-[#0F141C]">{p.video.name}</div>
-        <div className="text-sm text-gray-400 mt-0.5">
-          {Math.round(p.video.durationSec)}s · {p.video.width}×{p.video.height} · {(p.video.sizeBytes / 1024 / 1024).toFixed(1)} MB
-        </div>
-      </div>
-      <div>
-        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Assets ({p.assets.length})</div>
+    <div className="space-y-5">
+      <header className="space-y-1">
+        <h2 className="text-2xl font-bold text-[#0F141C] leading-tight">{p.video.name}</h2>
+        <p className="text-sm text-gray-500">
+          {Math.round(p.video.durationSec)}s
+          <span className="text-gray-300 mx-1.5">·</span>
+          {p.video.width}×{p.video.height}
+          <span className="text-gray-300 mx-1.5">·</span>
+          {(p.video.sizeBytes / 1024 / 1024).toFixed(1)} MB
+        </p>
+      </header>
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold text-[#0F141C]">Assets ({p.assets.length})</h3>
         <div className="rounded-xl border border-gray-100 max-h-44 overflow-auto">
           {p.assets.slice(0, 30).map((a, i) => (
-            <div key={a.name} className={`flex items-center justify-between px-3 py-1.5 text-xs ${i % 2 ? 'bg-[#F6F9FC]' : 'bg-white'}`}>
-              <span className="font-mono text-gray-600 truncate">{a.name}</span>
+            <div key={a.name} className={`flex items-center justify-between px-3 py-1.5 text-xs ${i % 2 ? 'bg-[#FBFCFE]' : 'bg-white'}`}>
+              <span className="font-mono text-[#0F141C] truncate">{a.name}</span>
               <span className="text-gray-400 tabular-nums shrink-0 ml-3">{(a.sizeBytes / 1024).toFixed(0)} KB</span>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   )
 
   const renderVideoAnalysis = (v: VideoAnalysis): React.ReactNode => {
-    const merged = v.merged as { summary_one_sentence?: string; defining_hook?: string; mechanics?: unknown[]; tags?: string[] }
+    const merged = v.merged as {
+      summary_one_sentence?: string
+      defining_hook?: string
+      mechanics?: unknown[]
+      tags?: string[]
+      genre?: string
+    }
+    const tags = (merged?.tags ?? []).slice(0, 6)
+    return <VideoAnalysisView merged={merged} alternate={v.alternate} tags={tags} />
+  }
+
+  const renderAssetMapping = (m: AssetMapping): React.ReactNode => {
+    const total = m.roles.length
+    const matched = m.roles.filter(r => r.filename).length
+    const allMatched = matched === total
     return (
       <div className="space-y-5">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Video analysis (merged)</p>
-        {merged?.defining_hook && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Defining hook</div>
-            <p className="text-sm text-[#0F141C] leading-relaxed">{merged.defining_hook}</p>
-          </div>
-        )}
-        {merged?.summary_one_sentence && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Summary</div>
-            <p className="text-sm text-gray-600 leading-relaxed">{merged.summary_one_sentence}</p>
-          </div>
-        )}
-        {v.alternate?.fits_evidence_better && (
-          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-            <div className="font-semibold mb-0.5">Alternate genre proposal</div>
-            <div><span className="font-mono">{v.alternate.alternate_genre}</span> — {v.alternate.rationale}</div>
-          </div>
-        )}
-        <pre className="text-[10.5px] leading-snug font-mono bg-[#0e1320] text-[#e6e9f0] rounded-xl p-3 overflow-auto max-h-72">
-          <code>{JSON.stringify(merged, null, 2)}</code>
-        </pre>
+        <header className="space-y-1">
+          <h2 className="text-2xl font-bold text-[#0F141C] leading-tight">Asset inventory</h2>
+          <p className="text-sm text-gray-500">Inferred role for each uploaded file</p>
+        </header>
+
+        <div className="flex flex-wrap gap-2">
+          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+            allMatched
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+              : 'bg-amber-50 text-amber-700 border-amber-100'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${allMatched ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            {matched} / {total} roles matched
+          </span>
+          {!allMatched && (
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-red-100 bg-red-50 text-red-700">
+              {total - matched} unmatched
+            </span>
+          )}
+        </div>
+
+        <RoleTable rows={m.roles} />
       </div>
     )
   }
-
-  const renderAssetMapping = (m: AssetMapping): React.ReactNode => (
-    <div className="space-y-4">
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Asset roles</p>
-      <div className="rounded-xl border border-gray-100 overflow-hidden">
-        {m.roles.map((r, i) => (
-          <div key={r.role} className={`flex items-center justify-between gap-3 px-3 py-2 text-xs ${i % 2 ? 'bg-[#F6F9FC]' : 'bg-white'}`}>
-            <span className="font-mono text-gray-600 truncate">{r.role}</span>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className={`px-1.5 py-0.5 rounded-full text-[9.5px] font-semibold uppercase ${
-                r.match_confidence === 'high' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                r.match_confidence === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                'bg-red-50 text-red-700 border border-red-100'
-              }`}>{r.match_confidence}</span>
-              <span className="font-mono text-[#0F141C] truncate max-w-[200px]">{r.filename ?? <span className="text-gray-300">null</span>}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 
   const renderCodegen = (c: CodegenResult): React.ReactNode => (
     <div className="space-y-4">
@@ -398,7 +476,7 @@ export default function Home() {
     // Stage 4 — codegen + verify (mock)
     activateStep('codegen')
     await delay(1500)
-    const html = await fetch('/mock-playable.html').then(r => r.text())
+    const html = await fetch('/api/mock-playable').then(r => r.text())
     setPlayableHtml(html)
     const codegen: CodegenResult = { html, verify: SAMPLE_PASS_VERIFY, retries: 0 }
     setReviewContent(prev => ({ ...prev, codegen: renderCodegen(codegen) }))
@@ -560,7 +638,7 @@ export default function Home() {
             : 'bg-gray-100 text-gray-300 cursor-not-allowed'
         }`}
       >
-        {isRunning ? 'Generating…' : `Generate (${mockMode ? 'mock' : 'real'})`}
+        {isRunning ? 'Generating…' : `Generate`}
       </button>
       {errorMsg && (
         <div className="mt-3 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
@@ -726,7 +804,7 @@ export default function Home() {
                   <div className="flex min-h-0 flex-col overflow-hidden min-h-[420px] lg:min-h-0">
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
                       <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">
-                        {steps.every(s => s.status === 'done') && playableHtml ? 'Result' : isAwaiting ? 'Review' : 'Output'}
+                        {steps.every(s => s.status === 'done') && playableHtml ? 'Result' : isAwaiting ? 'Awaiting review' : 'Pipeline output'}
                       </p>
                       <div className="flex-1 min-h-0 overflow-hidden">
                         <ReviewPanel

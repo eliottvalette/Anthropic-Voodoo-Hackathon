@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import RoleTable, { RoleRow } from './RoleTable'
 
 export type GameSpecLite = {
   source_video?: string
@@ -16,85 +17,134 @@ export type GameSpecLite = {
   asset_role_map?: Record<string, string | null>
   params?: Record<string, unknown>
   creative_slot_prompt?: string
-  // Allow extra fields without forcing the strict pipeline-m shape here.
   [key: string]: unknown
 }
 
 export default function GameSpecCard({ spec }: { spec: GameSpecLite }) {
   const [showJson, setShowJson] = useState(false)
+  const [scriptExpanded, setScriptExpanded] = useState(false)
+  const jsonRef = useRef<HTMLPreElement | null>(null)
+
+  const toggleJson = () => {
+    const next = !showJson
+    setShowJson(next)
+    if (next) {
+      requestAnimationFrame(() => {
+        jsonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
+  }
+
+  const roleRows: RoleRow[] = spec.asset_role_map
+    ? Object.entries(spec.asset_role_map).map(([role, filename]) => ({ role, filename }))
+    : []
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Game spec</p>
-        <button
-          onClick={() => setShowJson(s => !s)}
-          className="text-[10px] font-semibold text-[#0055FF] hover:underline"
-        >
-          {showJson ? 'Hide JSON' : 'Show JSON'}
-        </button>
-      </div>
+    <div className="space-y-6">
+      {/* Header */}
+      {spec.game_identity && (
+        <header className="space-y-1">
+          <h2 className="text-2xl font-bold text-[#0F141C] leading-tight">
+            {spec.game_identity.observed_title || 'Untitled game'}
+          </h2>
+          <p className="text-sm text-gray-500">
+            {spec.game_identity.genre}
+            <span className="text-gray-300 mx-1.5">·</span>
+            {spec.game_identity.visual_style}
+            {spec.render_mode && (
+              <>
+                <span className="text-gray-300 mx-1.5">·</span>
+                {spec.render_mode.toUpperCase()}
+              </>
+            )}
+          </p>
+        </header>
+      )}
 
-      <div className="space-y-3">
-        {spec.game_identity && (
-          <div>
-            <div className="text-2xl font-bold text-[#0F141C]">
-              {spec.game_identity.observed_title || 'Untitled game'}
-            </div>
-            <div className="text-sm text-gray-400 mt-0.5">
-              {spec.game_identity.genre} · {spec.game_identity.visual_style} · {spec.render_mode?.toUpperCase()}
-            </div>
-          </div>
-        )}
-
-        {spec.defining_hook && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Defining hook</div>
-            <p className="text-sm text-[#0F141C] leading-relaxed">{spec.defining_hook}</p>
-          </div>
-        )}
-
-        {spec.core_loop_one_sentence && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Core loop</div>
-            <p className="text-sm text-gray-600 leading-relaxed">{spec.core_loop_one_sentence}</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-xl bg-[#F6F9FC] p-3 font-mono text-xs">
-          {spec.mechanic_name && <Field k="mechanic" v={spec.mechanic_name} />}
-          {spec.template_id !== undefined && <Field k="template" v={spec.template_id ?? '(none)'} />}
-          {typeof spec.tutorial_loss_at_seconds === 'number' && <Field k="tutorial_loss" v={spec.tutorial_loss_at_seconds + 's'} />}
-          {spec.first_5s_script && <Field k="first_5s" v={truncate(spec.first_5s_script, 56)} />}
+      {/* Hook + core loop cards */}
+      {(spec.defining_hook || spec.core_loop_one_sentence) && (
+        <div className="grid gap-3">
+          {spec.defining_hook && (
+            <InfoCard label="Defining hook" tone="blue">
+              <p className="text-sm text-[#0F141C] leading-relaxed">{spec.defining_hook}</p>
+            </InfoCard>
+          )}
+          {spec.core_loop_one_sentence && (
+            <InfoCard label="Core loop" tone="slate">
+              <p className="text-sm text-[#0F141C] leading-relaxed">{spec.core_loop_one_sentence}</p>
+            </InfoCard>
+          )}
         </div>
+      )}
 
-        {spec.asset_role_map && Object.keys(spec.asset_role_map).length > 0 && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Asset roles</div>
-            <div className="rounded-xl border border-gray-100 overflow-hidden">
-              {Object.entries(spec.asset_role_map).map(([role, file], i) => (
-                <div key={role} className={`flex items-center justify-between px-3 py-2 text-xs ${i % 2 === 0 ? 'bg-white' : 'bg-[#F6F9FC]'}`}>
-                  <span className="font-mono text-gray-500">{role}</span>
-                  <span className="font-mono text-[#0F141C] truncate ml-3">{file ?? <span className="text-gray-300">null</span>}</span>
-                </div>
-              ))}
-            </div>
+      {/* Game parameters — colored stat strip */}
+      {(spec.mechanic_name || spec.template_id !== undefined || typeof spec.tutorial_loss_at_seconds === 'number' || spec.first_5s_script) && (
+        <section className="space-y-3">
+          <SectionTitle>Game parameters</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {spec.mechanic_name && (
+              <StatCard tone="indigo" label="Mechanic" value={spec.mechanic_name} mono />
+            )}
+            {spec.template_id !== undefined && (
+              <StatCard tone="violet" label="Template" value={spec.template_id ?? '(none)'} mono />
+            )}
+            {typeof spec.tutorial_loss_at_seconds === 'number' && (
+              <StatCard tone="amber" label="Tutorial loss" value={`${spec.tutorial_loss_at_seconds}s`} />
+            )}
+            {spec.first_5s_script && (
+              <StatCard
+                tone="emerald"
+                label="First 5s script"
+                value={spec.first_5s_script}
+                fullWidth
+                clamp={!scriptExpanded}
+                onToggle={() => setScriptExpanded(s => !s)}
+                expanded={scriptExpanded}
+              />
+            )}
           </div>
-        )}
+        </section>
+      )}
 
-        {spec.not_this_game && spec.not_this_game.length > 0 && (
-          <div>
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Not this game</div>
-            <div className="flex flex-wrap gap-1.5">
-              {spec.not_this_game.map(s => (
-                <span key={s} className="px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-[11px] font-medium text-red-700">{s}</span>
-              ))}
-            </div>
+      {/* Asset roles */}
+      {roleRows.length > 0 && (
+        <section className="space-y-3">
+          <SectionTitle>Asset roles</SectionTitle>
+          <RoleTable rows={roleRows} showLegend={false} />
+        </section>
+      )}
+
+      {/* Not this game */}
+      {spec.not_this_game && spec.not_this_game.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle>Not this game</SectionTitle>
+          <div className="flex flex-wrap gap-1.5">
+            {spec.not_this_game.map(s => (
+              <span
+                key={s}
+                className="px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-[11px] font-medium text-red-700"
+              >
+                {s}
+              </span>
+            ))}
           </div>
-        )}
+        </section>
+      )}
 
+      {/* Raw JSON toggle (bottom) */}
+      <div className="pt-1">
+        <button
+          onClick={toggleJson}
+          className="text-[11px] font-semibold text-[#0055FF] hover:underline inline-flex items-center gap-1"
+        >
+          {showJson ? 'Hide raw JSON' : 'Show raw JSON'}
+          <span className={`transition-transform ${showJson ? 'rotate-180' : ''}`}>▾</span>
+        </button>
         {showJson && (
-          <pre className="text-[10.5px] leading-snug font-mono bg-[#0e1320] text-[#e6e9f0] rounded-xl p-3 overflow-auto max-h-96">
+          <pre
+            ref={jsonRef}
+            className="mt-2 text-[10.5px] leading-snug font-mono bg-[#0e1320] text-[#e6e9f0] rounded-xl p-3 max-h-96 overflow-auto whitespace-pre-wrap break-all"
+          >
             <code>{JSON.stringify(spec, null, 2)}</code>
           </pre>
         )}
@@ -103,15 +153,64 @@ export default function GameSpecCard({ spec }: { spec: GameSpecLite }) {
   )
 }
 
-function Field({ k, v }: { k: string; v: string }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-semibold text-[#0F141C]">{children}</h3>
+}
+
+function InfoCard({ label, tone, children }: { label: string; tone: 'blue' | 'slate'; children: React.ReactNode }) {
+  const accent = tone === 'blue' ? 'border-l-[#0055FF]' : 'border-l-gray-300'
   return (
-    <div className="flex justify-between gap-2">
-      <span className="text-gray-400">{k}</span>
-      <span className="text-[#0F141C] font-semibold truncate">{v}</span>
+    <div className={`rounded-xl bg-[#F6F9FC] border border-gray-100 border-l-4 ${accent} p-3.5`}>
+      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">{label}</div>
+      {children}
     </div>
   )
 }
 
-function truncate(s: string, n: number) {
-  return s.length > n ? s.slice(0, n - 1) + '…' : s
+type Tone = 'indigo' | 'violet' | 'amber' | 'emerald'
+const TONE_STYLE: Record<Tone, { bg: string; border: string; label: string; dot: string }> = {
+  indigo:  { bg: 'bg-indigo-50/60',  border: 'border-indigo-100',  label: 'text-indigo-700',  dot: 'bg-indigo-400' },
+  violet:  { bg: 'bg-violet-50/60',  border: 'border-violet-100',  label: 'text-violet-700',  dot: 'bg-violet-400' },
+  amber:   { bg: 'bg-amber-50/60',   border: 'border-amber-100',   label: 'text-amber-700',   dot: 'bg-amber-400' },
+  emerald: { bg: 'bg-emerald-50/60', border: 'border-emerald-100', label: 'text-emerald-700', dot: 'bg-emerald-400' },
+}
+
+function StatCard({
+  tone, label, value, mono, fullWidth, clamp, expanded, onToggle,
+}: {
+  tone: Tone
+  label: string
+  value: string
+  mono?: boolean
+  fullWidth?: boolean
+  clamp?: boolean
+  expanded?: boolean
+  onToggle?: () => void
+}) {
+  const t = TONE_STYLE[tone]
+  return (
+    <div
+      className={`rounded-xl border ${t.border} ${t.bg} p-3 ${fullWidth ? 'sm:col-span-2' : ''}`}
+    >
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className={`w-1.5 h-1.5 rounded-full ${t.dot}`} />
+        <span className={`text-[10px] font-semibold uppercase tracking-widest ${t.label}`}>{label}</span>
+      </div>
+      <div
+        className={`text-sm font-semibold text-[#0F141C] break-words ${mono ? 'font-mono' : ''} ${
+          clamp ? 'line-clamp-2' : ''
+        }`}
+      >
+        {value}
+      </div>
+      {onToggle && value.length > 80 && (
+        <button
+          onClick={onToggle}
+          className="mt-1 text-[11px] font-medium text-[#0055FF] hover:underline"
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  )
 }
