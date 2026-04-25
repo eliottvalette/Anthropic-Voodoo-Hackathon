@@ -58,16 +58,62 @@ Analyze this vertical mobile gameplay ad video as a production artist and playab
 The final tool receives only this video. It must output every graphic asset needed to recreate the game/playable ad.
 Provided source assets do not exist in production.
 
-Return every reusable visual/gameplay asset needed to recreate the playable prototype:
-- backgrounds and scene plates,
-- castles, props, terrain, obstacles,
-- characters and their reusable animation poses,
-- weapons, projectiles, trails, aiming indicators,
-- VFX such as explosions, smoke, flashes, impacts,
-- UI, HUD, tutorial cursor/gesture assets, and end-card/CTA elements.
+============================================================
+STEP 1 — GLOBAL ART STYLE (fill `art_style` first, before any asset)
+============================================================
+Look at the whole video and lock down ONE consistent art style description that every asset must match.
+Describe what you actually see, do not assume genre tropes. A "ninja" character in a cartoon game is still
+cartoon, not pixel art. A "robot" in a hand-drawn game is still hand-drawn, not 3D rendered.
 
-For each asset, choose the best timestamp for downstream recreation. The best timestamp is not only where the asset is visible.
-It is the frame where the asset is most useful for Scenario cleanup:
+Fill these fields:
+- summary: one sentence, e.g. "casual cartoon mobile game with bold outlines and saturated flat colors"
+- rendering: technique (2D vector-cartoon, hand-drawn raster, painterly, pixel art, low-poly 3D render…)
+- line_work: outline weight & color (thick dark outlines / thin colored outlines / no outlines / etc.)
+- palette: dominant color feel (saturated warm, muted pastel, neon high-contrast, earth tones…)
+- shading: shading approach (flat / cel-shaded / soft gradient / painterly / none)
+- scale_feel: chibi/stylized proportions vs realistic, sticker-like vs detailed
+- anti_styles: an array of styles this game is NOT — explicit exclusions (e.g. ["pixel art", "voxel",
+  "3D rendered", "photorealistic", "minimalist vector flat"]). This list is critical: it prevents
+  downstream generators from defaulting to common tropes.
+
+============================================================
+STEP 2 — ASSET INVENTORY (be exhaustive, especially for VFX)
+============================================================
+Return every reusable visual/gameplay asset needed to recreate the playable prototype.
+
+PRIMARY CATEGORIES:
+- backgrounds and scene plates
+- castles, props, terrain, obstacles, structures (intact AND destroyed/damaged states if they appear)
+- characters and their reusable animation poses
+- weapons, projectiles, trails, aiming indicators
+- UI, HUD, tutorial cursor/gesture assets, end-card/CTA elements
+
+VFX COMPLETENESS CHECK — do a deliberate second pass for ALL of these, they are easy to miss:
+- launch / cast / muzzle / charge-up effects (puffs, sparks, glows that appear when a projectile or ability fires)
+- in-flight effects (projectile trails, motion auras — only if the game uses them as standalone visuals)
+- impact / hit effects (dust clouds, splash, sparks, hit-flash overlays on targets)
+- destruction effects (debris, building/object break particles, screen shake flashes, smoke aftermath)
+- state-change overlays (poison cloud, fire-burning loop, freeze sheen, electrified shock arcs)
+- ambient world VFX (falling leaves, embers, floating dust, weather)
+- UI feedback VFX (coin sparkle, score popups, "WIN"/"FAIL" stinger flashes)
+For every distinct effect, emit a separate asset entry — do NOT lump multiple VFX into one entry.
+
+ANIMATED SUB-PARTS — even when the parent asset is static (e.g. building, vehicle, prop):
+If the parent has any sub-element that moves while the parent stays still (wheels rotating, flags waving,
+blinking lights, opening doors, rotating turrets, glowing eyes pulsing), list each one in the asset's
+`animated_parts` array. The parent is generated as a static sprite; each animated part is generated
+separately as a small sprite strip and composited at runtime. For each animated_part:
+- part_id: short slug
+- description: what the part is, where it sits on the parent
+- motion: how it moves ("continuous rotation", "2-state blink", "swing -15deg/+15deg loop", "open/close")
+- frames_recommended: integer (4-12 typical for smooth loop, 2-3 for blink/state toggle)
+- loop: true if the motion loops seamlessly
+
+============================================================
+STEP 3 — TIMESTAMP & STRATEGY (per asset)
+============================================================
+For each asset, choose the best timestamp for downstream recreation. The best timestamp is the frame
+where the asset is most useful for Scenario cleanup:
 - most isolated from other objects,
 - least occluded,
 - least motion-blurred,
@@ -76,15 +122,15 @@ It is the frame where the asset is most useful for Scenario cleanup:
 - high contrast against the background,
 - no unnecessary trail/smoke/hand/wall/character attached unless that element is physically part of the asset.
 
-For animated characters or moving objects, choose the best seed pose and describe the animation states to generate later.
-For backgrounds, choose the cleanest plate or the frame/region that best preserves the environment. Include notes about foreground occluders.
+For animated characters or moving objects, choose the best seed pose and describe the animation states.
+For backgrounds, choose the cleanest plate. Include notes about foreground occluders.
 For UI-wide elements or full backgrounds, give the full visible region.
 
 Return approximate location as box_2d in [ymin, xmin, ymax, xmax] normalized to 0-1000.
 Prefer distinct reusable assets over transient duplicates, but include effects/projectiles that must be recreated independently.
 
 Choose one of these recreation strategies:
-- reference_recreate_then_alpha: static sprite, projectile, weapon, prop, icon, or VFX seed. Use Scenario Gemini recreation, then background removal, then trim.
+- reference_recreate_then_alpha: static sprite, projectile, weapon, prop, icon, or VFX seed.
 - direct_cutout_then_enhance: crop is already clean enough for alpha removal/upscale.
 - background_plate_cleanup: full or partial background plate, no alpha removal.
 - animated_character_sheet: character/object needs consistent animation frames from one approved seed pose.
@@ -92,6 +138,8 @@ Choose one of these recreation strategies:
 - ui_vector_or_sprite: UI element can be vectorized or rebuilt as crisp sprite.
 
 Also return the Scenario pipeline steps you recommend for each asset.
+
+Every asset's `visual_description` must be consistent with the global `art_style` block from STEP 1.
 """.strip()
 
 FRAME_REFINEMENT_PROMPT_TEMPLATE = """
@@ -122,7 +170,9 @@ Category: {category}
 Description: {description}
 Gameplay role: {role}
 
-Preserve the source asset's silhouette, color family, proportions, camera angle, readable details, and casual mobile-game rendering style.
+{style_lock}
+
+Preserve the source asset's silhouette, color family, proportions, camera angle, and readable details.
 Improve video compression artifacts and make the asset crisp and production-quality.
 Center the asset with comfortable transparent padding.
 
@@ -138,7 +188,9 @@ Asset: {name}
 Description: {description}
 Gameplay role: {role}
 
-Reproduce the projectile's shape, silhouette, color, and art style exactly.
+{style_lock}
+
+Reproduce the projectile's shape, silhouette, and color exactly.
 Center it on a transparent background with comfortable padding.
 
 STRICT EXCLUSIONS — do NOT include any of the following:
@@ -159,7 +211,9 @@ Asset: {name}
 Description: {description}
 Gameplay role: {role}
 
-Preserve the original scene composition, camera angle, palette, lighting, and casual mobile-game art style.
+{style_lock}
+
+Preserve the original scene composition, camera angle, palette, and lighting.
 Remove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.
 Reconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.
 Do not create a poster, logo, new character, or new UI.
@@ -172,6 +226,8 @@ Using the reference crop, recreate this character/object as a clean 2D mobile ga
 Asset: {name}
 Description: {description}
 Gameplay role: {role}
+
+{style_lock}
 
 Preserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.
 Make one crisp neutral/base pose on transparent background, suitable for later animation.
@@ -187,6 +243,31 @@ MANIFEST_SCHEMA: dict[str, Any] = {
         "video_summary": {"type": "string"},
         "gameplay_loop": {"type": "string"},
         "camera_and_canvas": {"type": "string"},
+        "art_style": {
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string"},
+                "rendering": {"type": "string"},
+                "line_work": {"type": "string"},
+                "palette": {"type": "string"},
+                "shading": {"type": "string"},
+                "scale_feel": {"type": "string"},
+                "anti_styles": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Styles this game is NOT — explicit exclusions for downstream generators.",
+                },
+            },
+            "required": [
+                "summary",
+                "rendering",
+                "line_work",
+                "palette",
+                "shading",
+                "scale_feel",
+                "anti_styles",
+            ],
+        },
         "assets": {
             "type": "array",
             "items": {
@@ -240,6 +321,21 @@ MANIFEST_SCHEMA: dict[str, Any] = {
                     "animation_notes": {"type": "string"},
                     "background_plate_notes": {"type": "string"},
                     "priority": {"type": "integer", "minimum": 1, "maximum": 5},
+                    "animated_parts": {
+                        "type": "array",
+                        "description": "Sub-elements of an otherwise static parent that need their own animation strip.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "part_id": {"type": "string"},
+                                "description": {"type": "string"},
+                                "motion": {"type": "string"},
+                                "frames_recommended": {"type": "integer", "minimum": 2, "maximum": 24},
+                                "loop": {"type": "boolean"},
+                            },
+                            "required": ["part_id", "description", "motion", "frames_recommended", "loop"],
+                        },
+                    },
                 },
                 "required": [
                     "asset_id",
@@ -256,11 +352,12 @@ MANIFEST_SCHEMA: dict[str, Any] = {
                     "animation_notes",
                     "background_plate_notes",
                     "priority",
+                    "animated_parts",
                 ],
             },
         },
     },
-    "required": ["video_summary", "gameplay_loop", "camera_and_canvas", "assets"],
+    "required": ["video_summary", "gameplay_loop", "camera_and_canvas", "art_style", "assets"],
 }
 
 BOX_SCHEMA: dict[str, Any] = {
@@ -350,12 +447,51 @@ def default_scenario_pipeline(category: str) -> list[str]:
     return list(SPRITE_RECREATION_PIPELINE)
 
 
-def scenario_prompt_for_candidate(candidate: Candidate) -> str:
+def format_style_lock(art_style: dict[str, Any] | None) -> str:
+    """Render the global art_style block into the STYLE LOCK section of every Scenario prompt."""
+    if not art_style or not isinstance(art_style, dict):
+        return ""
+    summary = str(art_style.get("summary", "")).strip()
+    rendering = str(art_style.get("rendering", "")).strip()
+    line_work = str(art_style.get("line_work", "")).strip()
+    palette = str(art_style.get("palette", "")).strip()
+    shading = str(art_style.get("shading", "")).strip()
+    scale_feel = str(art_style.get("scale_feel", "")).strip()
+    anti = art_style.get("anti_styles") or []
+    anti_str = ", ".join(str(a).strip() for a in anti if str(a).strip())
+
+    lines = ["=== STYLE LOCK (must match exactly across every asset in this game) ==="]
+    if summary:
+        lines.append(f"Overall: {summary}")
+    if rendering:
+        lines.append(f"Rendering technique: {rendering}")
+    if line_work:
+        lines.append(f"Line work: {line_work}")
+    if palette:
+        lines.append(f"Palette: {palette}")
+    if shading:
+        lines.append(f"Shading: {shading}")
+    if scale_feel:
+        lines.append(f"Scale / proportions: {scale_feel}")
+    if anti_str:
+        lines.append(f"DO NOT use any of these styles: {anti_str}.")
+    lines.append(
+        "Match this style regardless of what the asset depicts — do not default to genre tropes "
+        "(e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so."
+    )
+    return "\n".join(lines)
+
+
+def scenario_prompt_for_candidate(
+    candidate: Candidate,
+    art_style: dict[str, Any] | None = None,
+) -> str:
     values = {
         "name": candidate.name,
         "category": candidate.category,
         "description": candidate.visual_description,
         "role": candidate.gameplay_role,
+        "style_lock": format_style_lock(art_style),
     }
     strategy = candidate.recreation_strategy
     if candidate.category == "background" or strategy == "background_plate_cleanup":
@@ -569,6 +705,8 @@ def crop_candidate(
     refined: dict[str, Any] | None,
     crops_dir: Path,
     debug_dir: Path,
+    art_style: dict[str, Any] | None = None,
+    animated_parts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     image = Image.open(frame_path).convert("RGBA")
     width, height = image.size
@@ -610,11 +748,12 @@ def crop_candidate(
         "isolate_with_background_removal": candidate.isolate,
         "recreation_strategy": candidate.recreation_strategy,
         "scenario_pipeline": candidate.scenario_pipeline,
-        "scenario_prompt": scenario_prompt_for_candidate(candidate),
+        "scenario_prompt": scenario_prompt_for_candidate(candidate, art_style),
         "animation_notes": candidate.animation_notes,
         "background_plate_notes": candidate.background_plate_notes,
         "priority": candidate.priority,
         "visual_description": candidate.visual_description,
+        "animated_parts": list(animated_parts or []),
     }
 
 
@@ -624,10 +763,12 @@ def extract_candidates(manifest: dict[str, Any], video_path: Path, output_dir: P
     debug_dir = output_dir / "qa" / "debug-overlays"
     refined_dir = output_dir / "manifests" / "02_gemini_frame_refinement"
     extracted: list[dict[str, Any]] = []
+    art_style = manifest.get("art_style") if isinstance(manifest, dict) else None
 
     seen: dict[str, int] = {}
     for raw in sorted(manifest["assets"], key=lambda value: (int(value["priority"]), str(value["asset_id"]))):
         candidate = Candidate.from_dict(raw)
+        animated_parts = raw.get("animated_parts") or []
         count = seen.get(candidate.asset_id, 0)
         seen[candidate.asset_id] = count + 1
         if count:
@@ -655,9 +796,22 @@ def extract_candidates(manifest: dict[str, Any], video_path: Path, output_dir: P
             refined = refine_box_with_gemini(frame_path, candidate)
             write_json(refined_dir / f"{candidate.asset_id}.json", refined)
 
-        extracted.append(crop_candidate(frame_path, candidate, refined, crops_dir, debug_dir))
+        extracted.append(
+            crop_candidate(
+                frame_path,
+                candidate,
+                refined,
+                crops_dir,
+                debug_dir,
+                art_style=art_style,
+                animated_parts=animated_parts,
+            )
+        )
 
-    write_json(output_dir / "manifests" / "03_extracted_assets_manifest.json", {"assets": extracted})
+    write_json(
+        output_dir / "manifests" / "03_extracted_assets_manifest.json",
+        {"art_style": art_style, "assets": extracted},
+    )
     build_contact_sheet(extracted, output_dir / "previews" / "extracted_assets_contact_sheet.png")
     return extracted
 
