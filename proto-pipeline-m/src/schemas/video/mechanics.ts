@@ -6,7 +6,7 @@ const ControlSchema = z
     gesture: z.string(),
     result: z.string(),
     evidence_timestamps: z.array(z.string()),
-    confidence: z.string(),
+    confidence: z.union([z.string(), z.number()]).transform((v) => String(v)),
   })
   .passthrough();
 

@@ -25,11 +25,14 @@
     dyingSections: [],
     ctaVisible: false,
     result: null,
-    shake: 0,
     enemyQueuedAt: 0,
     lastTime: 0,
     snapshot: {}
   };
+
+  // Utilities from the bank.
+  const shake = createShake(0.045);
+  const SECTION_POLYS = makeSectionPolys(3);
 
   const camera = { x: WORLD_W / 2, y: 330, zoom: 0.72 };
 
@@ -49,60 +52,34 @@
   ];
 
   const castles = {
-    player: { x: 34, y: 124, w: 235, h: 386, flip: false, color: "#11aef0" },
-    enemy: { x: 472, y: 124, w: 235, h: 386, flip: false, color: "#ed2024" }
+    player: { x: 34, y: 124, w: 235, h: 386, color: "#11aef0" },
+    enemy: { x: 472, y: 124, w: 235, h: 386, color: "#ed2024" }
   };
 
   const unitSlots = {
     player: [
-      { x: 131, y: 271, angle: -0.04 },
-      { x: 187, y: 376, angle: 0.04 },
-      { x: 102, y: 455, angle: -0.02 }
+      { x: 131, y: 271 },
+      { x: 187, y: 376 },
+      { x: 102, y: 455 }
     ],
     enemy: [
-      { x: 601, y: 271, angle: Math.PI + 0.04 },
-      { x: 545, y: 376, angle: Math.PI - 0.04 },
-      { x: 630, y: 455, angle: Math.PI + 0.02 }
+      { x: 601, y: 271 },
+      { x: 545, y: 376 },
+      { x: 630, y: 455 }
     ]
   };
-
-  // Castle split into 3 polygon sections (normalized 0-1 relative to castle rect).
-  // Index 0 = bottom (survives longest), 2 = top (falls first).
-  // Jagged seam lines simulate cracks rather than clean horizontal cuts.
-  const SECTION_POLYS = [
-    [ [0,0.66], [0.15,0.64], [0.38,0.68], [0.62,0.63], [0.84,0.67], [1,0.65], [1,1], [0,1] ],
-    [ [0,0.31], [0.20,0.33], [0.44,0.28], [0.66,0.32], [0.88,0.30], [1,0.31],
-      [1,0.65], [0.84,0.67], [0.62,0.63], [0.38,0.68], [0.15,0.64], [0,0.66] ],
-    [ [0,0], [1,0], [1,0.31], [0.88,0.30], [0.66,0.32], [0.44,0.28], [0.20,0.33], [0,0.31] ],
-  ];
 
   const images = {};
 
   window.__engineState = {
-    get phase() {
-      return state.phase;
-    },
-    get turnIndex() {
-      return state.turnIndex;
-    },
-    get playerHp() {
-      return state.playerHp;
-    },
-    get enemyHp() {
-      return state.enemyHp;
-    },
-    get projectiles() {
-      return state.projectiles.length;
-    },
-    get inputs() {
-      return state.inputs;
-    },
-    get ctaVisible() {
-      return state.ctaVisible;
-    },
-    snapshot: function () {
-      return makeSnapshot();
-    }
+    get phase() { return state.phase; },
+    get turnIndex() { return state.turnIndex; },
+    get playerHp() { return state.playerHp; },
+    get enemyHp() { return state.enemyHp; },
+    get projectiles() { return state.projectiles.length; },
+    get inputs() { return state.inputs; },
+    get ctaVisible() { return state.ctaVisible; },
+    snapshot: function () { return makeSnapshot(); }
   };
 
   function makeSnapshot() {
@@ -143,6 +120,8 @@
           images[key] = await loadImage(src);
         })
       );
+      // Wait for the display font; fall back gracefully if it fails.
+      try { if (document.fonts) await document.fonts.load("32px 'Lilita One'"); } catch (e) {}
       state.phase = "aiming";
       requestAnimationFrame(loop);
     } catch (error) {
@@ -187,8 +166,17 @@
   }
 
   function onPointerDown(event) {
+    // Unlock audio on first user interaction (browser autoplay rules)
+    startMusic();
     if (state.ctaVisible) {
-      openStore();
+      const r = canvas.getBoundingClientRect();
+      const sx = ((event.clientX - r.left) / r.width) * W;
+      const sy = ((event.clientY - r.top) / r.height) * H;
+      const fn = state.result === "victory" ? drawGameWon : drawGameLost;
+      if (isPointInCta(fn.lastCtaBounds, sx, sy)) {
+        playSfx("ui");
+        openStore(STORE_URL);
+      }
       return;
     }
     if (state.phase !== "aiming" || activeTurn().side !== "player") return;
@@ -209,7 +197,7 @@
     state.drag.y = pos.y;
   }
 
-  function onPointerUp(event) {
+  function onPointerUp() {
     if (!state.drag) return;
     const drag = state.drag;
     state.drag = null;
@@ -263,7 +251,9 @@
 
   function recoil(side, slot) {
     const p = unitSlots[side][slot];
-    burst(p.x, p.y - 8, "rgba(255,255,255,0.7)", 8, 0.06);
+    burst(state.particles, p.x, p.y - 8, "rgba(255,255,255,0.7)", 8, 0.06);
+    smoke(state.particles, p.x, p.y - 4, 5);
+    playSfx("shoot");
   }
 
   function update(dt, now) {
@@ -282,9 +272,8 @@
       p.y += p.vy * dt;
       p.rotation = Math.atan2(p.vy, p.vx);
 
-      if (p.age % 45 < dt) {
-        burst(p.x - Math.sign(p.vx) * 12, p.y, p.type.color, 2, 0.025);
-      }
+      // Trail behind projectile (uses util)
+      spawnTrail(state.particles, p.x - Math.sign(p.vx) * 6, p.y, p.type.color, 1, 5);
 
       const targetSide = p.side === "player" ? "enemy" : "player";
       const box = hitbox(targetSide);
@@ -296,20 +285,20 @@
         state.activeProjectile = null;
         window.setTimeout(advanceTurn, 360);
       } else if (p.x < -80 || p.x > WORLD_W + 80 || p.y > 690 || p.age > 2900) {
+        // Smoke puff at projectile death (off-screen / timed-out)
+        if (p.y < 690) smoke(state.particles, p.x, Math.min(p.y, 685), 8);
         state.projectiles.splice(i, 1);
         state.activeProjectile = null;
         window.setTimeout(advanceTurn, 260);
       }
     }
 
-    updateParticles(dt);
-    for (let i = state.dyingSections.length - 1; i >= 0; i--) {
-      state.dyingSections[i].age += dt;
-      if (state.dyingSections[i].age >= state.dyingSections[i].maxAge) {
-        state.dyingSections.splice(i, 1);
-      }
-    }
-    state.shake = Math.max(0, state.shake - dt * 0.045);
+    updateParticles(state.particles, dt);
+    updateDebris(state.debris, dt);
+    updateFloats(state.floats, dt);
+    updateDyingSections(state.dyingSections, dt);
+    shake.update(dt);
+
     makeSnapshot();
   }
 
@@ -348,25 +337,15 @@
     const cx = c.x + poly.reduce((s, p) => s + p[0], 0) / poly.length * c.w;
     const cy = c.y + poly.reduce((s, p) => s + p[1], 0) / poly.length * c.h;
 
-    state.dyingSections.push({
-      side,
-      sectionIndex,
-      age: 0,
-      maxAge: 520,
-      vx: side === "player" ? -0.045 : 0.045,
-    });
-    smoke(cx, cy, 18);
+    state.dyingSections.push(makeDyingSection(sectionIndex, side === "player" ? "left" : "right", 520));
+    smoke(state.particles, cx, cy, 22);
 
-    state.shake = 10;
-    burst(projectile.x, projectile.y, projectile.type.color, 28, 0.18);
-    makeDebris(projectile.x, projectile.y, side, 16);
-    state.floats.push({
-      x: projectile.x,
-      y: projectile.y - 24,
-      text: projectile.type.damageText,
-      color: "#ffffff",
-      life: 850
-    });
+    shake.trigger(10);
+    burst(state.particles, projectile.x, projectile.y, projectile.type.color, 28, 0.18);
+    spawnDebris(state.debris, projectile.x, projectile.y, side === "player" ? "left" : "right", 16);
+    spawnFloat(state.floats, projectile.x, projectile.y - 24, projectile.type.damageText, "#ffffff", 850);
+    playSfx("hit");
+    playSfx("destroy");
   }
 
   function advanceTurn() {
@@ -384,109 +363,69 @@
     state.phase = "ended";
     state.ctaVisible = true;
     const target = result === "victory" ? castles.enemy : castles.player;
-    burst(target.x + target.w / 2, target.y + target.h * 0.58, "#ffbf31", 64, 0.28);
+    burst(state.particles, target.x + target.w / 2, target.y + target.h * 0.58, "#ffbf31", 64, 0.28);
+    smoke(state.particles, target.x + target.w / 2, target.y + target.h * 0.6, 30);
+    playSfx(result === "victory" ? "win" : "lose");
   }
 
   function hitbox(side) {
     const hp = side === "player" ? state.playerHp : state.enemyHp;
     const c = castles[side];
-    const ratio = Math.max(0, hp / 3);
-    const visibleW = c.w * ratio;
-    if (side === "player") {
-      return { x: c.x + 28, y: c.y + 80, w: Math.max(0, visibleW - 44), h: c.h - 125 };
-    }
-    return { x: c.x + c.w - visibleW + 18, y: c.y + 80, w: Math.max(0, visibleW - 44), h: c.h - 125 };
-  }
-
-  function updateParticles(dt) {
-    for (let i = state.particles.length - 1; i >= 0; i -= 1) {
-      const p = state.particles[i];
-      p.life -= dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 0.00055 * dt;
-      if (p.life <= 0) state.particles.splice(i, 1);
-    }
-    for (let i = state.debris.length - 1; i >= 0; i -= 1) {
-      const d = state.debris[i];
-      d.life -= dt;
-      d.x += d.vx * dt;
-      d.y += d.vy * dt;
-      d.vy += 0.00075 * dt;
-      d.r += d.spin * dt;
-      if (d.life <= 0) state.debris.splice(i, 1);
-    }
-    for (let i = state.floats.length - 1; i >= 0; i -= 1) {
-      const f = state.floats[i];
-      f.life -= dt;
-      f.y -= dt * 0.05;
-      if (f.life <= 0) state.floats.splice(i, 1);
-    }
-  }
-
-  function burst(x, y, color, count, power) {
-    for (let i = 0; i < count; i += 1) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = (0.03 + Math.random() * power);
-      state.particles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 0.05,
-        radius: 2 + Math.random() * 5,
-        color,
-        life: 360 + Math.random() * 600
-      });
-    }
-  }
-
-  function smoke(x, y, count) {
-    for (let i = 0; i < count; i++) {
-      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
-      const speed = 0.02 + Math.random() * 0.055;
-      const g = 145 + Math.floor(Math.random() * 85);
-      state.particles.push({
-        x: x + (Math.random() - 0.5) * 55,
-        y: y + (Math.random() - 0.5) * 30,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: 11 + Math.random() * 19,
-        color: "rgb(" + g + "," + g + "," + g + ")",
-        life: 750 + Math.random() * 700,
-      });
-    }
-  }
-
-  function makeDebris(x, y, side, count) {
-    const dir = side === "player" ? 1 : -1;
-    for (let i = 0; i < count; i += 1) {
-      state.debris.push({
-        x,
-        y,
-        vx: dir * (0.04 + Math.random() * 0.13),
-        vy: -0.15 + Math.random() * 0.18,
-        size: 5 + Math.random() * 10,
-        r: Math.random() * 6,
-        spin: -0.006 + Math.random() * 0.012,
-        life: 750 + Math.random() * 550
-      });
-    }
+    if (hp <= 0) return { x: 0, y: 0, w: 0, h: 0 };
+    // With section-based destruction, the castle shrinks vertically (top sections
+    // fall first). Hitbox covers full castle width and the visible vertical band.
+    const visibleH = c.h * (hp / 3);
+    return {
+      x: c.x + 12,
+      y: c.y + (c.h - visibleH) + 24,
+      w: c.w - 24,
+      h: Math.max(30, visibleH - 48)
+    };
   }
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    const shakeX = (Math.random() - 0.5) * state.shake;
-    const shakeY = (Math.random() - 0.5) * state.shake;
+    const o = shake.offset();
 
     ctx.save();
-    ctx.translate(shakeX, shakeY);
+    ctx.translate(o.x, o.y);
     applyCamera();
     drawWorld();
     ctx.restore();
 
-    drawFixedUi();
+    drawTopHud();
+    if (state.phase !== "projectile" && !state.ctaVisible) drawInstruction();
+
     if (state.phase === "error") drawError();
-    if (state.ctaVisible) drawEndCard();
+
+    // End screens via the bank — no more endOverlay image, no overlap.
+    if (state.ctaVisible) {
+      const playerPct = (state.playerHp / 3) * 100;
+      const enemyPct = (state.enemyHp / 3) * 100;
+      if (state.result === "victory") {
+        drawGameWon(ctx, W, H, {
+          primary: "BATTLE",
+          secondary: "WON",
+          cta: "PLAY NOW",
+          rewards: [
+            { label: "+22", color: "#f5c842", kind: "trophy" },
+            { label: "180", color: "#f5c842", kind: "coin" },
+            { label: "26", color: "#a06d3a", kind: "wood" }
+          ]
+        });
+      } else {
+        drawGameLost(ctx, W, H, {
+          primary: "BATTLE",
+          secondary: "FAILED",
+          cta: "TRY AGAIN",
+          rewards: [
+            { label: "-12.40", color: "#f5c842", kind: "trophy" },
+            { label: "45", color: "#f5c842", kind: "coin" },
+            { label: "8", color: "#a06d3a", kind: "wood" }
+          ]
+        });
+      }
+    }
   }
 
   function applyCamera() {
@@ -503,9 +442,9 @@
     drawUnits("enemy");
     drawTrajectory();
     drawProjectiles();
-    drawDebris();
-    drawParticles();
-    drawFloats();
+    drawDebris(ctx, state.debris);
+    drawParticles(ctx, state.particles);
+    drawFloats(ctx, state.floats);
   }
 
   function drawBackground() {
@@ -523,52 +462,19 @@
 
     ctx.save();
     if (hp > 0) drawShadow(c.x + 20, c.y + c.h - 35, c.w - 40, 32);
-    for (let i = 0; i < hp; i++) drawCastleSection(img, c, i);
+    for (let i = 0; i < hp; i++) drawSection(ctx, img, c, SECTION_POLYS[i]);
     for (const d of state.dyingSections) {
-      if (d.side === side) drawDyingSection(img, c, d);
+      if (d.side === side) drawDyingSection(ctx, img, c, d, SECTION_POLYS);
     }
     ctx.restore();
   }
 
-  function drawCastleSection(img, c, idx) {
-    if (!img) return;
-    const poly = SECTION_POLYS[idx];
-    ctx.save();
-    ctx.beginPath();
-    poly.forEach(([nx, ny], i) => {
-      const px = c.x + nx * c.w;
-      const py = c.y + ny * c.h;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    });
-    ctx.closePath();
-    ctx.clip();
-    drawContain(img, c.x, c.y, c.w, c.h);
-    ctx.restore();
-  }
-
-  function drawDyingSection(img, c, d) {
-    if (!img) return;
-    const t = d.age / d.maxAge;
-    const fallY = 0.5 * 0.0010 * d.age * d.age;
-    const driftX = d.vx * d.age;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, 1 - t * t);
-    ctx.translate(driftX, fallY);
-    const poly = SECTION_POLYS[d.sectionIndex];
-    ctx.beginPath();
-    poly.forEach(([nx, ny], i) => {
-      const px = c.x + nx * c.w;
-      const py = c.y + ny * c.h;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    });
-    ctx.closePath();
-    ctx.clip();
-    drawContain(img, c.x, c.y, c.w, c.h);
-    ctx.restore();
-  }
-
   function drawUnits(side) {
+    const castleHp = side === "player" ? state.playerHp : state.enemyHp;
+    // Unit at slot i corresponds to section (2-i): slot 0 = top section,
+    // slot 2 = bottom section. Top falls first, bottom survives longest.
     for (let i = 0; i < 3; i += 1) {
+      if (castleHp < 3 - i) continue;
       drawUnit(side, i);
     }
   }
@@ -590,18 +496,13 @@
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    if (img) {
-      ctx.shadowColor = "rgba(0,0,0,0.32)";
-      ctx.shadowBlur = 10;
-      drawContain(img, -30, -82, 60, 74);
-      ctx.shadowBlur = 0;
-    }
+    if (img) drawContain(img, -25, -67, 50, 64);
     ctx.rotate(side === "player" ? 0 : Math.PI);
     ctx.fillStyle = "#25282f";
     roundRect(0, -35, 36, 14, 7);
     ctx.fill();
     ctx.fillStyle = type.color;
-    roundRect(6, -32, 24, 8, 4);
+    roundRect(22, -32, 25, 8, 4);
     ctx.fill();
     ctx.restore();
   }
@@ -650,173 +551,44 @@
     }
   }
 
-  function drawParticles() {
-    for (const p of state.particles) {
-      ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 550));
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawDebris() {
-    ctx.fillStyle = "#7b7770";
-    ctx.strokeStyle = "#34312d";
-    ctx.lineWidth = 1.5;
-    for (const d of state.debris) {
-      ctx.save();
-      ctx.translate(d.x, d.y);
-      ctx.rotate(d.r);
-      ctx.globalAlpha = Math.max(0, Math.min(1, d.life / 650));
-      ctx.fillRect(-d.size / 2, -d.size / 2, d.size, d.size * 0.65);
-      ctx.strokeRect(-d.size / 2, -d.size / 2, d.size, d.size * 0.65);
-      ctx.restore();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawFloats() {
-    ctx.textAlign = "center";
-    ctx.font = "900 26px Arial";
-    for (const f of state.floats) {
-      ctx.globalAlpha = Math.max(0, Math.min(1, f.life / 650));
-      ctx.lineWidth = 7;
-      ctx.strokeStyle = "#111111";
-      ctx.strokeText(f.text, f.x, f.y);
-      ctx.fillStyle = f.color;
-      ctx.fillText(f.text, f.x, f.y);
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawFixedUi() {
+  // ── Top HUD via the bank's vs-bar-top ──
+  function drawTopHud() {
     const playerPct = Math.max(0, Math.round((state.playerHp / 3) * 100));
     const enemyPct = Math.max(0, Math.round((state.enemyHp / 3) * 100));
-    const playerBarCenterX = 8 + 132 / 2;
-    const enemyBarCenterX = 220 + 132 / 2;
+    drawVsBarTop(ctx, {
+      playerHpPct: playerPct,
+      enemyHpPct: enemyPct,
+      playerColor: "#08aeea",
+      enemyColor: "#e80e16"
+    });
+  }
+
+  function drawInstruction() {
+    const text = activeTurn().side === "player" ? "PULL BACK TO SHOOT" : "ENEMY AIMING";
     ctx.save();
-    drawTrapezoid(8, 8, 132, 28, "#08aeea", true);
-    drawTrapezoid(220, 8, 132, 28, "#e80e16", false);
-    drawOutlinedText(playerPct + "%", playerBarCenterX, 31, 20, "center");
-    drawOutlinedText(enemyPct + "%", enemyBarCenterX, 31, 20, "center");
-    ctx.fillStyle = "#111";
-    ctx.font = "900 53px Arial";
+    ctx.font = "900 18px Arial";
     ctx.textAlign = "center";
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 8;
-    ctx.strokeText("Vs", 180, 55);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(4, 18 * 0.18);
+    ctx.strokeStyle = "#111111";
+    ctx.strokeText(text, 180, 594);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText("Vs", 180, 52);
-
-    drawCastleIcon(30, 56, "#1aaeea");
-    drawCastleIcon(296, 56, "#ef252a");
-    drawOutlinedText(playerPct + "%", 13, 111, 30, "left");
-    drawOutlinedText(enemyPct + "%", 347, 111, 30, "right");
-
-    if (!state.ctaVisible && state.phase !== "projectile") {
-      const text = activeTurn().side === "player" ? "PULL BACK TO SHOOT" : "ENEMY AIMING";
-      drawOutlinedText(text, 180, 594, 18, "center");
-    }
-    ctx.restore();
-  }
-
-  function drawTrapezoid(x, y, w, h, color, left) {
-    ctx.save();
-    ctx.fillStyle = "#111111";
-    ctx.beginPath();
-    ctx.moveTo(x - 1, y - 1);
-    ctx.lineTo(x + w + 1, y - 1);
-    ctx.lineTo(x + w - (left ? 5 : 0), y + h + 5);
-    ctx.lineTo(x + (left ? 0 : 5), y + h + 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + w, y);
-    ctx.lineTo(x + w - (left ? 8 : 0), y + h);
-    ctx.lineTo(x + (left ? 0 : 8), y + h);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  function drawCastleIcon(x, y, color) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = "#d9d6c8";
-    ctx.strokeStyle = "#3a3a35";
-    ctx.lineWidth = 2;
-    ctx.fillRect(0, 18, 34, 28);
-    ctx.strokeRect(0, 18, 34, 28);
-    ctx.beginPath();
-    ctx.moveTo(4, 18);
-    ctx.lineTo(17, 0);
-    ctx.lineTo(30, 18);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#2b2924";
-    roundRect(12, 29, 10, 17, 5);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawEndCard() {
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(0, 0, W, H);
-    if (images.endOverlay) {
-      ctx.globalAlpha = state.result === "defeat" ? 0.92 : 0.55;
-      drawCover(images.endOverlay, 0, 0, W, H);
-      ctx.globalAlpha = 1;
-    }
-    const title = state.result === "victory" ? "UNITS DESTROYED!" : "BATTLE FAILED";
-    drawOutlinedText(title, 180, 223, state.result === "victory" ? 27 : 31, "center");
-    ctx.fillStyle = "#44e537";
-    ctx.strokeStyle = "#0f7318";
-    ctx.lineWidth = 5;
-    roundRect(72, 312, 216, 68, 14);
-    ctx.fill();
-    ctx.stroke();
-    drawOutlinedText("PLAY NOW", 180, 354, 28, "center");
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.font = "800 13px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Tap to open the store", 180, 404);
+    ctx.fillText(text, 180, 594);
     ctx.restore();
   }
 
   function drawError() {
     ctx.fillStyle = "#111827";
     ctx.fillRect(0, 0, W, H);
-    drawOutlinedText("ASSET LOAD ERROR", 180, 320, 18, "center");
-  }
-
-  function openStore() {
-    try {
-      if (window.mraid && typeof window.mraid.open === "function") {
-        window.mraid.open(STORE_URL);
-        return;
-      }
-    } catch (error) {
-      console.warn(error);
-    }
-    window.open(STORE_URL, "_blank", "noopener,noreferrer");
-  }
-
-  function drawOutlinedText(text, x, y, size, align) {
     ctx.save();
-    ctx.font = "900 " + size + "px Arial";
-    ctx.textAlign = align;
+    ctx.font = "900 18px Arial";
+    ctx.textAlign = "center";
     ctx.lineJoin = "round";
-    ctx.strokeStyle = "#111111";
-    ctx.lineWidth = Math.max(4, size * 0.18);
-    ctx.strokeText(text, x, y);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(text, x, y);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#111";
+    ctx.strokeText("ASSET LOAD ERROR", 180, 320);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("ASSET LOAD ERROR", 180, 320);
     ctx.restore();
   }
 

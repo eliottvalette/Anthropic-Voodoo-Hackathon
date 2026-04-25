@@ -1,28 +1,14 @@
-import { mkdir, writeFile, readFile, stat } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 
-async function resolveUniqueRunId(runId: string): Promise<string> {
-  const exists = async (p: string) => {
-    try { await stat(p); return true; } catch { return false; }
-  };
-  if (!(await exists(resolve("outputs", runId)))) return runId;
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const stamp =
-    `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}` +
-    `-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-  let candidate = `${runId}_${stamp}`;
-  let i = 2;
-  while (await exists(resolve("outputs", candidate))) {
-    candidate = `${runId}_${stamp}_${i++}`;
-  }
-  return candidate;
-}
+import { stampRunId } from "./runId.ts";
 import { writeProbe } from "./probe.ts";
 import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
 import { writeP3 } from "./p3_aggregator.ts";
 import { runP4 } from "./p4_codegen.ts";
+import { runP4Legacy } from "./p4_legacy.ts";
+import type { SubsystemName } from "./p4_subsystems.ts";
 import { verify } from "./verify.ts";
 import { GameSpecSchema } from "../schemas/gameSpec.ts";
 import type { VerifyReport } from "../schemas/verifyReport.ts";
@@ -49,7 +35,12 @@ export type RunMeta = {
   stages: StageMeta[];
   verify: VerifyReport;
   retries: number;
+  subsystemFailCounts: Record<SubsystemName, number>;
+  monolithicFallbackUsed: boolean;
 };
+
+const SUBSYSTEM_NAMES: SubsystemName[] = ["input", "physics", "render", "state", "winloss"];
+const PER_SUBSYSTEM_RETRY_BUDGET = 2;
 
 function failingAsserts(r: VerifyReport): string[] {
   const out: string[] = [];
@@ -62,30 +53,37 @@ function failingAsserts(r: VerifyReport): string[] {
   return out;
 }
 
-function retryAddendum(r: VerifyReport): string {
-  const fixes: string[] = [];
-  if (!r.canvasNonBlank)
-    fixes.push(
-      "- The canvas appears uniform-colored. Draw varied content (background fill PLUS placeholder shapes for any not-yet-loaded asset) on EVERY frame, including the first. Verify samples a 6x6 grid; a single solid color anywhere it lands fails this check.",
-    );
-  if (!r.interactionStateChange)
-    fixes.push(
-      "- Override window.__engineState.snapshot to return MONOTONIC counters that strictly increase on input. Example: let tapsTotal=0, dragsTotal=0; canvas.addEventListener('pointerdown',()=>tapsTotal++); window.__engineState.snapshot=function(){return {tapsTotal,dragsTotal,score};}; NEVER return only transient values like entities.length that reset to baseline between samples.",
-    );
-  if (!r.mechanicStringMatch)
-    fixes.push(
-      "- The mechanic_name string from the prompt MUST appear verbatim in your JS. Add a comment or a const if needed.",
-    );
-  if (!r.mraidOk)
-    fixes.push(
-      "- The CTA tap path MUST reach mraid.open( ... ). Use window.__cta(url) which is provided by the preamble.",
-    );
-  if (r.consoleErrors.length)
-    fixes.push(
-      `- Fix these console errors: ${r.consoleErrors.slice(0, 3).join(" | ")}`,
-    );
-  if (!r.sizeOk) fixes.push("- Reduce HTML size below 5MB.");
-  return `\n\n# RETRY — previous attempt failed verify\nFailing asserts: ${failingAsserts(r).join("; ")}\n${fixes.join("\n")}`;
+type Routing = {
+  subsystems: SubsystemName[];
+  reaggregateOnly: boolean;
+};
+
+function routeFailures(r: VerifyReport): Routing {
+  const subs = new Set<SubsystemName>();
+  if (!r.canvasNonBlank) subs.add("render");
+  if (!r.interactionStateChange) {
+    subs.add("input");
+    subs.add("state");
+  }
+  if (!r.mraidOk) subs.add("winloss");
+  if (r.consoleErrors.length > 0) {
+    SUBSYSTEM_NAMES.forEach((n) => subs.add(n));
+  }
+  if (!r.sizeOk) {
+    subs.add("render");
+    subs.add("state");
+  }
+  const onlyMechanicMissing =
+    !r.mechanicStringMatch &&
+    r.canvasNonBlank &&
+    r.interactionStateChange &&
+    r.mraidOk &&
+    r.sizeOk &&
+    r.consoleErrors.length === 0;
+  return {
+    subsystems: Array.from(subs),
+    reaggregateOnly: onlyMechanicMissing,
+  };
 }
 
 export async function runPipeline(
@@ -93,12 +91,10 @@ export async function runPipeline(
   videoPath: string,
   assetsDir: string,
   variant = "_default",
-  maxRetries = 2,
+  maxRetries = 4,
 ): Promise<RunMeta> {
-  const runId = await resolveUniqueRunId(requestedRunId);
-  if (runId !== requestedRunId) {
-    console.log(`[run] runId "${requestedRunId}" exists; using "${runId}" to avoid overwrite`);
-  }
+  const runId = await stampRunId(requestedRunId);
+  console.log(`[run] runId "${requestedRunId}" stamped → "${runId}"`);
   const t0 = Date.now();
   const startedAt = new Date().toISOString();
   const outDir = resolve("outputs", runId);
@@ -134,7 +130,16 @@ export async function runPipeline(
     JSON.parse(await readFile(join(outDir, "03_game_spec.json"), "utf8")),
   );
 
-  console.log(`[run] stage 4: P4 codegen (attempt 1)`);
+  const subsystemFailCounts: Record<SubsystemName, number> = {
+    input: 0,
+    physics: 0,
+    render: 0,
+    state: 0,
+    winloss: 0,
+  };
+  let monolithicFallbackUsed = false;
+
+  console.log(`[run] stage 4: P4 codegen (attempt 1, modular)`);
   let p4 = await runP4(runId, assetsDir, variant);
   stages.push(...p4.meta.subCalls);
 
@@ -144,13 +149,41 @@ export async function runPipeline(
 
   while (!report.runs && retries < maxRetries) {
     retries++;
+    const routing = routeFailures(report);
     console.warn(
       `[run] verify failed (${failingAsserts(report).join("; ")}). Retry ${retries}/${maxRetries}.`,
     );
-    const addendum = retryAddendum(report);
-    p4 = await runP4(runId, assetsDir, variant, addendum);
-    const meta = { ...p4.meta.subCalls[0]!, attempt: 1 + retries };
-    stages.push(meta);
+
+    const overBudget = routing.subsystems.find(
+      (s) => subsystemFailCounts[s] >= PER_SUBSYSTEM_RETRY_BUDGET,
+    );
+    if (overBudget && !monolithicFallbackUsed) {
+      console.warn(
+        `[run] subsystem "${overBudget}" hit ${PER_SUBSYSTEM_RETRY_BUDGET} strikes — falling back to monolithic codegen.`,
+      );
+      monolithicFallbackUsed = true;
+      const failedAtBudget = SUBSYSTEM_NAMES.filter(
+        (s) => subsystemFailCounts[s] >= PER_SUBSYSTEM_RETRY_BUDGET,
+      );
+      const legacy = await runP4Legacy(runId, assetsDir, variant, failedAtBudget);
+      stages.push(...legacy.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
+      report = await verify(legacy.htmlPath, gameSpec.mechanic_name);
+      continue;
+    }
+
+    if (routing.reaggregateOnly) {
+      console.log(`[run] re-aggregating only (mechanic marker fix)...`);
+      p4 = await runP4(runId, assetsDir, variant, { retryOnly: [] });
+    } else if (routing.subsystems.length > 0) {
+      console.log(`[run] routing retry to subsystems: ${routing.subsystems.join(", ")}`);
+      for (const s of routing.subsystems) subsystemFailCounts[s]++;
+      p4 = await runP4(runId, assetsDir, variant, { retryOnly: routing.subsystems });
+    } else {
+      console.warn(`[run] no specific routing matched — re-running all subsystems`);
+      for (const s of SUBSYSTEM_NAMES) subsystemFailCounts[s]++;
+      p4 = await runP4(runId, assetsDir, variant);
+    }
+    stages.push(...p4.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
     report = await verify(p4.htmlPath, gameSpec.mechanic_name);
   }
 
@@ -174,6 +207,8 @@ export async function runPipeline(
     stages,
     verify: report,
     retries,
+    subsystemFailCounts,
+    monolithicFallbackUsed,
   };
   await writeFile(
     join(outDir, "_meta.json"),

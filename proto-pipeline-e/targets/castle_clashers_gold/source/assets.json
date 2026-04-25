@@ -7,6 +7,5 @@
   "unitPoison": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_goblin_green.png",
   "projFire": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_fireball.png",
   "projMissile": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_missile.png",
-  "projPoison": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png",
-  "endOverlay": "../../../../nico-sandbox/runs/B11/extracted/crops/end_screen_overlay.png"
+  "projPoison": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png"
 }

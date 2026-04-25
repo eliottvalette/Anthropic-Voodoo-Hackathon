@@ -114,18 +114,24 @@ export type ContentPart =
   | { text: string }
   | { fileData: { fileUri: string; mimeType: string } };
 
+export type GenerateOptions = {
+  temperature?: number;
+  responseMimeType?: string;
+};
+
 export async function generateJson<T = unknown>(
   model: string,
   systemInstruction: string,
   userParts: ContentPart[],
+  options: GenerateOptions = {},
 ): Promise<GenerateResult<T>> {
   const url = `${API_BASE}/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
   const body = {
     systemInstruction: { parts: [{ text: systemInstruction }] },
     contents: [{ role: "user", parts: userParts }],
     generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.4,
+      responseMimeType: options.responseMimeType ?? "application/json",
+      temperature: options.temperature ?? 0.4,
     },
   };
   const t0 = Date.now();
@@ -165,6 +171,6 @@ export async function generateJson<T = unknown>(
 }
 
 export const MODELS = {
-  flash: "gemini-3.1-pro-preview",
-  pro: "gemini-3.1-pro-preview",
+  flash: "gemini-flash-latest",
+  pro: "gemini-flash-latest",
 } as const;

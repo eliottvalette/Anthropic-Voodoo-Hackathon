@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>audio demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;cursor:pointer;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../audio.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let musicOn = false;
+const buttons = [
+  { y: 90,  label: "▶ START MUSIC",  action: () => { startMusic(); musicOn = true; } },
+  { y: 150, label: "■ STOP MUSIC",   action: () => { stopMusic(); musicOn = false; } },
+  { y: 230, label: "shoot",  action: () => playSfx("shoot") },
+  { y: 290, label: "hit",    action: () => playSfx("hit") },
+  { y: 350, label: "destroy",action: () => playSfx("destroy") },
+  { y: 410, label: "win",    action: () => playSfx("win") },
+  { y: 470, label: "lose",   action: () => playSfx("lose") },
+  { y: 530, label: "ui",     action: () => playSfx("ui") },
+];
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  for (const b of buttons) {
+    if (x > 30 && x < 330 && y > b.y - 20 && y < b.y + 20) { b.action(); break; }
+  }
+  draw();
+});
+
+function draw() {
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('AUDIO BUS', 180, 50);
+  ctx.font = '11px Arial';
+  ctx.fillStyle = musicOn ? '#73f03f' : '#9aa3b8';
+  ctx.fillText('music: ' + (musicOn ? 'playing' : 'stopped'), 180, 70);
+
+  for (const b of buttons) {
+    const isMusic = b.label.includes('MUSIC');
+    ctx.fillStyle = isMusic ? '#1e2a3a' : '#27a8ff';
+    ctx.fillRect(30, b.y - 20, 300, 40);
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, b.y - 20, 300, 40);
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 ' + (isMusic ? 14 : 13) + 'px Arial';
+    ctx.fillText(b.label, 180, b.y + 5);
+  }
+}
+draw();
+</script>
+</body>
+</html>
