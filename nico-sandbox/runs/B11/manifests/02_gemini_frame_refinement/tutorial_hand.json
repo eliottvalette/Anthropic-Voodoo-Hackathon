@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Tutorial Pointing Hand",
+      "box_2d": [
+        679,
+        472,
+        801,
+        664
+      ],
+      "confidence": 1.0,
+      "notes": "A realistic-looking human hand with a pointing index finger."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "projectile",
+      "box_2d": [
+        473,
+        737,
+        500,
+        780
+      ],
+      "confidence": 0.95,
+      "notes": "The orange fireball projectile."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

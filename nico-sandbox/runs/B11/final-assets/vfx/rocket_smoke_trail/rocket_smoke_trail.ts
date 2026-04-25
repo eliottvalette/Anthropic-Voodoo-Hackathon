@@ -1,0 +1,1 @@
+/* Gemini procedural VFX response did not include TypeScript. See JSON config. */

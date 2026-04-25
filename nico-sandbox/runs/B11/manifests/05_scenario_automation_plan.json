@@ -1,12 +1,71 @@
 {
   "assets": [
     {
-      "asset_id": "proj_missile",
+      "asset_id": "background_plate",
+      "route": "background_plate",
+      "category": "background",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds/background_plate.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/background_plate.json",
+      "steps": [
+        "extract_clean_plate",
+        "scenario_background_cleanup",
+        "optional_lora_ab_test",
+        "gemini_plate_qa"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+        "model_hHuMquQ1QvEGHS1w7tGuYXud",
+        "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+        "model_uPCFzAgcZVB6sdTdRS7XXQ6Z"
+      ],
+      "gemini_tasks": [
+        "plate_occlusion_notes",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "plate": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds/background_plate.png",
+        "lora_candidates": [
+          {
+            "model_id": "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+            "name": "Battle Arenas 2.0",
+            "best_for": "cartoon fantasy battlegrounds and side-view arena plates"
+          },
+          {
+            "model_id": "model_hHuMquQ1QvEGHS1w7tGuYXud",
+            "name": "Cartoon Backgrounds 2.0",
+            "best_for": "bold casual game backgrounds and end-card scenery"
+          },
+          {
+            "model_id": "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+            "name": "Bold Line Environments 2.0",
+            "best_for": "clean outlined environments with stylized depth"
+          },
+          {
+            "model_id": "model_uPCFzAgcZVB6sdTdRS7XXQ6Z",
+            "name": "Top-down TD Game",
+            "best_for": "top-down maps, lanes, forests, deserts, and strategy-game terrain"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_background": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Environment Background\nDescription: A 2D cartoon landscape with rolling green hills, a cloudy sky, barbed wire fences, small trees, and a dirt ground with a red underground layer. Soft gradients and no thick outlines.\nGameplay role: Static backdrop for the gameplay.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite."
+      },
+      "notes": [
+        "Opaque plate output; no alpha removal."
+      ],
+      "name": "Environment Background",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/background_plate.png",
+      "recreation_strategy": "background_plate_cleanup"
+    },
+    {
+      "asset_id": "blue_castle_exterior",
       "route": "static_sprite",
-      "category": "projectile",
-      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
-      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_missile.png",
-      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/proj_missile.json",
+      "category": "castle",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/blue_castle_exterior.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/blue_castle_exterior.json",
       "steps": [
         "upload_crop",
         "scenario_gemini_recreate",
@@ -23,25 +82,246 @@
         "candidate_qa"
       ],
       "outputs": {
-        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_missile.png"
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/blue_castle_exterior.png"
       },
       "prompts": {
-        "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Missile Projectile\nDescription: A small grey missile with a red tip, leaving a smoke trail.\nGameplay role: \n\nReproduce the projectile's shape, silhouette, color, and art style exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Player Castle Exterior\nCategory: castle\nDescription: A tall, grey stone castle with two blue-roofed towers, a wooden base, and tank treads. Thick black outlines and flat colors.\nGameplay role: The player's main base that houses units and takes damage.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
       },
       "notes": [
         "Video crop is reference evidence; Scenario recreation supplies final pixels."
       ],
-      "name": "Missile Projectile",
-      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_missile.png",
+      "name": "Player Castle Exterior",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/blue_castle_exterior.png",
       "recreation_strategy": "reference_recreate_then_alpha"
     },
     {
-      "asset_id": "proj_poison",
+      "asset_id": "end_screen_overlay",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/end_screen_overlay.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/end_screen_overlay.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/end_screen_overlay.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Battle Failed End Screen\nCategory: ui\nDescription: A red diagonal overlay with a checkered pattern, 'BATTLE FAILED' text, and reward icons (trophy, coins, wood).\nGameplay role: End-of-game summary screen.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Battle Failed End Screen",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/end_screen_overlay.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "green_goblin_character",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/green_goblin_character/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "green_goblin_character",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Green Goblin Unit\nDescription: A small green goblin cartoon character with horns and a red headband, holding a green cannon. Thick black outlines and flat colors.\nGameplay role: A player unit that shoots poison.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "Green Goblin Unit",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/green_goblin_character.png",
+      "recreation_strategy": "animated_character_sheet"
+    },
+    {
+      "asset_id": "red_castle_exterior",
       "route": "static_sprite",
-      "category": "projectile",
-      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
-      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_poison.png",
-      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/proj_poison.json",
+      "category": "castle",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/red_castle_exterior.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/red_castle_exterior.json",
       "steps": [
         "upload_crop",
         "scenario_gemini_recreate",
@@ -58,17 +338,1159 @@
         "candidate_qa"
       ],
       "outputs": {
-        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_poison.png"
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/red_castle_exterior.png"
       },
       "prompts": {
-        "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Poison Projectile\nDescription: A green blob of poison leaving a green trail.\nGameplay role: \n\nReproduce the projectile's shape, silhouette, color, and art style exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Enemy Castle Exterior\nCategory: castle\nDescription: A tall, grey stone castle with two red-roofed towers, a wooden base, and tank treads. Thick black outlines and flat colors.\nGameplay role: The enemy's main base that the player must destroy.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
       },
       "notes": [
         "Video crop is reference evidence; Scenario recreation supplies final pixels."
       ],
-      "name": "Poison Projectile",
-      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_poison.png",
+      "name": "Enemy Castle Exterior",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/red_castle_exterior.png",
       "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "red_cyclops_character",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/red_cyclops_character/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "red_cyclops_character",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Red Cyclops Unit\nDescription: A small, red, one-eyed cartoon character holding a red cannon. Thick black outlines and flat colors.\nGameplay role: A player unit that shoots fireballs.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "Red Cyclops Unit",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/red_cyclops_character.png",
+      "recreation_strategy": "animated_character_sheet"
+    },
+    {
+      "asset_id": "skeleton_character",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/skeleton_character/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "skeleton_character",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Skeleton Unit\nDescription: A small skeleton cartoon character holding a blue multi-barrel gun. Thick black outlines and flat colors.\nGameplay role: A player unit that shoots rockets.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "Skeleton Unit",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/skeleton_character.png",
+      "recreation_strategy": "animated_character_sheet"
+    },
+    {
+      "asset_id": "ui_character_cards",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_character_cards.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/ui_character_cards.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_character_cards.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Character Selection Cards\nCategory: ui\nDescription: Square UI cards at the bottom of the screen showing portraits of the available units (Cyclops, Skeleton, Goblin) on a checkered background.\nGameplay role: UI for selecting which unit to place.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Character Selection Cards",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_character_cards.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "aiming_trajectory_line",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/aiming_trajectory_line.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/aiming_trajectory_line.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/aiming_trajectory_line.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Aiming Trajectory Indicator\nCategory: ui\nDescription: A white dotted line extending from the unit, with a solid grey line indicating the pull-back direction.\nGameplay role: Shows the predicted path of the projectile.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Aiming Trajectory Indicator",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/aiming_trajectory_line.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "castle_interior_structure",
+      "route": "static_sprite",
+      "category": "castle",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/castle_interior_structure.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/castle_interior_structure.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/castle_interior_structure.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Castle Interior\nCategory: castle\nDescription: The dark brick interior of the castle revealed when the outer wall is destroyed, featuring wooden platforms for units to stand on.\nGameplay role: The structural framework where units are placed.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Castle Interior",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/castle_interior_structure.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "fire_explosion_vfx",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fire_explosion_vfx",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fire_explosion_vfx/fire_explosion_vfx.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fire_explosion_vfx/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fire_explosion_vfx/fire_explosion_vfx.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fire_explosion_vfx/fire_explosion_vfx.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Fire Explosion Impact\nDescription: A large, fiery explosion with bright yellow and orange colors and dark smoke.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Fire Explosion Impact",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/fire_explosion_vfx.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "green_poison_projectile",
+      "route": "static_sprite",
+      "category": "projectile",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/green_poison_projectile.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/green_poison_projectile.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/green_poison_projectile.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Green Poison Blob\nDescription: A small, bright green blob or flask.\nGameplay role: Projectile fired by the goblin unit.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nReproduce the projectile's shape, silhouette, and color exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Green Poison Blob",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/green_poison_projectile.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "orange_fireball_projectile",
+      "route": "static_sprite",
+      "category": "projectile",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/orange_fireball_projectile.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/orange_fireball_projectile.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/orange_fireball_projectile.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Orange Fireball\nDescription: A glowing orange circular fireball.\nGameplay role: Projectile fired by the cyclops unit.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nReproduce the projectile's shape, silhouette, and color exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Orange Fireball",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/orange_fireball_projectile.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "poison_splash_vfx",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/poison_splash_vfx",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/poison_splash_vfx/poison_splash_vfx.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/poison_splash_vfx/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/poison_splash_vfx/poison_splash_vfx.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/poison_splash_vfx/poison_splash_vfx.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Poison Splash Impact\nDescription: A splash of bright green liquid and lingering green gas clouds.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Poison Splash Impact",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/poison_splash_vfx.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "purple_ninja_character",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "purple_ninja_character",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: Purple Ninja Unit\nDescription: A small purple ninja cartoon character holding a sword. Thick black outlines and flat colors.\nGameplay role: An enemy unit.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "Purple Ninja Unit",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/purple_ninja_character.png",
+      "recreation_strategy": "animated_character_sheet"
+    },
+    {
+      "asset_id": "red_rocket_projectile",
+      "route": "static_sprite",
+      "category": "projectile",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/red_rocket_projectile.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/red_rocket_projectile.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/red_rocket_projectile.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Red Rocket\nDescription: A small red rocket with grey fins and a white tip. Thick black outlines.\nGameplay role: Projectile fired by the skeleton unit.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nReproduce the projectile's shape, silhouette, and color exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Red Rocket",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/red_rocket_projectile.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "stone_explosion_vfx",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/stone_explosion_vfx",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/stone_explosion_vfx/stone_explosion_vfx.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/stone_explosion_vfx/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/stone_explosion_vfx/stone_explosion_vfx.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/stone_explosion_vfx/stone_explosion_vfx.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Stone Explosion Impact\nDescription: A burst of white light, grey smoke, and flying grey stone debris.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Stone Explosion Impact",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/stone_explosion_vfx.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "tutorial_hand",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/tutorial_hand.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/tutorial_hand.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/tutorial_hand.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Tutorial Pointing Hand\nCategory: ui\nDescription: A realistic-looking human hand with a pointing index finger.\nGameplay role: Guides the player on where to tap and drag.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Tutorial Pointing Hand",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/tutorial_hand.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "ui_health_bars",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_health_bars.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/ui_health_bars.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_health_bars.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Castle Health Indicators\nCategory: ui\nDescription: White text showing percentage (e.g., '100%') with a small castle icon above it, located at the top corners.\nGameplay role: Displays the remaining health of the castles.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Castle Health Indicators",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_health_bars.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "fireball_smoke_trail",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fireball_smoke_trail",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fireball_smoke_trail/fireball_smoke_trail.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fireball_smoke_trail/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fireball_smoke_trail/fireball_smoke_trail.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/fireball_smoke_trail/fireball_smoke_trail.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Fireball Smoke Trail\nDescription: A trail of brownish-orange puffy smoke clouds.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Fireball Smoke Trail",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/fireball_smoke_trail.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "ghost_vfx",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/ghost_vfx",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/ghost_vfx/ghost_vfx.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/ghost_vfx/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/ghost_vfx/ghost_vfx.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/ghost_vfx/ghost_vfx.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Floating Ghost\nDescription: A translucent blue ghost with a skull face.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Floating Ghost",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ghost_vfx.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "pink_sparkle_vfx",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/pink_sparkle_vfx",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/pink_sparkle_vfx/pink_sparkle_vfx.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/pink_sparkle_vfx/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/pink_sparkle_vfx/pink_sparkle_vfx.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/pink_sparkle_vfx/pink_sparkle_vfx.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Pink Sparkle Burst\nDescription: A burst of pink, star-shaped sparkles.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Pink Sparkle Burst",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/pink_sparkle_vfx.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "rocket_smoke_trail",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/rocket_smoke_trail",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/rocket_smoke_trail/rocket_smoke_trail.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/rocket_smoke_trail/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/rocket_smoke_trail/rocket_smoke_trail.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/vfx/rocket_smoke_trail/rocket_smoke_trail.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Rocket Smoke Trail\nDescription: A trail of grey, puffy smoke clouds left behind by the rocket.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Rocket Smoke Trail",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/rocket_smoke_trail.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "tombstone_prop",
+      "route": "static_sprite",
+      "category": "other",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/sprites",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/sprites/tombstone_prop.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/tombstone_prop.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/sprites/tombstone_prop.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: RIP Tombstone\nCategory: other\nDescription: A small grey tombstone with 'RIP' written on it. Thick black outlines.\nGameplay role: Appears where a unit has been defeated.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "RIP Tombstone",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/tombstone_prop.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "ui_damage_numbers",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_damage_numbers.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/ui_damage_numbers.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/ui/ui_damage_numbers.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Damage Pop-up Numbers\nCategory: ui\nDescription: White text with a black outline showing damage amounts (e.g., '-44').\nGameplay role: Provides feedback on damage dealt.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Damage Pop-up Numbers",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/ui_damage_numbers.png",
+      "recreation_strategy": "ui_vector_or_sprite"
     }
   ]
 }

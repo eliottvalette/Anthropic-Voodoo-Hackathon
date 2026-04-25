@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "player_castle_exterior",
+      "box_2d": [
+        250,
+        183,
+        798,
+        828
+      ],
+      "confidence": 1.0,
+      "notes": "The player's main castle structure with two red-roofed towers and tank treads."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}
