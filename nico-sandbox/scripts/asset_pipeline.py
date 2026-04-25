@@ -31,6 +31,134 @@ IMAGE_MODELS = [
     "gemini-2.5-flash",
 ]
 
+SPRITE_RECREATION_PIPELINE = [
+    "upload_reference_crop",
+    "model_google-gemini-3-1-flash",
+    "model_photoroom-background-removal",
+    "model_scenario-padding-remover",
+]
+
+CHARACTER_ANIMATION_PIPELINE = [
+    "upload_best_character_pose",
+    "model_google-gemini-3-1-flash",
+    "model_photoroom-background-removal",
+    "model_meta-sam-3-1-image_or_model_qwen-image-layered",
+    "normalize_layers_and_emit_rig_json",
+]
+
+BACKGROUND_RECREATION_PIPELINE = [
+    "extract_cleanest_full_plate_or_region",
+    "model_google-gemini-3-1-flash",
+    "optional_inpaint_from_multiple_frames",
+]
+
+VIDEO_INVENTORY_PROMPT = """
+Analyze this vertical mobile gameplay ad video as a production artist and playable-ad engineer.
+
+The final tool receives only this video. It must output every graphic asset needed to recreate the game/playable ad.
+Provided source assets do not exist in production.
+
+Return every reusable visual/gameplay asset needed to recreate the playable prototype:
+- backgrounds and scene plates,
+- castles, props, terrain, obstacles,
+- characters and their reusable animation poses,
+- weapons, projectiles, trails, aiming indicators,
+- VFX such as explosions, smoke, flashes, impacts,
+- UI, HUD, tutorial cursor/gesture assets, and end-card/CTA elements.
+
+For each asset, choose the best timestamp for downstream recreation. The best timestamp is not only where the asset is visible.
+It is the frame where the asset is most useful for Scenario cleanup:
+- most isolated from other objects,
+- least occluded,
+- least motion-blurred,
+- largest or most zoomed-in,
+- fully visible,
+- high contrast against the background,
+- no unnecessary trail/smoke/hand/wall/character attached unless that element is physically part of the asset.
+
+For animated characters or moving objects, choose the best seed pose and describe the animation states to generate later.
+For backgrounds, choose the cleanest plate or the frame/region that best preserves the environment. Include notes about foreground occluders.
+For UI-wide elements or full backgrounds, give the full visible region.
+
+Return approximate location as box_2d in [ymin, xmin, ymax, xmax] normalized to 0-1000.
+Prefer distinct reusable assets over transient duplicates, but include effects/projectiles that must be recreated independently.
+
+Choose one of these recreation strategies:
+- reference_recreate_then_alpha: static sprite, projectile, weapon, prop, icon, or VFX seed. Use Scenario Gemini recreation, then background removal, then trim.
+- direct_cutout_then_enhance: crop is already clean enough for alpha removal/upscale.
+- background_plate_cleanup: full or partial background plate, no alpha removal.
+- animated_character_sheet: character/object needs consistent animation frames from one approved seed pose.
+- layered_character_parts: character should be split into rig parts and emitted with rig.json.
+- ui_vector_or_sprite: UI element can be vectorized or rebuilt as crisp sprite.
+
+Also return the Scenario pipeline steps you recommend for each asset.
+""".strip()
+
+FRAME_REFINEMENT_PROMPT_TEMPLATE = """
+Find the single best bounding box for this target asset in the gameplay screenshot.
+
+Target asset: {name}
+Category: {category}
+Description: {description}
+Gameplay role: {role}
+Recreation strategy: {strategy}
+
+Return only the target asset if visible. Use box_2d as [ymin, xmin, ymax, xmax] normalized to 0-1000.
+This box is the seed crop for Scenario, so keep it tight and intentional.
+
+Rules:
+- For projectiles/weapons, include the body/nose/fins/weapon silhouette; exclude smoke trail, launch puff, impact particles, hand cursor, wall, and unrelated objects unless they are physically part of the target.
+- For characters, include the full visible body and held weapon if it belongs to the character pose; exclude unrelated UI, other units, and scenery.
+- For VFX, include the full effect only if the effect itself is the target.
+- For backgrounds, use the full game background region or the requested plate region, not foreground characters/UI.
+- For UI, include the full button/panel/text treatment and exclude gameplay scene behind it.
+""".strip()
+
+SCENARIO_SPRITE_PROMPT_TEMPLATE = """
+Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.
+
+Asset: {name}
+Category: {category}
+Description: {description}
+Gameplay role: {role}
+
+Preserve the source asset's silhouette, color family, proportions, camera angle, readable details, and casual mobile-game rendering style.
+Improve video compression artifacts and make the asset crisp and production-quality.
+Center the asset with comfortable transparent padding.
+
+Remove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.
+Use a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.
+Do not add new objects or change the gameplay read.
+""".strip()
+
+SCENARIO_BACKGROUND_PROMPT_TEMPLATE = """
+Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.
+
+Asset: {name}
+Description: {description}
+Gameplay role: {role}
+
+Preserve the original scene composition, camera angle, palette, lighting, and casual mobile-game art style.
+Remove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.
+Reconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.
+Do not create a poster, logo, new character, or new UI.
+Return an opaque rectangular background plate, not a transparent sprite.
+""".strip()
+
+SCENARIO_CHARACTER_PROMPT_TEMPLATE = """
+Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.
+
+Asset: {name}
+Description: {description}
+Gameplay role: {role}
+
+Preserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.
+Make one crisp neutral/base pose on transparent background, suitable for later animation.
+Do not add scenery, UI, extra characters, labels, or poster composition.
+
+The later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.
+""".strip()
+
 
 MANIFEST_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -73,6 +201,23 @@ MANIFEST_SCHEMA: dict[str, Any] = {
                         "description": "Approximate [ymin, xmin, ymax, xmax] normalized to 0-1000.",
                     },
                     "isolate_with_background_removal": {"type": "boolean"},
+                    "recreation_strategy": {
+                        "type": "string",
+                        "enum": [
+                            "reference_recreate_then_alpha",
+                            "direct_cutout_then_enhance",
+                            "background_plate_cleanup",
+                            "animated_character_sheet",
+                            "layered_character_parts",
+                            "ui_vector_or_sprite",
+                        ],
+                    },
+                    "scenario_pipeline": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "animation_notes": {"type": "string"},
+                    "background_plate_notes": {"type": "string"},
                     "priority": {"type": "integer", "minimum": 1, "maximum": 5},
                 },
                 "required": [
@@ -85,6 +230,10 @@ MANIFEST_SCHEMA: dict[str, Any] = {
                     "fallback_timestamps_s",
                     "approx_box_2d",
                     "isolate_with_background_removal",
+                    "recreation_strategy",
+                    "scenario_pipeline",
+                    "animation_notes",
+                    "background_plate_notes",
                     "priority",
                 ],
             },
@@ -129,6 +278,10 @@ class Candidate:
     timestamp_s: float
     box_2d: list[int]
     isolate: bool
+    recreation_strategy: str
+    scenario_pipeline: list[str]
+    animation_notes: str
+    background_plate_notes: str
     priority: int
 
     @classmethod
@@ -142,6 +295,11 @@ class Candidate:
             timestamp_s=float(value["best_timestamp_s"]),
             box_2d=[int(v) for v in value["approx_box_2d"]],
             isolate=bool(value["isolate_with_background_removal"]),
+            recreation_strategy=str(value.get("recreation_strategy") or default_recreation_strategy(str(value["category"]))),
+            scenario_pipeline=[str(step) for step in value.get("scenario_pipeline", [])]
+            or default_scenario_pipeline(str(value["category"])),
+            animation_notes=str(value.get("animation_notes", "")),
+            background_plate_notes=str(value.get("background_plate_notes", "")),
             priority=int(value["priority"]),
         )
 
@@ -149,6 +307,41 @@ class Candidate:
 def safe_slug(value: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "_", value.strip().lower()).strip("_")
     return slug or "asset"
+
+
+def default_recreation_strategy(category: str) -> str:
+    category = category.lower()
+    if category == "background":
+        return "background_plate_cleanup"
+    if category == "character":
+        return "animated_character_sheet"
+    if category == "ui":
+        return "ui_vector_or_sprite"
+    return "reference_recreate_then_alpha"
+
+
+def default_scenario_pipeline(category: str) -> list[str]:
+    category = category.lower()
+    if category == "background":
+        return list(BACKGROUND_RECREATION_PIPELINE)
+    if category == "character":
+        return list(CHARACTER_ANIMATION_PIPELINE)
+    return list(SPRITE_RECREATION_PIPELINE)
+
+
+def scenario_prompt_for_candidate(candidate: Candidate) -> str:
+    values = {
+        "name": candidate.name,
+        "category": candidate.category,
+        "description": candidate.visual_description,
+        "role": candidate.gameplay_role,
+    }
+    strategy = candidate.recreation_strategy
+    if candidate.category == "background" or strategy == "background_plate_cleanup":
+        return SCENARIO_BACKGROUND_PROMPT_TEMPLATE.format(**values)
+    if candidate.category == "character" or strategy in {"animated_character_sheet", "layered_character_parts"}:
+        return SCENARIO_CHARACTER_PROMPT_TEMPLATE.format(**values)
+    return SCENARIO_SPRITE_PROMPT_TEMPLATE.format(**values)
 
 
 def load_dotenv(path: Path) -> None:
@@ -278,19 +471,6 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
     )
     uploaded = wait_for_file(client, uploaded.name)
 
-    prompt = """
-Analyze this vertical mobile gameplay ad video as a production artist and playable-ad engineer.
-
-Return every reusable visual/audio/gameplay asset needed to recreate the playable prototype.
-Focus on concrete assets we can crop or regenerate: castles, player/enemy units, weapons, projectiles,
-background plate, UI overlays, VFX, CTA/end-card elements, and any repeated sprites.
-
-For each asset, choose the best timestamp where the asset is visible, least occluded, and largest.
-Return approximate location as box_2d in [ymin, xmin, ymax, xmax] normalized to 0-1000.
-If an item is a full background or UI-wide element, give the full visible region.
-Prefer distinct reusable assets over transient duplicates.
-""".strip()
-
     part = types.Part(
         fileData=types.FileData(fileUri=uploaded.uri, mimeType=uploaded.mime_type or "video/mp4"),
         videoMetadata=types.VideoMetadata(fps=fps),
@@ -302,8 +482,12 @@ Prefer distinct reusable assets over transient duplicates.
         temperature=0.1,
         maxOutputTokens=16000,
     )
-    model, response = call_model_with_fallback(client, VIDEO_MODELS, contents=[part, prompt], config=config)
-    payload = json.loads(extract_json_payload(response.text or "{}"))
+    model, response = call_model_with_fallback(client, VIDEO_MODELS, contents=[part, VIDEO_INVENTORY_PROMPT], config=config)
+    parsed = getattr(response, "parsed", None)
+    if isinstance(parsed, dict):
+        payload = parsed
+    else:
+        payload = json.loads(extract_json_payload(response.text or "{}"))
     payload["_gemini_model"] = model
     payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
     write_json(manifests_dir / "01_gemini_video_manifest.json", payload)
@@ -336,17 +520,13 @@ def extract_frame(video_path: Path, timestamp_s: float, output_path: Path) -> No
 def refine_box_with_gemini(frame_path: Path, candidate: Candidate) -> dict[str, Any]:
     client = gemini_client()
     image = Image.open(frame_path)
-    prompt = f"""
-Find the single best bounding box for this target asset in the gameplay screenshot.
-
-Target asset: {candidate.name}
-Category: {candidate.category}
-Description: {candidate.visual_description}
-Gameplay role: {candidate.gameplay_role}
-
-Return only the target asset if visible. Use box_2d as [ymin, xmin, ymax, xmax] normalized to 0-1000.
-If the asset is a full background, use the full game background region.
-""".strip()
+    prompt = FRAME_REFINEMENT_PROMPT_TEMPLATE.format(
+        name=candidate.name,
+        category=candidate.category,
+        description=candidate.visual_description,
+        role=candidate.gameplay_role,
+        strategy=candidate.recreation_strategy,
+    )
     config = types.GenerateContentConfig(
         responseMimeType="application/json",
         responseJsonSchema=BOX_SCHEMA,
@@ -405,6 +585,11 @@ def crop_candidate(
         "padded_bbox_px": list(expanded),
         "confidence": confidence,
         "isolate_with_background_removal": candidate.isolate,
+        "recreation_strategy": candidate.recreation_strategy,
+        "scenario_pipeline": candidate.scenario_pipeline,
+        "scenario_prompt": scenario_prompt_for_candidate(candidate),
+        "animation_notes": candidate.animation_notes,
+        "background_plate_notes": candidate.background_plate_notes,
         "priority": candidate.priority,
         "visual_description": candidate.visual_description,
     }
@@ -432,6 +617,10 @@ def extract_candidates(manifest: dict[str, Any], video_path: Path, output_dir: P
                 timestamp_s=candidate.timestamp_s,
                 box_2d=candidate.box_2d,
                 isolate=candidate.isolate,
+                recreation_strategy=candidate.recreation_strategy,
+                scenario_pipeline=candidate.scenario_pipeline,
+                animation_notes=candidate.animation_notes,
+                background_plate_notes=candidate.background_plate_notes,
                 priority=candidate.priority,
             )
 
