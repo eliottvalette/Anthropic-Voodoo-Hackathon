@@ -109,6 +109,18 @@
             "explosion",
             "ring"
           ]
+        },
+        {
+          "name": "flash",
+          "file": "vfx/flash.js",
+          "demo": "vfx/demos/flash.html",
+          "signature": "spawnFlash(flashes, color?, life?, peak?, rect?)",
+          "description": "Full-canvas (or rect-bounded) color flash that fades fast — hit confirms, screen punctuation, transitions. Sin-curve alpha for instant pop.",
+          "tags": [
+            "impact",
+            "screen",
+            "feedback"
+          ]
         }
       ]
     },

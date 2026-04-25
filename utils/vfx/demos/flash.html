@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>flash demo</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: #0F141C;
+            border-radius: 8px;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../flash.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const flashes = [];
+        const colors = ['#ffffff', '#ffbf31', '#ff4141', '#27a8ff', '#e93cff'];
+        let last = 0, t = 0;
+
+        function trigger(color) {
+            spawnFlash(flashes, color, 180, 0.55);
+        }
+
+        cv.addEventListener('pointerdown', () => {
+            trigger(colors[Math.floor(Math.random() * colors.length)]);
+        });
+
+        let auto = 0;
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now; t += dt; auto += dt;
+            if (auto > 1200) { trigger(colors[Math.floor(Math.random() * colors.length)]); auto = 0; }
+
+            // background scene so the flash reads
+            ctx.fillStyle = '#0F141C';
+            ctx.fillRect(0, 0, cv.width, cv.height);
+            ctx.fillStyle = '#1f2937';
+            for (let i = 0; i < 5; i++) {
+                const y = 120 + i * 90 + Math.sin(t / 600 + i) * 6;
+                ctx.fillRect(40, y, 280, 38);
+            }
+            ctx.fillStyle = '#9aa3b8';
+            ctx.font = '600 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('tap canvas', 180, 60);
+
+            updateFlashes(flashes, dt);
+            drawFlashes(ctx, flashes, cv.width, cv.height);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
