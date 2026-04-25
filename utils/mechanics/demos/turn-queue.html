@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>turn-queue demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#0F141C;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../turn-queue.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const tq = createTurnQueue([
+  { side: 'player', slot: 0 }, { side: 'enemy', slot: 0 },
+  { side: 'player', slot: 1 }, { side: 'enemy', slot: 1 },
+  { side: 'player', slot: 2 }, { side: 'enemy', slot: 2 },
+]);
+
+cv.addEventListener('pointerdown', () => { tq.advance(); draw(); });
+
+function draw() {
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('TAP TO ADVANCE TURN', 180, 60);
+
+  // 6 turn pills, current highlighted
+  const cur = tq.current();
+  for (let i = 0; i < 6; i++) {
+    const slot = (i % 3);
+    const side = i % 2 === 0 ? 'player' : 'enemy';
+    const x = 30, y = 110 + i * 70, w = 300, h = 56;
+    const isCurrent = cur.index % 6 === i;
+    ctx.fillStyle = isCurrent ? (side === 'player' ? '#27a8ff' : '#ed2024') : '#1e2a3a';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(side.toUpperCase() + ' · slot ' + slot, x + 16, y + 35);
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = isCurrent ? '#fff' : '#9aa3b8';
+    ctx.fillText(isCurrent ? '◀ current' : '#' + i, x + w - 16, y + 35);
+  }
+}
+draw();
+</script>
+</body>
+</html>

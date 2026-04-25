@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cta-trigger demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#F6F9FC;border-radius:8px;cursor:pointer}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../cta-trigger.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const URL = "https://play.google.com/store/apps/details?id=com.example";
+let pressed = false, msg = '';
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * cv.width / r.width;
+  const y = (e.clientY - r.top) * cv.height / r.height;
+  if (x > 60 && x < 300 && y > 280 && y < 360) {
+    pressed = true;
+    const path = window.Voodoo ? 'Voodoo VSDK' : window.mraid ? 'MRAID' : 'fallback (window.open / postMessage)';
+    msg = 'Resolved → ' + path;
+    openStore(URL);
+    setTimeout(() => { pressed = false; draw(); }, 250);
+  }
+});
+
+function draw() {
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('PLAYABLE', 180, 220);
+  // CTA pill
+  ctx.fillStyle = pressed ? '#0a4022' : '#22c55e';
+  ctx.fillRect(60, 280, 240, 80);
+  ctx.strokeStyle = '#0f7318';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 280, 240, 80);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 24px Arial';
+  ctx.fillText('PLAY NOW', 180, 327);
+
+  if (msg) {
+    ctx.fillStyle = '#9aa3b8';
+    ctx.font = '12px Arial';
+    ctx.fillText(msg, 180, 410);
+  }
+}
+draw();
+</script>
+</body>
+</html>

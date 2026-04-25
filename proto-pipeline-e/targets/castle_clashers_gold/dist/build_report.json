@@ -1,0 +1,17 @@
+{
+  "output": "playable.html",
+  "bytes": 3633823,
+  "assets": [
+    "background",
+    "castlePlayer",
+    "castleEnemy",
+    "unitFire",
+    "unitMissile",
+    "unitPoison",
+    "projFire",
+    "projMissile",
+    "projPoison",
+    "endOverlay"
+  ],
+  "generated_at": "2026-04-25T20:39:57.816Z"
+}

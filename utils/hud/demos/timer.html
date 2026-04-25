@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>timer demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#F6F9FC;border-radius:8px}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../timer.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let s = 30;
+let last = 0;
+
+function loop(now) {
+  const dt = last ? now - last : 0;
+  last = now;
+  s -= dt / 1000;
+  if (s <= 0) s = 30;
+
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawTimer(ctx, 180, 200, s, { size: 52 });
+  drawTimer(ctx, 180, 320, s, { size: 32, showMinutes: false });
+  drawTimer(ctx, 180, 420, s, { size: 24, urgentBelow: 10 });
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

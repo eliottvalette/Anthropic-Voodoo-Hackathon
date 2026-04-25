@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     TEMPLATE: playable-shell
+     PURPOSE:  Self-contained shell for a 360×640 portrait playable.
+               Ad-network friendly: viewport meta strict, touch disabled,
+               full-bleed canvas, base64 assets via <script>.
+     USE:      Paste your game code into the inline <script> at the bottom.
+               Inject base64 assets through window.GAME_ASSETS.
+               Wire CTA via openStore() — see mechanics/cta-trigger.js.
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <title>Playable</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050812;
+      font-family: Arial, Helvetica, sans-serif;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #stage {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #game {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <main id="stage" aria-label="Playable">
+    <canvas id="game" width="360" height="640"></canvas>
+  </main>
+
+  <!-- Inline asset manifest (replace with your base64 data URIs) -->
+  <script>
+    window.GAME_ASSETS = {
+      // background: "data:image/png;base64,...",
+      // unit:       "data:image/png;base64,...",
+    };
+    window.STORE_URL = "https://play.google.com/store/apps/details?id=YOUR_PACKAGE";
+  </script>
+
+  <!-- Paste your utils + game code here. Order:
+       1. vfx/particles.js
+       2. any util(s) you use
+       3. mechanics/cta-trigger.js
+       4. your game code (boot, loop, render)                                  -->
+  <script>
+    (function () {
+      "use strict";
+      const W = 360, H = 640;
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      // ── boot ─────────────────────────────────────────────
+      function boot() {
+        // Load images from window.GAME_ASSETS, then start the loop.
+        requestAnimationFrame(loop);
+      }
+
+      // ── loop ─────────────────────────────────────────────
+      let last = 0;
+      function loop(now) {
+        const dt = last ? Math.min(34, now - last) : 16;
+        last = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+      function update(dt) {}
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#9fb978";
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#0F141C";
+        ctx.font = "900 22px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("PLAYABLE SHELL", W / 2, H / 2);
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+{
+  "version": "0.2.0",
+  "categories": [
+    {
+      "id": "vfx",
+      "label": "VFX",
+      "description": "Particle effects, screen shake, floating text, debris, trails, destruction",
+      "items": [
+        {
+          "name": "smoke",
+          "file": "vfx/smoke.js",
+          "demo": "vfx/demos/smoke.html",
+          "signature": "smoke(particles, x, y, count = 14)",
+          "description": "Rising gray puffs — destruction, impact, respawn dust",
+          "depends": ["particles"],
+          "tags": ["destruction", "impact", "particles"]
+        },
+        {
+          "name": "burst",
+          "file": "vfx/burst.js",
+          "demo": "vfx/demos/burst.html",
+          "signature": "burst(particles, x, y, color, count = 20, power = 0.18)",
+          "description": "Radial particle explosion in a single color",
+          "depends": ["particles"],
+          "tags": ["impact", "hit", "particles"]
+        },
+        {
+          "name": "trail",
+          "file": "vfx/trail.js",
+          "demo": "vfx/demos/trail.html",
+          "signature": "spawnTrail(particles, x, y, color, count = 1, spread = 4)",
+          "description": "Trailing particles behind a moving object — projectiles, dashes",
+          "depends": ["particles"],
+          "tags": ["projectile", "motion", "particles"]
+        },
+        {
+          "name": "shake",
+          "file": "vfx/shake.js",
+          "demo": "vfx/demos/shake.html",
+          "signature": "createShake(decay = 0.045)",
+          "description": "Camera/screen shake with linear decay",
+          "tags": ["camera", "impact", "feedback"]
+        },
+        {
+          "name": "float-text",
+          "file": "vfx/float-text.js",
+          "demo": "vfx/demos/float-text.html",
+          "signature": "spawnFloat(floats, x, y, text, color?, life?)",
+          "description": "Floating damage / score numbers that rise and fade",
+          "tags": ["feedback", "ui", "text"]
+        },
+        {
+          "name": "debris",
+          "file": "vfx/debris.js",
+          "demo": "vfx/demos/debris.html",
+          "signature": "spawnDebris(debris, x, y, side, count = 14)",
+          "description": "Physics chunks for wall break, prop destruction",
+          "tags": ["destruction", "physics"]
+        },
+        {
+          "name": "section-destroy",
+          "file": "vfx/section-destroy.js",
+          "demo": "vfx/demos/section-destroy.html",
+          "signature": "makeSectionPolys(n) / drawSection / makeDyingSection / updateDyingSections",
+          "description": "Polygon-based sprite destruction — splits a sprite into pieces that fall one by one as HP drops",
+          "tags": ["destruction", "polygon", "hp"]
+        }
+      ]
+    },
+    {
+      "id": "hud",
+      "label": "HUD",
+      "description": "Health bars, timers, top bars",
+      "items": [
+        {
+          "name": "vs-bar-top",
+          "file": "hud/vs-bar-top.js",
+          "demo": "hud/demos/vs-bar-top.html",
+          "signature": "drawVsBarTop(ctx, { playerHpPct, enemyHpPct, ... })",
+          "description": "Two-player VS top header (Castle Clashers style trapezoids)",
+          "tags": ["pvp", "header", "hp"]
+        },
+        {
+          "name": "hp-segmented",
+          "file": "hud/hp-segmented.js",
+          "demo": "hud/demos/hp-segmented.html",
+          "signature": "drawHpSegmented(ctx, x, y, { current, max, ... })",
+          "description": "Discrete chunks (3 hearts, 5 chunks, 10 slim segments)",
+          "tags": ["hp", "segmented"]
+        },
+        {
+          "name": "hp-percentage",
+          "file": "hud/hp-percentage.js",
+          "demo": "hud/demos/hp-percentage.html",
+          "signature": "drawHpPercentage(ctx, x, y, w, h, { pct, ... })",
+          "description": "Continuous HP bar with numeric percentage label",
+          "tags": ["hp", "continuous"]
+        },
+        {
+          "name": "timer",
+          "file": "hud/timer.js",
+          "demo": "hud/demos/timer.html",
+          "signature": "drawTimer(ctx, x, y, seconds, { size?, urgentBelow? })",
+          "description": "Countdown display, MM:SS, urgent color when low",
+          "tags": ["timer", "countdown"]
+        }
+      ]
+    },
+    {
+      "id": "end-screens",
+      "label": "End Screens",
+      "description": "Game lost / won / try-again overlays with diagonal split + CTA",
+      "items": [
+        {
+          "name": "game-lost",
+          "file": "end-screens/game-lost.js",
+          "demo": "end-screens/demos/game-lost.html",
+          "signature": "drawGameLost(ctx, W, H, { headline, cta, ... })",
+          "description": "Diagonal split, right side red, replaceable headline + CTA",
+          "tags": ["end", "lose", "cta"]
+        },
+        {
+          "name": "game-won",
+          "file": "end-screens/game-won.js",
+          "demo": "end-screens/demos/game-won.html",
+          "signature": "drawGameWon(ctx, W, H, { headline, cta, ... })",
+          "description": "Diagonal split, right side blue, confetti, replaceable headline + CTA",
+          "tags": ["end", "win", "cta"]
+        },
+        {
+          "name": "try-again",
+          "file": "end-screens/try-again.js",
+          "demo": "end-screens/demos/try-again.html",
+          "signature": "drawTryAgain(ctx, W, H, { headline, cta, ... })",
+          "description": "Neutral 'almost there' overlay with amber ribbon — encourages retry",
+          "tags": ["end", "neutral", "cta"]
+        }
+      ]
+    },
+    {
+      "id": "mechanics",
+      "label": "Mechanics",
+      "description": "Input, camera, turn flow, CTA wiring",
+      "items": [
+        {
+          "name": "drag-release · slingshot",
+          "file": "mechanics/drag-release.js",
+          "demo": "mechanics/demos/drag-release.html",
+          "signature": "createDragRelease(canvas, { pullRangeX:[-140,140], toVelocity:directly, gravity:0 })",
+          "description": "True 360° slingshot — drag in any direction, fires opposite. No gravity.",
+          "tags": ["input", "drag", "slingshot", "360"]
+        },
+        {
+          "name": "drag-release · artillery",
+          "file": "mechanics/drag-release.js",
+          "demo": "mechanics/demos/drag-release-artillery.html",
+          "signature": "createDragRelease(canvas, { pullRangeX:[22,130], gravity:0.00078, toVelocity:arc })",
+          "description": "Ballistic artillery — pull back to fire arc. Gravity-aware trajectory preview. Castle Clashers-style.",
+          "tags": ["input", "drag", "ballistic", "arc", "physics"]
+        },
+        {
+          "name": "camera-lerp",
+          "file": "mechanics/camera-lerp.js",
+          "demo": "mechanics/demos/camera-lerp.html",
+          "signature": "createCamera({ x, y, zoom, smoothMs }) → { setTarget, update, apply, pointerToWorld }",
+          "description": "2D camera (x, y, zoom) with dt-based lerp + reverse pointer transform",
+          "tags": ["camera", "input"]
+        },
+        {
+          "name": "turn-queue",
+          "file": "mechanics/turn-queue.js",
+          "demo": "mechanics/demos/turn-queue.html",
+          "signature": "createTurnQueue(order) → { current, advance, peek, reset, isFirstOfRound }",
+          "description": "Round-robin turn manager for PvP / multi-actor games",
+          "tags": ["turn", "pvp", "flow"]
+        },
+        {
+          "name": "cta-trigger",
+          "file": "mechanics/cta-trigger.js",
+          "demo": "mechanics/demos/cta-trigger.html",
+          "signature": "openStore(url)",
+          "description": "Resolve store-open across Voodoo VSDK, MRAID, and parent postMessage fallbacks",
+          "tags": ["cta", "store", "voodoo"]
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "label": "Templates",
+      "description": "Skeleton HTML scaffolds to drop your game code into",
+      "items": [
+        {
+          "name": "playable-shell",
+          "file": "templates/playable-shell.html",
+          "demo": "templates/playable-shell.html",
+          "signature": "<canvas id=\"game\" width=\"360\" height=\"640\">",
+          "description": "Self-contained 360×640 portrait shell — viewport, no-scroll body, base64-asset slot, CTA-ready",
+          "tags": ["shell", "scaffold", "portrait"]
+        }
+      ]
+    }
+  ]
+}

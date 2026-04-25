@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>hp-percentage demo</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:#F6F9FC;border-radius:8px}
+  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="360" height="640"></canvas>
+<script src="../hp-percentage.js"></script>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let t = 0;
+
+function colorFor(pct) {
+  if (pct > 0.6) return '#22c55e';
+  if (pct > 0.3) return '#f59e0b';
+  return '#ef4444';
+}
+
+function loop() {
+  t += 0.01;
+  const a = (Math.sin(t) + 1) / 2;
+  const b = (Math.sin(t*1.4) + 1) / 2;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 14px Arial';
+  ctx.textAlign = 'left';
+
+  ctx.fillText('Player', 30, 200);
+  drawHpPercentage(ctx, 30, 210, 300, 26, { pct: a, color: colorFor(a) });
+
+  ctx.fillText('Enemy', 30, 290);
+  drawHpPercentage(ctx, 30, 300, 300, 26, { pct: b, color: colorFor(b) });
+
+  ctx.fillText('No label:', 30, 380);
+  drawHpPercentage(ctx, 30, 390, 300, 14, { pct: a, color: '#27a8ff', showLabel: false });
+
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
