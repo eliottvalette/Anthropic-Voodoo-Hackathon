@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "asset_id": "castle_interior_structure",
+    "route": "static_sprite",
+    "category": "castle",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/castle_interior_structure.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/castle_interior_structure.json",
+    "steps": [
+      "upload_crop",
+      "scenario_gemini_recreate",
+      "photoroom_alpha",
+      "padding_trim"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_photoroom-background-removal",
+      "model_pixa-background-removal",
+      "model_scenario-padding-remover"
+    ],
+    "gemini_tasks": [
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/castle_interior_structure.png"
+    },
+    "prompts": {
+      "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Castle Interior\nCategory: castle\nDescription: The dark brick interior of the castle revealed when the outer wall is destroyed, featuring wooden platforms for units to stand on.\nGameplay role: The structural framework where units are placed.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+    },
+    "notes": [
+      "Video crop is reference evidence; Scenario recreation supplies final pixels."
+    ]
+  },
+  "result": {
+    "asset_id": "castle_interior_structure",
+    "name": "Castle Interior",
+    "category": "castle",
+    "route": "static_sprite",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/castle_interior_structure.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/props/castle_interior_structure.png",
+    "scenario_asset_id": "asset_8qpeVWXCvarTmjw6Yr19BapS",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_JEz4sUoDRYNnriyx2h7g8Grv"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_La7n2xS4LxCP9LrPr3UAbx4p",
+        "asset_ids": [
+          "asset_UvTbNXftxPKBuU5wi6wzRr7y",
+          "asset_DCEHuAjcFE536nA3t4HhFbye",
+          "asset_iZtNZjN1cCBrDgBQ8LLqRheT",
+          "asset_KjMdA5enYdjyDpeoKFYP4iGs"
+        ],
+        "selected_asset_id": "asset_KjMdA5enYdjyDpeoKFYP4iGs"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_poqjVr9TpGiLn9jeRtdXw7MG",
+        "asset_id": "asset_vZF9dKqftphoaXMo5UFmtUm4",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_XgzaL7wkERVaWi2wgf9YfxCV ended with status failure: {'jobId': 'job_XgzaL7wkERVaWi2wgf9YfxCV', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_KjMdA5enYdjyDpeoKFYP4iGs'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T16:56:32.902Z', 'updatedAt': '2026-04-25T16:56:40.849Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T16:56:32.902Z'}, {'status': 'in-progress', 'date': '2026-04-25T16:56:33.537Z'}, {'status': 'failure', 'date': '2026-04-25T16:56:40.849Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_ayxrbT3CLMsnk3cbC6j8P9EK",
+        "asset_id": "asset_8qpeVWXCvarTmjw6Yr19BapS"
+      }
+    ]
+  }
+}

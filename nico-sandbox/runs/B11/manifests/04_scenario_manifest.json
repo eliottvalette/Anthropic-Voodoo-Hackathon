@@ -1,0 +1,40 @@
+{
+  "project": {
+    "team_id": "team_GpTf3W5k3zCFDafHkvxhB3uy",
+    "project_id": "proj_oFDZiC4c1jnuKYUAaNGe4g7X",
+    "project_name": "E220"
+  },
+  "model": {
+    "id": "model_pixa-background-removal",
+    "name": "Pixa Background Removal",
+    "parameters": {
+      "outputFormat": "rgba"
+    }
+  },
+  "assets": [
+    {
+      "asset_id": "char_ninja",
+      "input_crop": "extracted/crops/char_ninja.png",
+      "scenario_input_asset_id": "asset_E1uYGe4DGZC3f6g9gzMvpbRM",
+      "scenario_job_id": "job_UtCNB5sB8DMeBS4h9AcRtkc8",
+      "scenario_output_asset_id": "asset_4Gtnh26KN6E8tEEejUQCafuW",
+      "local_png": "scenario/transparent-png/char_ninja.png"
+    },
+    {
+      "asset_id": "char_cyclops_red",
+      "input_crop": "extracted/crops/char_cyclops_red.png",
+      "scenario_input_asset_id": "asset_wS3K7fQKsRipcqSEK9CVS64C",
+      "scenario_job_id": "job_1h8AHSzMLUX7kT8zJNcKWY8A",
+      "scenario_output_asset_id": "asset_ehNbUUFb6W5EpsY7pLx4aFjZ",
+      "local_png": "scenario/transparent-png/char_cyclops_red.png"
+    },
+    {
+      "asset_id": "char_goblin_green",
+      "input_crop": "extracted/crops/char_goblin_green.png",
+      "scenario_input_asset_id": "asset_JBE5HF9RUjf3y2QtZ67tDkZt",
+      "scenario_job_id": "job_WRzRhcsrgZEj44UauNXzawt4",
+      "scenario_output_asset_id": "asset_N8TyNbmVfuhqJHxf1Hmm2iSw",
+      "local_png": "scenario/transparent-png/char_goblin_green.png"
+    }
+  ]
+}

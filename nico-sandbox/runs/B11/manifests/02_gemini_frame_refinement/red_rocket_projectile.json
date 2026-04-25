@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Red Rocket",
+      "box_2d": [
+        538,
+        230,
+        547,
+        273
+      ],
+      "confidence": 0.9,
+      "notes": "A small red rocket with grey fins and a white tip."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

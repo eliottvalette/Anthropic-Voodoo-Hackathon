@@ -1,0 +1,741 @@
+{
+  "video_summary": "A 2D cartoon-style mobile game where two castles mounted on tank treads face off. The player places various units inside their castle, which then shoot projectiles at the enemy castle to destroy its walls and defeat the units inside.",
+  "gameplay_loop": "Place units on platforms inside the player's castle -> Drag to aim and shoot projectiles at the enemy castle -> Destroy enemy walls to expose their units -> Defeat enemy units to win.",
+  "camera_and_canvas": "Static 2D side-view camera, vertical mobile aspect ratio.",
+  "art_style": {
+    "summary": "Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.",
+    "rendering": "2D vector-style cartoon",
+    "line_work": "Thick, consistent black outlines on all foreground elements.",
+    "palette": "Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.",
+    "shading": "Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.",
+    "scale_feel": "Chibi/stylized proportions, sticker-like characters and props.",
+    "anti_styles": [
+      "pixel art",
+      "3D rendered",
+      "photorealistic",
+      "voxel",
+      "painterly",
+      "highly detailed"
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "background_plate",
+      "name": "Environment Background",
+      "category": "background",
+      "visual_description": "A 2D cartoon landscape with rolling green hills, a cloudy sky, barbed wire fences, small trees, and a dirt ground with a red underground layer. Soft gradients and no thick outlines.",
+      "gameplay_role": "Static backdrop for the gameplay.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        0.2,
+        0.4
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "image-to-image",
+        "inpainting"
+      ],
+      "animation_notes": "Static background.",
+      "background_plate_notes": "Clean up the castles and UI elements to create a seamless background plate.",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "blue_castle_exterior",
+      "name": "Player Castle Exterior",
+      "category": "castle",
+      "visual_description": "A tall, grey stone castle with two blue-roofed towers, a wooden base, and tank treads. Thick black outlines and flat colors.",
+      "gameplay_role": "The player's main base that houses units and takes damage.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        0.2,
+        0.4
+      ],
+      "approx_box_2d": [
+        250,
+        0,
+        800,
+        450
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "The castle itself is static, but the tank treads animate.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": [
+        {
+          "part_id": "tank_treads",
+          "description": "The metal tank treads at the base of the castle.",
+          "motion": "continuous rotation",
+          "frames_recommended": 8,
+          "loop": true
+        }
+      ]
+    },
+    {
+      "asset_id": "red_castle_exterior",
+      "name": "Enemy Castle Exterior",
+      "category": "castle",
+      "visual_description": "A tall, grey stone castle with two red-roofed towers, a wooden base, and tank treads. Thick black outlines and flat colors.",
+      "gameplay_role": "The enemy's main base that the player must destroy.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        0.2,
+        0.4
+      ],
+      "approx_box_2d": [
+        250,
+        550,
+        800,
+        1000
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "The castle itself is static, but the tank treads animate.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": [
+        {
+          "part_id": "tank_treads",
+          "description": "The metal tank treads at the base of the castle.",
+          "motion": "continuous rotation",
+          "frames_recommended": 8,
+          "loop": true
+        }
+      ]
+    },
+    {
+      "asset_id": "castle_interior_structure",
+      "name": "Castle Interior",
+      "category": "castle",
+      "visual_description": "The dark brick interior of the castle revealed when the outer wall is destroyed, featuring wooden platforms for units to stand on.",
+      "gameplay_role": "The structural framework where units are placed.",
+      "best_timestamp_s": 5.0,
+      "fallback_timestamps_s": [
+        5.2,
+        5.4
+      ],
+      "approx_box_2d": [
+        250,
+        0,
+        800,
+        450
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Static structure.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "red_cyclops_character",
+      "name": "Red Cyclops Unit",
+      "category": "character",
+      "visual_description": "A small, red, one-eyed cartoon character holding a red cannon. Thick black outlines and flat colors.",
+      "gameplay_role": "A player unit that shoots fireballs.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        5.6,
+        5.8
+      ],
+      "approx_box_2d": [
+        550,
+        200,
+        650,
+        300
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "animated_character_sheet",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Idle bouncing animation, shooting recoil animation.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "skeleton_character",
+      "name": "Skeleton Unit",
+      "category": "character",
+      "visual_description": "A small skeleton cartoon character holding a blue multi-barrel gun. Thick black outlines and flat colors.",
+      "gameplay_role": "A player unit that shoots rockets.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        5.6,
+        5.8
+      ],
+      "approx_box_2d": [
+        400,
+        100,
+        500,
+        200
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "animated_character_sheet",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Idle bouncing animation, shooting recoil animation.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "green_goblin_character",
+      "name": "Green Goblin Unit",
+      "category": "character",
+      "visual_description": "A small green goblin cartoon character with horns and a red headband, holding a green cannon. Thick black outlines and flat colors.",
+      "gameplay_role": "A player unit that shoots poison.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        5.6,
+        5.8
+      ],
+      "approx_box_2d": [
+        650,
+        100,
+        750,
+        200
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "animated_character_sheet",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Idle bouncing animation, shooting recoil animation.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "purple_ninja_character",
+      "name": "Purple Ninja Unit",
+      "category": "character",
+      "visual_description": "A small purple ninja cartoon character holding a sword. Thick black outlines and flat colors.",
+      "gameplay_role": "An enemy unit.",
+      "best_timestamp_s": 44.6,
+      "fallback_timestamps_s": [
+        44.8,
+        45.0
+      ],
+      "approx_box_2d": [
+        600,
+        200,
+        700,
+        300
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "animated_character_sheet",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Idle bouncing animation.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "red_rocket_projectile",
+      "name": "Red Rocket",
+      "category": "projectile",
+      "visual_description": "A small red rocket with grey fins and a white tip. Thick black outlines.",
+      "gameplay_role": "Projectile fired by the skeleton unit.",
+      "best_timestamp_s": 0.4,
+      "fallback_timestamps_s": [
+        0.6,
+        0.8
+      ],
+      "approx_box_2d": [
+        500,
+        250,
+        550,
+        350
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Static sprite that moves across the screen.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "rocket_smoke_trail",
+      "name": "Rocket Smoke Trail",
+      "category": "effect",
+      "visual_description": "A trail of grey, puffy smoke clouds left behind by the rocket.",
+      "gameplay_role": "Visual effect for the rocket projectile.",
+      "best_timestamp_s": 0.4,
+      "fallback_timestamps_s": [
+        0.6,
+        0.8
+      ],
+      "approx_box_2d": [
+        500,
+        350,
+        550,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Particles that fade out over time.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "stone_explosion_vfx",
+      "name": "Stone Explosion Impact",
+      "category": "effect",
+      "visual_description": "A burst of white light, grey smoke, and flying grey stone debris.",
+      "gameplay_role": "Visual effect when a rocket hits the castle wall.",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        1.2,
+        1.4
+      ],
+      "approx_box_2d": [
+        450,
+        450,
+        650,
+        650
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Burst animation expanding outwards and fading.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "orange_fireball_projectile",
+      "name": "Orange Fireball",
+      "category": "projectile",
+      "visual_description": "A glowing orange circular fireball.",
+      "gameplay_role": "Projectile fired by the cyclops unit.",
+      "best_timestamp_s": 29.4,
+      "fallback_timestamps_s": [
+        29.6,
+        29.8
+      ],
+      "approx_box_2d": [
+        400,
+        500,
+        450,
+        550
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Static sprite that moves across the screen.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fireball_smoke_trail",
+      "name": "Fireball Smoke Trail",
+      "category": "effect",
+      "visual_description": "A trail of brownish-orange puffy smoke clouds.",
+      "gameplay_role": "Visual effect for the fireball projectile.",
+      "best_timestamp_s": 29.4,
+      "fallback_timestamps_s": [
+        29.6,
+        29.8
+      ],
+      "approx_box_2d": [
+        400,
+        300,
+        450,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Particles that fade out over time.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fire_explosion_vfx",
+      "name": "Fire Explosion Impact",
+      "category": "effect",
+      "visual_description": "A large, fiery explosion with bright yellow and orange colors and dark smoke.",
+      "gameplay_role": "Visual effect when a fireball hits a target.",
+      "best_timestamp_s": 42.4,
+      "fallback_timestamps_s": [
+        42.6,
+        42.8
+      ],
+      "approx_box_2d": [
+        400,
+        400,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Burst animation expanding outwards and fading.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "green_poison_projectile",
+      "name": "Green Poison Blob",
+      "category": "projectile",
+      "visual_description": "A small, bright green blob or flask.",
+      "gameplay_role": "Projectile fired by the goblin unit.",
+      "best_timestamp_s": 38.6,
+      "fallback_timestamps_s": [
+        38.8,
+        39.0
+      ],
+      "approx_box_2d": [
+        500,
+        300,
+        550,
+        350
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Static sprite that moves across the screen.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "poison_splash_vfx",
+      "name": "Poison Splash Impact",
+      "category": "effect",
+      "visual_description": "A splash of bright green liquid and lingering green gas clouds.",
+      "gameplay_role": "Visual effect when poison hits a target.",
+      "best_timestamp_s": 39.4,
+      "fallback_timestamps_s": [
+        39.6,
+        39.8
+      ],
+      "approx_box_2d": [
+        500,
+        400,
+        700,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Splash animation followed by lingering, fading gas particles.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tombstone_prop",
+      "name": "RIP Tombstone",
+      "category": "other",
+      "visual_description": "A small grey tombstone with 'RIP' written on it. Thick black outlines.",
+      "gameplay_role": "Appears where a unit has been defeated.",
+      "best_timestamp_s": 23.0,
+      "fallback_timestamps_s": [
+        23.2,
+        23.4
+      ],
+      "approx_box_2d": [
+        600,
+        400,
+        700,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Static prop.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ghost_vfx",
+      "name": "Floating Ghost",
+      "category": "effect",
+      "visual_description": "A translucent blue ghost with a skull face.",
+      "gameplay_role": "Visual effect that floats up when a unit dies.",
+      "best_timestamp_s": 43.0,
+      "fallback_timestamps_s": [
+        43.2,
+        43.4
+      ],
+      "approx_box_2d": [
+        400,
+        400,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Floats upwards and fades out.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_character_cards",
+      "name": "Character Selection Cards",
+      "category": "ui",
+      "visual_description": "Square UI cards at the bottom of the screen showing portraits of the available units (Cyclops, Skeleton, Goblin) on a checkered background.",
+      "gameplay_role": "UI for selecting which unit to place.",
+      "best_timestamp_s": 5.4,
+      "fallback_timestamps_s": [
+        5.6,
+        5.8
+      ],
+      "approx_box_2d": [
+        800,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "image-to-image"
+      ],
+      "animation_notes": "Cards highlight when selected.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tutorial_hand",
+      "name": "Tutorial Pointing Hand",
+      "category": "ui",
+      "visual_description": "A realistic-looking human hand with a pointing index finger.",
+      "gameplay_role": "Guides the player on where to tap and drag.",
+      "best_timestamp_s": 7.4,
+      "fallback_timestamps_s": [
+        7.6,
+        7.8
+      ],
+      "approx_box_2d": [
+        500,
+        400,
+        800,
+        700
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Moves across the screen to demonstrate actions.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "aiming_trajectory_line",
+      "name": "Aiming Trajectory Indicator",
+      "category": "ui",
+      "visual_description": "A white dotted line extending from the unit, with a solid grey line indicating the pull-back direction.",
+      "gameplay_role": "Shows the predicted path of the projectile.",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [
+        8.2,
+        8.4
+      ],
+      "approx_box_2d": [
+        400,
+        300,
+        500,
+        800
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Stretches and rotates based on player input.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_health_bars",
+      "name": "Castle Health Indicators",
+      "category": "ui",
+      "visual_description": "White text showing percentage (e.g., '100%') with a small castle icon above it, located at the top corners.",
+      "gameplay_role": "Displays the remaining health of the castles.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        0.2,
+        0.4
+      ],
+      "approx_box_2d": [
+        50,
+        0,
+        200,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "image-to-image"
+      ],
+      "animation_notes": "Numbers update as damage is taken.",
+      "background_plate_notes": "",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_damage_numbers",
+      "name": "Damage Pop-up Numbers",
+      "category": "ui",
+      "visual_description": "White text with a black outline showing damage amounts (e.g., '-44').",
+      "gameplay_role": "Provides feedback on damage dealt.",
+      "best_timestamp_s": 3.0,
+      "fallback_timestamps_s": [
+        3.2,
+        3.4
+      ],
+      "approx_box_2d": [
+        400,
+        400,
+        500,
+        500
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Pops up and fades out quickly.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "pink_sparkle_vfx",
+      "name": "Pink Sparkle Burst",
+      "category": "effect",
+      "visual_description": "A burst of pink, star-shaped sparkles.",
+      "gameplay_role": "Visual effect associated with the ninja unit.",
+      "best_timestamp_s": 46.6,
+      "fallback_timestamps_s": [
+        46.8,
+        47.0
+      ],
+      "approx_box_2d": [
+        300,
+        300,
+        600,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "image-to-image",
+        "remove-background"
+      ],
+      "animation_notes": "Expands outwards and fades.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "end_screen_overlay",
+      "name": "Battle Failed End Screen",
+      "category": "ui",
+      "visual_description": "A red diagonal overlay with a checkered pattern, 'BATTLE FAILED' text, and reward icons (trophy, coins, wood).",
+      "gameplay_role": "End-of-game summary screen.",
+      "best_timestamp_s": 50.8,
+      "fallback_timestamps_s": [
+        51.0,
+        51.2
+      ],
+      "approx_box_2d": [
+        0,
+        500,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "image-to-image"
+      ],
+      "animation_notes": "Slides in from the right.",
+      "background_plate_notes": "",
+      "priority": 1,
+      "animated_parts": []
+    }
+  ],
+  "_gemini_model": "gemini-3.1-pro-preview",
+  "_gemini_file": {
+    "name": "files/xpe7p964ui81",
+    "uri": "https://generativelanguage.googleapis.com/v1beta/files/xpe7p964ui81"
+  }
+}

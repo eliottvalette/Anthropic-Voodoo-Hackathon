@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "asset_id": "background_plate",
+    "route": "background_plate",
+    "category": "background",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds/background_plate.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/background_plate.json",
+    "steps": [
+      "extract_clean_plate",
+      "scenario_background_cleanup",
+      "optional_lora_ab_test",
+      "gemini_plate_qa"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+      "model_hHuMquQ1QvEGHS1w7tGuYXud",
+      "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+      "model_uPCFzAgcZVB6sdTdRS7XXQ6Z"
+    ],
+    "gemini_tasks": [
+      "plate_occlusion_notes",
+      "candidate_qa"
+    ],
+    "outputs": {
+      "plate": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds/background_plate.png",
+      "lora_candidates": [
+        {
+          "model_id": "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+          "name": "Battle Arenas 2.0",
+          "best_for": "cartoon fantasy battlegrounds and side-view arena plates"
+        },
+        {
+          "model_id": "model_hHuMquQ1QvEGHS1w7tGuYXud",
+          "name": "Cartoon Backgrounds 2.0",
+          "best_for": "bold casual game backgrounds and end-card scenery"
+        },
+        {
+          "model_id": "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+          "name": "Bold Line Environments 2.0",
+          "best_for": "clean outlined environments with stylized depth"
+        },
+        {
+          "model_id": "model_uPCFzAgcZVB6sdTdRS7XXQ6Z",
+          "name": "Top-down TD Game",
+          "best_for": "top-down maps, lanes, forests, deserts, and strategy-game terrain"
+        }
+      ]
+    },
+    "prompts": {
+      "scenario_background": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Environment Background\nDescription: A 2D cartoon landscape with rolling green hills, a cloudy sky, barbed wire fences, small trees, and a dirt ground with a red underground layer. Soft gradients and no thick outlines.\nGameplay role: Static backdrop for the gameplay.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite."
+    },
+    "notes": [
+      "Opaque plate output; no alpha removal."
+    ]
+  },
+  "result": {
+    "asset_id": "background_plate",
+    "name": "Environment Background",
+    "category": "background",
+    "route": "background_plate",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/background_plate.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/backgrounds/background_plate.png",
+    "scenario_asset_id": "asset_5qyLv47D5tk2ndjXbzditJ6Q",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_uLRfUcadQAUF8tzeY2G1ASRS"
+      },
+      {
+        "step": "background_plate_cleanup",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_tKcai1mQNftP4D87TrfWTZw8",
+        "asset_id": "asset_5qyLv47D5tk2ndjXbzditJ6Q"
+      }
+    ]
+  }
+}

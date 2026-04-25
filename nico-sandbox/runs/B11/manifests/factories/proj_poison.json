@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "asset_id": "proj_poison",
+    "route": "static_sprite",
+    "category": "projectile",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_poison.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/proj_poison.json",
+    "steps": [
+      "upload_crop",
+      "scenario_gemini_recreate",
+      "photoroom_alpha",
+      "padding_trim"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_photoroom-background-removal",
+      "model_pixa-background-removal",
+      "model_scenario-padding-remover"
+    ],
+    "gemini_tasks": [
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_poison.png"
+    },
+    "prompts": {
+      "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Poison Projectile\nDescription: A green blob of poison leaving a green trail.\nGameplay role: \n\nReproduce the projectile's shape, silhouette, color, and art style exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+    },
+    "notes": [
+      "Video crop is reference evidence; Scenario recreation supplies final pixels."
+    ]
+  },
+  "result": {
+    "asset_id": "proj_poison",
+    "name": "Poison Projectile",
+    "category": "projectile",
+    "route": "static_sprite",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/proj_poison.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/proj_poison.png",
+    "scenario_asset_id": "asset_mCME8nJoVc6pMrkmJBmrkoe8",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_i4rsK4FTvoFP5Aj8DGypqET3"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_i8PbfdYEdY4PoUpgimNQZKLY",
+        "asset_ids": [
+          "asset_W1sUivGNdgFt4jBmxN8kUAf5",
+          "asset_VJa4PpvYqevjUBQRtemozwer",
+          "asset_uJLJmAWz62k1oLQof6uDNrAD",
+          "asset_vxboGwrZcKhPqhc4TeukfoLB"
+        ],
+        "selected_asset_id": "asset_vxboGwrZcKhPqhc4TeukfoLB"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_dQ9RyUvrdaszmihcQ7Y84Zas",
+        "asset_id": "asset_mDegHGqqrnPpgTAeTEnAtNJm",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_KnaHMBWfgwV7c7dP3MyhJseA ended with status failure: {'jobId': 'job_KnaHMBWfgwV7c7dP3MyhJseA', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_vxboGwrZcKhPqhc4TeukfoLB'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T16:23:02.194Z', 'updatedAt': '2026-04-25T16:23:10.810Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T16:23:02.194Z'}, {'status': 'in-progress', 'date': '2026-04-25T16:23:03.239Z'}, {'status': 'failure', 'date': '2026-04-25T16:23:10.810Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_CfypJX81pWuCFZGBdiWLPrEd",
+        "asset_id": "asset_mCME8nJoVc6pMrkmJBmrkoe8"
+      }
+    ]
+  }
+}

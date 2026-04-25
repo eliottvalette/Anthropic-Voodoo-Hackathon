@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Stone Explosion Impact",
+      "box_2d": [
+        512,
+        343,
+        655,
+        518
+      ],
+      "confidence": 0.95,
+      "notes": "A burst of white light, grey smoke, and flying grey stone debris on the castle wall."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}
