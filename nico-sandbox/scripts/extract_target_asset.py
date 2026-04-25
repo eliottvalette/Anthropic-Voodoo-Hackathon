@@ -102,7 +102,7 @@ Return 3 to 6 candidate moments if possible. For each candidate, give the boundi
 For a missile/rocket projectile, exclude smoke trail, launch puff, hand cursor, cannon, and impact VFX unless they are physically part of the projectile.
 Use box_2d format [ymin, xmin, ymax, xmax], normalized to 0-1000.
 
-Select the single best candidate for downstream crop -> Scenario background removal.
+Select the single best candidate for downstream crop -> Scenario Gemini recreation -> Scenario background removal -> padding trim.
 """.strip()
 
     part = types.Part(
@@ -161,9 +161,10 @@ def refine_target_box(frame_path: Path, target: str) -> dict[str, Any]:
     prompt = f"""
 Find the tight bounding box for the target asset only: {target}.
 
-This crop is for Scenario background removal. Include the complete missile/rocket body, nose, fins, and exhaust cap if visible.
-Exclude smoke trail, launch cloud, cannon, hand cursor, UI, background, impact particles, and unrelated objects.
-If there are multiple missiles, choose the largest, cleanest, most isolated one.
+This crop is the seed reference for Scenario Gemini recreation and later background removal. Include the complete target silhouette.
+For a missile/rocket projectile, include body, nose, fins, and exhaust cap if visible; exclude smoke trail, launch cloud, cannon, hand cursor, UI, background, impact particles, and unrelated objects.
+For other target types, include only the named asset and exclude scenery, UI, other units, and transient effects unless physically part of the asset.
+If there are multiple candidates, choose the largest, cleanest, most isolated one.
 Return [ymin, xmin, ymax, xmax] normalized to 0-1000.
 """.strip()
     config = types.GenerateContentConfig(
