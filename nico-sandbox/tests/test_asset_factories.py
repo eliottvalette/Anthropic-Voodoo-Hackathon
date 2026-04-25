@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import asset_factories
+import run_full_asset_pipeline
 import scenario_automation
 
 
@@ -127,6 +128,24 @@ class ScenarioAutomationPlanTests(unittest.TestCase):
             self.assertEqual(routes["bg_gameplay"], asset_factories.ROUTE_BACKGROUND_PLATE)
             self.assertIn("outputs", plan[0])
             self.assertIn("prompts", plan[1])
+
+
+class FullPipelineWrapperTests(unittest.TestCase):
+    def test_default_run_dir_uses_video_stem(self):
+        run_dir = run_full_asset_pipeline.default_run_dir(Path("/tmp/My Video!.mp4"))
+        self.assertEqual(run_dir.name, "my_video")
+        self.assertEqual(run_dir.parent.name, "runs")
+
+    def test_selected_items_filters_before_limit(self):
+        items = [
+            sample_item(asset_id="a"),
+            sample_item(asset_id="b"),
+            sample_item(asset_id="c"),
+        ]
+
+        selected = run_full_asset_pipeline.selected_items(items, ["b", "c"], 1)
+
+        self.assertEqual([item["asset_id"] for item in selected], ["b"])
 
 
 if __name__ == "__main__":
