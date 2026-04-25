@@ -40,49 +40,65 @@ export async function verify(
     canvasNonBlank = await page.evaluate(() => {
       const c = document.querySelector("canvas") as HTMLCanvasElement | null;
       if (!c) return false;
-      const ctx = c.getContext("2d");
+      const ctx = c.getContext("2d", { willReadFrequently: true });
       if (!ctx) return false;
       try {
-        const cx = Math.floor(c.width / 2);
-        const cy = Math.floor(c.height / 2);
-        const center = ctx.getImageData(cx, cy, 4, 4).data;
-        const corner = ctx.getImageData(0, 0, 1, 1).data;
-        for (let i = 0; i < center.length; i += 4) {
-          for (let k = 0; k < 3; k++) {
-            if (Math.abs(center[i + k]! - corner[k]!) > 6) return true;
+        const w = c.width, h = c.height;
+        const N = 6;
+        let rMin = 255, rMax = 0, gMin = 255, gMax = 0, bMin = 255, bMax = 0;
+        for (let i = 1; i < N; i++) {
+          for (let j = 1; j < N; j++) {
+            const x = Math.floor((w * i) / N);
+            const y = Math.floor((h * j) / N);
+            const d = ctx.getImageData(x, y, 1, 1).data;
+            if (d[0]! < rMin) rMin = d[0]!;
+            if (d[0]! > rMax) rMax = d[0]!;
+            if (d[1]! < gMin) gMin = d[1]!;
+            if (d[1]! > gMax) gMax = d[1]!;
+            if (d[2]! < bMin) bMin = d[2]!;
+            if (d[2]! > bMax) bMax = d[2]!;
           }
         }
+        const span = Math.max(rMax - rMin, gMax - gMin, bMax - bMin);
+        return span > 20;
       } catch {
         return false;
       }
-      return false;
     });
 
-    const before = await page.evaluate(() => {
-      const w = window as unknown as {
-        __engineState?: { snapshot?: () => unknown };
-      };
-      return w.__engineState?.snapshot?.() ?? null;
-    });
+    const readState = () =>
+      page.evaluate(() => {
+        const w = window as unknown as {
+          __engineState?: { snapshot?: () => unknown; inputs?: number };
+        };
+        const s = w.__engineState;
+        let snap: unknown = null;
+        try { snap = s?.snapshot?.() ?? null; } catch { snap = null; }
+        return { snap, inputs: s?.inputs ?? 0 };
+      });
+
+    const before = await readState();
 
     await page.tap("canvas", { position: { x: 180, y: 320 } }).catch(() => {});
+    await page.waitForTimeout(80);
     await page.mouse.move(180, 480);
     await page.mouse.down();
     await page.mouse.move(180, 320, { steps: 10 });
     await page.mouse.up();
-    await page.waitForTimeout(800);
 
-    const after = await page.evaluate(() => {
-      const w = window as unknown as {
-        __engineState?: { snapshot?: () => unknown };
-      };
-      return w.__engineState?.snapshot?.() ?? null;
-    });
-
-    interactionStateChange =
-      before !== null &&
-      after !== null &&
-      JSON.stringify(before) !== JSON.stringify(after);
+    let changed = false;
+    const deadline = Date.now() + 1000;
+    while (!changed && Date.now() < deadline) {
+      await page.waitForTimeout(100);
+      const cur = await readState();
+      const snapDiff =
+        before.snap !== null &&
+        cur.snap !== null &&
+        JSON.stringify(before.snap) !== JSON.stringify(cur.snap);
+      const inputsBumped = cur.inputs > before.inputs;
+      if (snapDiff || inputsBumped) changed = true;
+    }
+    interactionStateChange = changed;
   } finally {
     await browser.close();
   }
