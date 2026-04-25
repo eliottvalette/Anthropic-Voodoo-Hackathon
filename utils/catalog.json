@@ -193,6 +193,18 @@
             "swing",
             "swoosh"
           ]
+        },
+        {
+          "name": "glow-pulse",
+          "file": "vfx/glow-pulse.js",
+          "demo": "vfx/demos/glow-pulse.html",
+          "signature": "spawnGlowPulse(pulses, x, y, opts?)",
+          "description": "Soft radial-gradient glow that swells and fades — charge-up, target highlight, aura, AOE telegraph. Optional opts.tracks { x, y } follows a moving target. Sin-curve breathing envelope.",
+          "tags": [
+            "aura",
+            "highlight",
+            "charge"
+          ]
         }
       ]
     },
