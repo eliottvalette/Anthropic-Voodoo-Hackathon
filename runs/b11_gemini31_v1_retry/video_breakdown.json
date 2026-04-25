@@ -1,0 +1,116 @@
+{
+  "game_identity": {
+    "observed_title": "Castle Clashers",
+    "genre": "Tower Defense / Artillery",
+    "camera_and_orientation": "2D Side-view, Portrait",
+    "visual_style": "Cartoonish, 2D vector art"
+  },
+  "core_loop": {
+    "one_sentence": "Drag and drop units into your castle to automatically fire at and destroy the enemy's castle before yours falls.",
+    "player_goal": "Destroy the enemy castle by reducing its health to 0%.",
+    "failure_or_pressure": "The enemy castle continuously fires back, reducing your castle's health.",
+    "why_it_is_fun": "Satisfying destruction physics and the strategic placement of units to maximize damage."
+  },
+  "player_controls": [
+    {
+      "gesture": "Drag and drop",
+      "target": "Unit cards at the bottom to empty slots in the player's castle",
+      "result": "Places the unit, which then begins auto-firing at the enemy.",
+      "confidence": "high"
+    }
+  ],
+  "visible_ui": [
+    {
+      "element": "Health Bars",
+      "location": "Top left and right corners",
+      "purpose": "Show the remaining health percentage of both castles."
+    },
+    {
+      "element": "Unit Selection Menu",
+      "location": "Bottom of the screen",
+      "purpose": "Allows the player to select which units to deploy."
+    }
+  ],
+  "timeline_beats": [
+    {
+      "time_range": "00:00 - 00:04",
+      "event": "Initial combat exchange",
+      "gameplay_meaning": "Establishes the conflict and the threat of the enemy.",
+      "playable_relevance": "Sets the scene and urgency."
+    },
+    {
+      "time_range": "00:04 - 00:09",
+      "event": "Player deploys a unit",
+      "gameplay_meaning": "Core interaction: placing a defender/attacker.",
+      "playable_relevance": "The primary action the user will take in the playable."
+    },
+    {
+      "time_range": "00:36 - 00:44",
+      "event": "Player's castle is destroyed",
+      "gameplay_meaning": "Failure state reached.",
+      "playable_relevance": "Shows the consequence of not acting fast enough or making the wrong choices."
+    }
+  ],
+  "mechanics": [
+    {
+      "name": "Drag-and-Drop Deployment",
+      "description": "Moving units from a UI panel into specific slots in the game world.",
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Auto-Battling",
+      "description": "Deployed units automatically target and fire at the enemy.",
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Destructible Environments",
+      "description": "Castles visually break apart as they take damage.",
+      "implementation_priority": "should"
+    }
+  ],
+  "feedback_and_juice": [
+    {
+      "trigger": "Projectile hits castle",
+      "visual_or_audio_feedback": "Explosion particles, smoke, screen shake, flying debris, damage numbers.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Unit dies",
+      "visual_or_audio_feedback": "Unit disappears, replaced by a 'RIP' tombstone.",
+      "importance": "should"
+    }
+  ],
+  "playable_minimum": {
+    "must_include": [
+      "One deployable unit",
+      "Enemy castle that takes damage",
+      "Health bars",
+      "Basic projectile firing"
+    ],
+    "can_simplify": [
+      "Complex physics-based destruction (use sprite swapping for damage states instead)",
+      "Multiple unit types (stick to one for simplicity)"
+    ],
+    "should_avoid": [
+      "Menus",
+      "Upgrades",
+      "Complex tutorials"
+    ]
+  },
+  "variation_hooks": [
+    {
+      "parameter": "Enemy firing rate",
+      "effect": "Changes the difficulty and urgency.",
+      "safe_range_or_values": "Slow to medium"
+    },
+    {
+      "parameter": "Unit damage",
+      "effect": "Changes how quickly the player can win.",
+      "safe_range_or_values": "10-30% per hit"
+    }
+  ],
+  "open_questions_or_assumptions": [
+    "Do different slots in the castle provide different advantages (e.g., range)?",
+    "Are the projectile trajectories physics-based or just visual animations?"
+  ]
+}
