@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "castle_interior",
+      "box_2d": [
+        225,
+        410,
+        700,
+        805
+      ],
+      "confidence": 0.95,
+      "notes": "The dark brick interior of the castle revealed when the outer wall is destroyed, featuring wooden platforms for units to stand on."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

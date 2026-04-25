@@ -1,0 +1,27 @@
+{
+  "boxes": [
+    {
+      "label": "Castle Health Indicators",
+      "box_2d": [
+        71,
+        33,
+        190,
+        224
+      ],
+      "confidence": 0.9,
+      "notes": "Blue castle health indicator at the top left."
+    },
+    {
+      "label": "Castle Health Indicators",
+      "box_2d": [
+        71,
+        773,
+        190,
+        964
+      ],
+      "confidence": 0.9,
+      "notes": "Red castle health indicator at the top right."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

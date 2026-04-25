@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "asset_id": "red_rocket_projectile",
+    "route": "static_sprite",
+    "category": "projectile",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/red_rocket_projectile.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/manifests/factories/red_rocket_projectile.json",
+    "steps": [
+      "upload_crop",
+      "scenario_gemini_recreate",
+      "photoroom_alpha",
+      "padding_trim"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_photoroom-background-removal",
+      "model_pixa-background-removal",
+      "model_scenario-padding-remover"
+    ],
+    "gemini_tasks": [
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/red_rocket_projectile.png"
+    },
+    "prompts": {
+      "scenario": "Using the reference crop, recreate ONLY the projectile body as a clean 2D mobile game sprite ready for direct engine use.\n\nAsset: Red Rocket\nDescription: A small red rocket with grey fins and a white tip. Thick black outlines.\nGameplay role: Projectile fired by the skeleton unit.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D cartoon mobile game with thick black outlines, flat colors, and a sticker-like aesthetic.\nRendering technique: 2D vector-style cartoon\nLine work: Thick, consistent black outlines on all foreground elements.\nPalette: Muted earth tones for the environment, with saturated primary colors for characters, projectiles, and UI elements.\nShading: Flat colors with minimal shading on characters/props; soft gradients used sparingly in the background.\nScale / proportions: Chibi/stylized proportions, sticker-like characters and props.\nDO NOT use any of these styles: pixel art, 3D rendered, photorealistic, voxel, painterly, highly detailed.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nReproduce the projectile's shape, silhouette, and color exactly.\nCenter it on a transparent background with comfortable padding.\n\nSTRICT EXCLUSIONS — do NOT include any of the following:\n- smoke trails, exhaust plumes, fire trails, or motion streaks\n- launch effects, impact particles, or debris\n- glow auras, light flares, or bloom\n- any visual effect that is NOT the hard body of the projectile\n\nThe game engine will add all visual effects (trails, explosions, glows) at runtime.\nThis sprite is the clean projectile object only — imagine it sitting still on a shelf with no motion."
+    },
+    "notes": [
+      "Video crop is reference evidence; Scenario recreation supplies final pixels."
+    ]
+  },
+  "result": {
+    "asset_id": "red_rocket_projectile",
+    "name": "Red Rocket",
+    "category": "projectile",
+    "route": "static_sprite",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/red_rocket_projectile.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/final-assets/projectiles/red_rocket_projectile.png",
+    "scenario_asset_id": "asset_gEwaYhERbDyhtPBXLpVENdx9",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_gPLm5PrA2vyaTwLzBo99W6af"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_5zLQ7227Xb4z97rGCfQZg8VJ",
+        "asset_ids": [
+          "asset_9jzsajoXEnkXXe6n1eaUeSAv",
+          "asset_Y9wbw4DCBaonXqKA6p6Mrz9A",
+          "asset_qJdyuphKaakBBh8fp77i7yLb",
+          "asset_EePZnm9poka2CRY3snrZxgWa"
+        ],
+        "selected_asset_id": "asset_EePZnm9poka2CRY3snrZxgWa"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_pixa-background-removal",
+        "job_id": "job_5Av33gVKwLj99LjXPzdusMgu",
+        "asset_id": "asset_TCxfnzVPNKtsnt8yoGSL1WKB",
+        "fallback_from": [
+          {
+            "model_id": "model_photoroom-background-removal",
+            "error": "Scenario job job_dbGyjxqYvKaZ56tVgNgHuUpA ended with status failure: {'jobId': 'job_dbGyjxqYvKaZ56tVgNgHuUpA', 'jobType': 'custom', 'billing': {'cuCost': 3, 'cuDiscount': 0}, 'metadata': {'input': {'modelId': 'model_photoroom-background-removal', 'image': 'asset_EePZnm9poka2CRY3snrZxgWa'}, 'assetIds': [], 'error': 'Message: No more Photoroom credits. Response: {\"error\":{\"message\":\"You have exhausted the number of images in your plan. Visit https://app.photoroom.com/api-dashboard to update your plan\"}} Status Code: 402'}, 'ownerId': 'proj_oFDZiC4c1jnuKYUAaNGe4g7X', 'authorId': 'apiu_1257b9e7cAb6651B1333f67B', 'createdAt': '2026-04-25T17:03:04.732Z', 'updatedAt': '2026-04-25T17:03:12.022Z', 'status': 'failure', 'statusHistory': [{'status': 'pending', 'date': '2026-04-25T17:03:04.732Z'}, {'status': 'in-progress', 'date': '2026-04-25T17:03:05.454Z'}, {'status': 'failure', 'date': '2026-04-25T17:03:12.022Z'}], 'progress': 1}"
+          }
+        ]
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_SKZCD5GmVGMR1PPt2erq4rQF",
+        "asset_id": "asset_gEwaYhERbDyhtPBXLpVENdx9"
+      }
+    ]
+  }
+}

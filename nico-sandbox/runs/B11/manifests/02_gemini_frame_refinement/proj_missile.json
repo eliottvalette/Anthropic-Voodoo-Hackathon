@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Missile Projectile",
+      "box_2d": [
+        489,
+        423,
+        519,
+        512
+      ],
+      "confidence": 0.95,
+      "notes": "A small grey missile with a red tip, leaving a smoke trail."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

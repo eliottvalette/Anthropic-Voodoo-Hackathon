@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Red Cyclops Unit",
+      "box_2d": [
+        579,
+        438,
+        631,
+        501
+      ],
+      "confidence": 0.95,
+      "notes": "A small, red, one-eyed cartoon character holding a red cannon."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

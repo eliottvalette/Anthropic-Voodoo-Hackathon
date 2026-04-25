@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Green Goblin Unit",
+      "box_2d": [
+        579,
+        225,
+        624,
+        297
+      ],
+      "confidence": 0.9,
+      "notes": "The Green Goblin Unit is visible inside the left tower, positioned below the Skeleton Unit."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,84 @@
+{
+  "asset_id": "fire_explosion_vfx",
+  "name": "Fire Explosion Impact",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/B11/extracted/crops/fire_explosion_vfx.png",
+  "payload": {
+    "summary": "A multi-layered procedural explosion combining a central additive fire flash, radial spark bursts, expanding smoke clouds, and gravity-affected debris chunks. It uses a single generated circle texture with varying blend modes and tinting to achieve the high-contrast impact look without external assets.",
+    "duration_ms": 1000,
+    "palette": [
+      "#FFFF00",
+      "#FF8C00",
+      "#FF4500",
+      "#444444",
+      "#222222"
+    ],
+    "particle_config": {
+      "fire": {
+        "count": 15,
+        "lifespan": 400,
+        "speed": {
+          "min": 50,
+          "max": 150
+        },
+        "scale": {
+          "start": 3,
+          "end": 0
+        },
+        "blendMode": "ADD"
+      },
+      "sparks": {
+        "count": 20,
+        "lifespan": 600,
+        "speed": {
+          "min": 200,
+          "max": 500
+        },
+        "scale": {
+          "start": 0.5,
+          "end": 0
+        },
+        "alpha": {
+          "start": 1,
+          "end": 0
+        }
+      },
+      "debris": {
+        "count": 8,
+        "lifespan": 800,
+        "speed": {
+          "min": 100,
+          "max": 300
+        },
+        "gravityY": 800,
+        "scale": {
+          "start": 1,
+          "end": 0.5
+        },
+        "rotate": {
+          "start": 0,
+          "end": 360
+        }
+      },
+      "smoke": {
+        "count": 10,
+        "lifespan": 1000,
+        "speed": {
+          "min": 20,
+          "max": 60
+        },
+        "scale": {
+          "start": 1,
+          "end": 4
+        },
+        "alpha": {
+          "start": 0.6,
+          "end": 0
+        }
+      }
+    },
+    "typescript": "function createFireExplosion(scene: Phaser.Scene, x: number, y: number) {\n  // Generate procedural circle texture if it doesn't exist\n  if (!scene.textures.exists('vfx_dot')) {\n    const graphics = scene.make.graphics({ x: 0, y: 0, add: false });\n    graphics.fillStyle(0xffffff);\n    graphics.fillCircle(8, 8, 8);\n    graphics.generateTexture('vfx_dot', 16, 16);\n  }\n\n  const emitterManager = scene.add.particles(x, y, 'vfx_dot', {\n    emitting: false\n  });\n\n  // 1. Core Fireball\n  emitterManager.createEmitter({\n    tint: [0xFFFF00, 0xFF8C00, 0xFF4500],\n    blendMode: 'ADD',\n    lifespan: 400,\n    speed: { min: 50, max: 200 },\n    scale: { start: 4, end: 0 },\n    quantity: 15,\n    frequency: -1\n  }).explode();\n\n  // 2. High-speed Sparks\n  emitterManager.createEmitter({\n    tint: 0xFFFF00,\n    lifespan: { min: 300, max: 600 },\n    speed: { min: 300, max: 600 },\n    scale: { start: 0.6, end: 0 },\n    quantity: 25,\n    frequency: -1\n  }).explode();\n\n  // 3. Dark Debris Chunks\n  emitterManager.createEmitter({\n    tint: 0x333333,\n    lifespan: 800,\n    speed: { min: 150, max: 350 },\n    gravityY: 1000,\n    scale: { start: 1.5, end: 0.5 },\n    rotate: { start: 0, end: 720 },\n    quantity: 10,\n    frequency: -1\n  }).explode();\n\n  // 4. Expanding Smoke\n  emitterManager.createEmitter({\n    tint: 0x222222,\n    lifespan: 1000,\n    speed: { min: 20, max: 80 },\n    scale: { start: 1, end: 5 },\n    alpha: { start: 0.5, end: 0 },\n    quantity: 12,\n    frequency: -1\n  }).explode();\n\n  // 5. Shockwave Ring (Procedural Graphics)\n  const ring = scene.add.graphics();\n  ring.lineStyle(4, 0xFFFF00, 1);\n  ring.strokeCircle(x, y, 10);\n  scene.tweens.add({\n    targets: ring,\n    alpha: 0,\n    scale: 8,\n    duration: 300,\n    onComplete: () => ring.destroy()\n  });\n\n  // Cleanup\n  scene.time.delayedCall(1000, () => emitterManager.destroy());\n}"
+  }
+}

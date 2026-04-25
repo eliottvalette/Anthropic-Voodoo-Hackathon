@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Pink Sparkle Burst",
+      "box_2d": [
+        373,
+        236,
+        618,
+        658
+      ],
+      "confidence": 0.9,
+      "notes": "A burst of pink, star-shaped sparkles."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}
