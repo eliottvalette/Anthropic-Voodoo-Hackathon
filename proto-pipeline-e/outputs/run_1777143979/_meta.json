@@ -1,0 +1,88 @@
+{
+  "runId": "run_1777143979",
+  "variant": "_default",
+  "videoPath": "/Users/mathisvillaret/Documents (mac)/Le CODE/Anthropic-Voodoo-Hackathon/ressources/Castle Clashers/Video Example/B01.mp4",
+  "assetsDir": "/Users/mathisvillaret/Documents (mac)/Le CODE/Anthropic-Voodoo-Hackathon/ressources/Castle Clashers/Assets",
+  "startedAt": "2026-04-25T19:06:19.709Z",
+  "endedAt": "2026-04-25T19:09:58.712Z",
+  "totalLatencyMs": 219003,
+  "totalTokensIn": 22792,
+  "totalTokensOut": 9360,
+  "stages": [
+    {
+      "step": "0_probe",
+      "model": "ffprobe",
+      "tokensIn": 0,
+      "tokensOut": 0,
+      "latencyMs": 246,
+      "attempt": 1
+    },
+    {
+      "step": "1a_timeline",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5204,
+      "tokensOut": 791,
+      "latencyMs": 17500,
+      "attempt": 1
+    },
+    {
+      "step": "1b_mechanics",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5230,
+      "tokensOut": 766,
+      "latencyMs": 18652,
+      "attempt": 1
+    },
+    {
+      "step": "1c_visual_ui",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 5151,
+      "tokensOut": 880,
+      "latencyMs": 19163,
+      "attempt": 1
+    },
+    {
+      "step": "1d_merge",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 2691,
+      "tokensOut": 440,
+      "latencyMs": 11977,
+      "attempt": 1
+    },
+    {
+      "step": "2_assets",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 1071,
+      "tokensOut": 593,
+      "latencyMs": 10566,
+      "attempt": 1
+    },
+    {
+      "step": "3_aggregator",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 1761,
+      "tokensOut": 1418,
+      "latencyMs": 27599,
+      "attempt": 1
+    },
+    {
+      "step": "4_codegen",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 1684,
+      "tokensOut": 4472,
+      "latencyMs": 129763,
+      "attempt": 1
+    }
+  ],
+  "verify": {
+    "sizeBytes": 3068045,
+    "sizeOk": true,
+    "consoleErrors": [],
+    "canvasNonBlank": true,
+    "mraidOk": true,
+    "mechanicStringMatch": true,
+    "interactionStateChange": true,
+    "runs": true
+  },
+  "retries": 0
+}

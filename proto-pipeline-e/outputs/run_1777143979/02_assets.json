@@ -1,0 +1,62 @@
+{
+  "roles": [
+    {
+      "role": "player_castle",
+      "description": "The player's destructible base, identified as the blue castle.",
+      "filename": "Blue Castle.png",
+      "match_confidence": "high",
+      "note": "Directly matches the loss condition referring to the player's (blue) castle."
+    },
+    {
+      "role": "enemy_castle",
+      "description": "The enemy's destructible base, identified as the red castle.",
+      "filename": "Red Castle.png",
+      "match_confidence": "high",
+      "note": "Directly matches the win condition referring to the enemy (red) castle."
+    },
+    {
+      "role": "background",
+      "description": "The 2D cartoon environment background.",
+      "filename": "Background.png",
+      "match_confidence": "high"
+    },
+    {
+      "role": "unit_weapon_1",
+      "description": "A selectable unit or weapon from the bottom character selection panel.",
+      "filename": "Weapon_1.png",
+      "match_confidence": "medium",
+      "note": "Represents one of the selectable units (e.g., Red Alien, Skeleton, or Goblin)."
+    },
+    {
+      "role": "unit_weapon_2",
+      "description": "Another selectable unit or weapon from the bottom character selection panel.",
+      "filename": "Weapon_2.png",
+      "match_confidence": "medium",
+      "note": "Represents a second selectable unit."
+    },
+    {
+      "role": "projectile_1",
+      "description": "A unique projectile launched by a unit (e.g., Missile or Tombstone).",
+      "filename": "Projectile_1.png",
+      "match_confidence": "high"
+    },
+    {
+      "role": "projectile_2",
+      "description": "A second unique projectile launched by a unit.",
+      "filename": "Projectile_2.png",
+      "match_confidence": "high"
+    },
+    {
+      "role": "background_music",
+      "description": "The background music track for the game.",
+      "filename": "Music.ogg",
+      "match_confidence": "high"
+    },
+    {
+      "role": "shoot_sfx",
+      "description": "Sound effect for dragging, releasing, or projectile impact.",
+      "filename": "Sfx.wav",
+      "match_confidence": "high"
+    }
+  ]
+}

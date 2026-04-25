@@ -1,0 +1,15 @@
+{
+  "totalLatencyMs": 10575,
+  "totalTokensIn": 1071,
+  "totalTokensOut": 593,
+  "subCalls": [
+    {
+      "step": "2_assets",
+      "model": "gemini-3.1-pro-preview",
+      "tokensIn": 1071,
+      "tokensOut": 593,
+      "latencyMs": 10566,
+      "attempt": 1
+    }
+  ]
+}
