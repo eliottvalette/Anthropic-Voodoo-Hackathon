@@ -1,0 +1,42 @@
+{
+  "summary_one_sentence": "In this 2D cartoon artillery game, the player drags and releases various units to launch unique projectiles at an enemy castle while defending their own destructible base from automated counter-attacks.",
+  "core_loop": [
+    "Select a unit from the bottom character selection panel.",
+    "Drag and release to aim and fire the unit's unique projectiles at the enemy castle.",
+    "Deal damage to the enemy castle's health and destructible environment.",
+    "Survive automated incoming projectile attacks from the enemy castle."
+  ],
+  "primary_control": {
+    "name": "aim_and_shoot",
+    "gesture": "drag_and_release"
+  },
+  "win_condition": "Reduce the enemy (red) castle's health to 0%.",
+  "loss_condition": "The player's (blue) castle's health is reduced to 0%.",
+  "art_style": "2D cartoon",
+  "palette_hex": [
+    "#0099FF",
+    "#FF0000",
+    "#A1D490",
+    "#C0C0C0",
+    "#333333"
+  ],
+  "hud": [
+    "Health bars (Top left and top right)",
+    "VS indicator (Top center)",
+    "Character selection panel (Bottom)"
+  ],
+  "characters_or_props": [
+    "Mobile Castle",
+    "Red Alien Unit",
+    "Skeleton Unit",
+    "Goblin Unit",
+    "Missile",
+    "Tombstone"
+  ],
+  "resolved_contradictions": [],
+  "open_questions": [
+    "Are there other unit types available to unlock or select?",
+    "Does the player have any defensive abilities, or is it purely a damage race?",
+    "How is the enemy auto-attack rate or damage determined?"
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "timeline": {
+    "events": [
+      {
+        "time_range": "00:00.000-00:03.000",
+        "observation": "The left castle is struck by projectiles and its health decreases.",
+        "gameplay_meaning": "The player's base is taking damage from an enemy attack.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:03.000-00:08.000",
+        "observation": "A hand cursor drags a red character to aim and fire it at the right castle, causing damage.",
+        "gameplay_meaning": "The player is executing an attack by launching a character as a projectile.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:08.000-00:13.000",
+        "observation": "The left castle is hit by more projectiles, further reducing its health.",
+        "gameplay_meaning": "The enemy is counter-attacking the player's base.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:13.000-00:24.000",
+        "observation": "A hand cursor aims and fires a skeleton character, which launches a barrage of rockets at the right castle.",
+        "gameplay_meaning": "The player uses a different unit type to perform a multi-projectile attack.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:24.000-00:29.000",
+        "observation": "The left castle is hit again by incoming projectiles.",
+        "gameplay_meaning": "The player's base continues to take damage from enemy fire.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:29.000-00:36.000",
+        "observation": "A hand cursor aims and fires a goblin character, shooting a green projectile at the right castle.",
+        "gameplay_meaning": "The player deploys a third type of unit for an attack.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:36.000-00:40.000",
+        "observation": "The left castle sustains another hit, dropping its health significantly.",
+        "gameplay_meaning": "The player's base is nearing destruction due to enemy attacks.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:40.000-00:53.000",
+        "observation": "The skeleton character is aimed upwards and fired, causing rockets to rain down on the right castle.",
+        "gameplay_meaning": "The player utilizes an arcing attack trajectory to hit the enemy base.",
+        "confidence": "high"
+      },
+      {
+        "time_range": "00:53.000-00:57.000",
+        "observation": "The game's title screen, 'Castle Clashers', is displayed with a 'Play' button.",
+        "gameplay_meaning": "The gameplay sequence concludes, showing the promotional end screen.",
+        "confidence": "high"
+      }
+    ]
+  },
+  "mechanics": {
+    "controls": [
+      {
+        "name": "aim_and_shoot",
+        "gesture": "drag_and_release",
+        "result": "Displays a trajectory line while dragging from a unit, and fires the unit's specific projectile(s) upon release.",
+        "evidence_timestamps": [
+          "00:04-00:07",
+          "00:14-00:17",
+          "00:29-00:32",
+          "00:41-00:44"
+        ],
+        "confidence": "high"
+      }
+    ],
+    "mechanics": [
+      {
+        "name": "Castle Health System",
+        "description": "Both the player's and the enemy's castles have a health percentage displayed at the top of the screen. Taking damage from projectiles reduces this health.",
+        "evidence_timestamps": [
+          "00:00-00:53"
+        ],
+        "implementation_priority": "must"
+      },
+      {
+        "name": "Destructible Environments",
+        "description": "The castles visually break apart, losing blocks and sections as they take damage from attacks.",
+        "evidence_timestamps": [
+          "00:01-00:03",
+          "00:11-00:13",
+          "00:26-00:28",
+          "00:38-00:40"
+        ],
+        "implementation_priority": "should"
+      },
+      {
+        "name": "Unique Unit Attacks",
+        "description": "Different units possess unique attack types. For example, the red unit fires a single rocket, the skeleton fires a barrage of smaller rockets, and the green goblin fires an explosive projectile.",
+        "evidence_timestamps": [
+          "00:07",
+          "00:17",
+          "00:32",
+          "00:44"
+        ],
+        "implementation_priority": "must"
+      },
+      {
+        "name": "Enemy Auto-Attack",
+        "description": "The enemy castle automatically fires projectiles at the player's castle at regular intervals.",
+        "evidence_timestamps": [
+          "00:00-00:02",
+          "00:10-00:12",
+          "00:25-00:27",
+          "00:37-00:39"
+        ],
+        "implementation_priority": "must"
+      },
+      {
+        "name": "Unit Death",
+        "description": "Units inside the castles can be destroyed by incoming fire, leaving behind a tombstone.",
+        "evidence_timestamps": [
+          "00:08-00:09",
+          "00:21-00:23",
+          "00:34-00:36"
+        ],
+        "implementation_priority": "could"
+      }
+    ],
+    "win_condition": "Reduce the enemy (red) castle's health to 0%.",
+    "loss_condition": "The player's (blue) castle's health is reduced to 0%.",
+    "contradictions": []
+  },
+  "visualUi": {
+    "art_style": "2D cartoon",
+    "palette_hex": [
+      "#0099FF",
+      "#FF0000",
+      "#A1D490",
+      "#C0C0C0",
+      "#333333"
+    ],
+    "hud": [
+      {
+        "element": "Health bars",
+        "location": "Top left and top right",
+        "purpose": "Show the remaining health percentage of each player's castle",
+        "evidence_timestamps": [
+          "00:00",
+          "00:10",
+          "00:30"
+        ]
+      },
+      {
+        "element": "VS indicator",
+        "location": "Top center",
+        "purpose": "Indicates the versus nature of the game",
+        "evidence_timestamps": [
+          "00:00",
+          "00:20",
+          "00:40"
+        ]
+      },
+      {
+        "element": "Character selection panel",
+        "location": "Bottom",
+        "purpose": "Allows the player to select which unit to use for the next attack",
+        "evidence_timestamps": [
+          "00:03",
+          "00:14",
+          "00:29"
+        ]
+      }
+    ],
+    "vfx": [
+      "Explosions",
+      "Smoke trails",
+      "Fire",
+      "Trajectory lines",
+      "Damage numbers"
+    ],
+    "screens": [
+      {
+        "name": "gameplay",
+        "description": "The main battle phase where players take turns attacking each other's castles.",
+        "evidence_timestamps": [
+          "00:00",
+          "00:53"
+        ]
+      },
+      {
+        "name": "end",
+        "description": "The final screen displaying the game title and a call to action.",
+        "evidence_timestamps": [
+          "00:53",
+          "00:57"
+        ]
+      }
+    ],
+    "characters_or_props": [
+      {
+        "label": "Mobile Castle",
+        "role_guess": "Player base",
+        "evidence_timestamps": [
+          "00:00",
+          "00:20",
+          "00:40"
+        ]
+      },
+      {
+        "label": "Red Alien Unit",
+        "role_guess": "Attacking character",
+        "evidence_timestamps": [
+          "00:03",
+          "00:06"
+        ]
+      },
+      {
+        "label": "Skeleton Unit",
+        "role_guess": "Attacking character",
+        "evidence_timestamps": [
+          "00:14",
+          "00:16"
+        ]
+      },
+      {
+        "label": "Goblin Unit",
+        "role_guess": "Attacking character",
+        "evidence_timestamps": [
+          "00:29",
+          "00:31"
+        ]
+      },
+      {
+        "label": "Missile",
+        "role_guess": "Projectile weapon",
+        "evidence_timestamps": [
+          "00:07",
+          "00:17",
+          "00:44"
+        ]
+      },
+      {
+        "label": "Tombstone",
+        "role_guess": "Indicator of a destroyed unit",
+        "evidence_timestamps": [
+          "00:09",
+          "00:22",
+          "00:46"
+        ]
+      }
+    ]
+  }
+}
