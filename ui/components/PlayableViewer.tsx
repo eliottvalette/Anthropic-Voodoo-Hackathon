@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+const GAME_W = 360
+const GAME_H = 640
 
 interface PlayableViewerProps {
   html: string
@@ -8,6 +11,8 @@ interface PlayableViewerProps {
 
 export default function PlayableViewer({ html }: PlayableViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string>('')
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
 
   useEffect(() => {
     const blob = new Blob([html], { type: 'text/html' })
@@ -15,6 +20,16 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
     setBlobUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [html])
+
+  useEffect(() => {
+    const el = wrapperRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      setScale(Math.min(1, entry.contentRect.width / GAME_W))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const handleDownload = () => {
     const a = document.createElement('a')
@@ -41,21 +56,26 @@ export default function PlayableViewer({ html }: PlayableViewerProps) {
         </button>
       </div>
 
-      <div className="flex justify-center">
-        <div
-          className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-black"
-          style={{ width: 360, height: 640 }}
-        >
-          {blobUrl && (
-            <iframe
-              src={blobUrl}
-              className="w-full h-full"
-              style={{ border: 'none' }}
-              title="Playable Preview"
-              sandbox="allow-scripts allow-same-origin"
-            />
-          )}
-        </div>
+      <div
+        ref={wrapperRef}
+        className="w-full overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-black"
+        style={{ height: GAME_H * scale }}
+      >
+        {blobUrl && (
+          <iframe
+            src={blobUrl}
+            style={{
+              width: GAME_W,
+              height: GAME_H,
+              border: 'none',
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              display: 'block',
+            }}
+            title="Playable Preview"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        )}
       </div>
     </div>
   )

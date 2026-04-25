@@ -44,3 +44,9 @@ body {
   background-image: radial-gradient(circle, #C9D2DC 1px, transparent 1px);
   background-size: 22px 22px;
 }
+
+@media (min-width: 1024px) {
+  .preview-grid {
+    grid-template-columns: minmax(0, 1fr) 416px;
+  }
+}
