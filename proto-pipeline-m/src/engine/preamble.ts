@@ -15,7 +15,16 @@ export const PREAMBLE_HTML = `<!doctype html>
   window.__cta=function(url){
     if(typeof mraid!=='undefined'&&mraid.open){mraid.open(url);}else{window.open(url,'_blank');}
   };
-  window.__engineState={ snapshot:function(){return {entityCount:0,score:0};} };
+  window.__engineState={
+    inputs:0,
+    frames:0,
+    snapshot:function(){return {inputs:this.inputs,frames:this.frames};}
+  };
+  function __bumpInput(){window.__engineState.inputs++;}
+  window.addEventListener('pointerdown',__bumpInput,true);
+  window.addEventListener('pointerup',__bumpInput,true);
+  window.addEventListener('touchstart',__bumpInput,true);
+  (function tick(){window.__engineState.frames++;requestAnimationFrame(tick);})();
   whenReady(function(){
     ${ASSETS_SLOT}
     ${CREATIVE_SLOT}

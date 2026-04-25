@@ -16,7 +16,16 @@ ENGINE PREAMBLE (you MUST include this verbatim, then fill the two slots):
   window.__cta=function(url){
     if(typeof mraid!=='undefined'&&mraid.open){mraid.open(url);}else{window.open(url,'_blank');}
   };
-  window.__engineState={ snapshot:function(){return {entityCount:0,score:0};} };
+  window.__engineState={
+    inputs:0,
+    frames:0,
+    snapshot:function(){return {inputs:this.inputs,frames:this.frames};}
+  };
+  function __bumpInput(){window.__engineState.inputs++;}
+  window.addEventListener('pointerdown',__bumpInput,true);
+  window.addEventListener('pointerup',__bumpInput,true);
+  window.addEventListener('touchstart',__bumpInput,true);
+  (function tick(){window.__engineState.frames++;requestAnimationFrame(tick);})();
   whenReady(function(){
     /* ASSETS_BASE64 */
     /* CREATIVE_SLOT */
@@ -27,7 +36,7 @@ ENGINE PREAMBLE (you MUST include this verbatim, then fill the two slots):
 
 Your job:
 1. Replace /* ASSETS_BASE64 */ with `const A = { <role>: "data:image/png;base64,...", ... };` using the asset data the runtime injects (you will be told the roles; the runtime resolves filenames to base64).
-2. Replace /* CREATIVE_SLOT */ with the gameplay JS: a requestAnimationFrame loop, input handling via canvas pointer events, drawing on the canvas, and overriding window.__engineState.snapshot to return live {entityCount, score}.
+2. Replace /* CREATIVE_SLOT */ with the gameplay JS: a requestAnimationFrame loop, input handling via canvas pointer events, drawing on the canvas, and overriding window.__engineState.snapshot to return MONOTONIC counters that strictly increase on player input (e.g. {tapsTotal, dragsTotal, score}). Never return only transient values that can reset to baseline between samples.
 3. Output ONLY the full HTML document. No prose, no markdown fences, no commentary.
 
 Hard rules (failure = immediate retry):
