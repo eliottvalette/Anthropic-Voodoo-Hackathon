@@ -1,0 +1,139 @@
+{
+  "game_identity": {
+    "observed_title": "Castle Clashers",
+    "genre": "Artillery / Base Defense",
+    "camera_and_orientation": "2D Side-scrolling, Landscape",
+    "visual_style": "Cartoonish, vector-based 2D art"
+  },
+  "core_loop": {
+    "one_sentence": "Aim and fire weapons from your mobile fortress to destroy the enemy's fortress before they destroy yours.",
+    "player_goal": "Reduce the enemy castle's health to 0%.",
+    "failure_or_pressure": "The enemy castle continuously fires back, reducing your health.",
+    "why_it_is_fun": "Satisfying physics-based destruction and the tactical choice of aiming at specific weak points."
+  },
+  "player_controls": [
+    {
+      "gesture": "Drag and release",
+      "target": "Characters inside the player's castle",
+      "result": "Aims a trajectory line and fires a projectile upon release",
+      "confidence": "high"
+    }
+  ],
+  "visible_ui": [
+    {
+      "element": "Health Bars and Percentages",
+      "location": "Top left (Player) and Top right (Enemy)",
+      "purpose": "Show current health status of both castles"
+    },
+    {
+      "element": "Trajectory Line",
+      "location": "Originating from the selected character",
+      "purpose": "Assist the player in aiming their shot"
+    }
+  ],
+  "timeline_beats": [
+    {
+      "time_range": "00:00 - 00:03",
+      "event": "Enemy attacks player castle",
+      "gameplay_meaning": "Establishes the threat and failure condition",
+      "playable_relevance": "Creates immediate urgency for the player to act"
+    },
+    {
+      "time_range": "00:03 - 00:07",
+      "event": "Player aims and fires a rocket",
+      "gameplay_meaning": "Demonstrates the core aiming and shooting mechanic",
+      "playable_relevance": "The primary interaction the user will perform"
+    },
+    {
+      "time_range": "00:07 - 00:10",
+      "event": "Rocket impacts enemy castle",
+      "gameplay_meaning": "Shows the result of the player's action (damage and destruction)",
+      "playable_relevance": "Provides the satisfying payoff and visual feedback"
+    },
+    {
+      "time_range": "00:14 - 00:18",
+      "event": "Player fires a multi-rocket attack",
+      "gameplay_meaning": "Introduces variety in attacks/characters",
+      "playable_relevance": "Could be used as a power-up or secondary interaction in a playable"
+    },
+    {
+      "time_range": "00:54 - 00:56",
+      "event": "End card appears",
+      "gameplay_meaning": "Call to action",
+      "playable_relevance": "The final screen directing the user to the app store"
+    }
+  ],
+  "mechanics": [
+    {
+      "name": "Drag-to-Aim Slingshot",
+      "description": "Player drags backwards from a character to set angle and power, visualized by a dotted line.",
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Destructible Environment",
+      "description": "Castles break apart dynamically where projectiles hit.",
+      "implementation_priority": "must"
+    },
+    {
+      "name": "Multiple Attack Types",
+      "description": "Different characters fire different projectiles (single rocket, multi-rocket, laser).",
+      "implementation_priority": "should"
+    }
+  ],
+  "feedback_and_juice": [
+    {
+      "trigger": "Projectile impact",
+      "visual_or_audio_feedback": "Explosions, flying debris, screen shake, floating damage numbers.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Aiming",
+      "visual_or_audio_feedback": "Dotted trajectory line with a crosshair at the end.",
+      "importance": "must"
+    },
+    {
+      "trigger": "Firing",
+      "visual_or_audio_feedback": "Smoke trails from projectiles, slight recoil on the firing character/castle.",
+      "importance": "should"
+    }
+  ],
+  "playable_minimum": {
+    "must_include": [
+      "One player character to shoot from",
+      "One enemy castle to destroy",
+      "Drag-to-aim mechanic with trajectory line",
+      "Basic destruction visual effects on impact"
+    ],
+    "can_simplify": [
+      "Enemy AI (make them stationary or fire at fixed intervals)",
+      "Complex physics (use pre-defined breakable chunks instead of dynamic slicing)",
+      "Multiple characters (stick to one weapon type for simplicity)"
+    ],
+    "should_avoid": [
+      "Waiting for enemy turns (keep the action continuous or player-driven)",
+      "Complex menus or character selection"
+    ]
+  },
+  "variation_hooks": [
+    {
+      "parameter": "Weapon Type",
+      "effect": "Changes the visual and area of effect of the player's attack.",
+      "safe_range_or_values": "Single explosive, scatter shot, piercing laser"
+    },
+    {
+      "parameter": "Enemy Castle Structure",
+      "effect": "Alters the optimal aiming strategy.",
+      "safe_range_or_values": "Tall tower, wide bunker, multi-tiered castle"
+    },
+    {
+      "parameter": "Starting Health",
+      "effect": "Increases the perceived difficulty and urgency.",
+      "safe_range_or_values": "Player starts at 30% health vs Enemy at 100%"
+    }
+  ],
+  "open_questions_or_assumptions": [
+    "Assuming the castles are stationary and only move slightly due to physics impacts, not player-controlled movement.",
+    "Assuming the core loop is level-based where you destroy one castle and move to the next.",
+    "Is the damage purely based on hit location, or do different materials have different health?"
+  ]
+}

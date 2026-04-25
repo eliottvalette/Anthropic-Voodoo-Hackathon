@@ -1,0 +1,202 @@
+{
+  "prototype_name": "Castle Clashers Portrait Artillery",
+  "implementation_summary": "A single-file HTML5 2D physics artillery game adapted for portrait mobile. The player (bottom-left) drags to aim and fires projectiles at the enemy castle (top-right). The enemy auto-fires at fixed intervals. Health bars track damage. The game ends when either castle is destroyed, showing a call-to-action.",
+  "screen": {
+    "orientation": "portrait",
+    "logical_width": 720,
+    "logical_height": 1280,
+    "responsive_strategy": "Scale to fit window using CSS transform, maintaining 9:16 aspect ratio. Overflow is hidden."
+  },
+  "gameplay": {
+    "objective": "Destroy the enemy castle before your castle is destroyed.",
+    "primary_interaction": "Drag anywhere on the screen to pull back a virtual slingshot, adjusting angle and power. Release to fire.",
+    "win_condition": "Enemy castle health reaches 0.",
+    "loss_or_timeout_condition": "Player castle health reaches 0, or 30 seconds elapse.",
+    "session_length_seconds": 30
+  },
+  "entities": [
+    {
+      "id": "background",
+      "role": "Environment backdrop",
+      "asset": "Background.png",
+      "behavior": "Static, scaled to cover the logical screen.",
+      "priority": "must"
+    },
+    {
+      "id": "player_castle",
+      "role": "Player base and firing origin",
+      "asset": "Blue Castle.png",
+      "behavior": "Static at bottom-left. Takes damage from enemy projectiles.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_castle",
+      "role": "Enemy base and target",
+      "asset": "Red Castle.png",
+      "behavior": "Static at top-right. Takes damage from player projectiles. Auto-fires at player.",
+      "priority": "must"
+    },
+    {
+      "id": "player_weapon",
+      "role": "Visual indicator of player attack",
+      "asset": "Weapon_1.png",
+      "behavior": "Mounted on player castle. Rotates to match drag aim angle.",
+      "priority": "should"
+    },
+    {
+      "id": "player_projectile",
+      "role": "Player damage dealer",
+      "asset": "Projectile_1.png",
+      "behavior": "Spawns on release, follows parabolic physics trajectory, explodes on impact.",
+      "priority": "must"
+    },
+    {
+      "id": "enemy_projectile",
+      "role": "Enemy damage dealer",
+      "asset": "Projectile_2.png",
+      "behavior": "Spawns on timer, follows calculated parabolic trajectory towards player castle.",
+      "priority": "must"
+    },
+    {
+      "id": "trajectory_line",
+      "role": "Aiming assist",
+      "asset": null,
+      "behavior": "Canvas-drawn dotted line showing predicted path of projectile during drag.",
+      "priority": "must"
+    },
+    {
+      "id": "ui_health_bars",
+      "role": "Status indicators",
+      "asset": null,
+      "behavior": "Canvas-drawn or DOM-based red/green bars above respective castles.",
+      "priority": "must"
+    }
+  ],
+  "asset_plan": [
+    {
+      "asset_path": "Background.png",
+      "use": "Main background",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Blue Castle.png",
+      "use": "Player base sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Red Castle.png",
+      "use": "Enemy base sprite",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Weapon_1.png",
+      "use": "Player cannon/launcher",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Projectile_1.png",
+      "use": "Player ammo",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Projectile_2.png",
+      "use": "Enemy ammo",
+      "processing": "Base64 encode into HTML",
+      "required": true
+    },
+    {
+      "asset_path": "Music.ogg",
+      "use": "Background music",
+      "processing": "Base64 encode into HTML audio tag",
+      "required": false
+    },
+    {
+      "asset_path": "Sfx.wav",
+      "use": "Explosion/Shoot sound",
+      "processing": "Base64 encode into HTML audio tag",
+      "required": false
+    },
+    {
+      "asset_path": "Character_Cyclop.psb",
+      "use": "Unused due to format",
+      "processing": "Ignore (browser incompatible)",
+      "required": false
+    }
+  ],
+  "interaction_flow": [
+    {
+      "step": 1,
+      "player_action": "None (Idle)",
+      "system_response": "Show pulsing 'Drag to Aim' hand tutorial over player castle. Enemy timer starts."
+    },
+    {
+      "step": 2,
+      "player_action": "Touch and drag backwards",
+      "system_response": "Hide tutorial. Draw dotted trajectory line based on drag vector. Rotate player weapon."
+    },
+    {
+      "step": 3,
+      "player_action": "Release touch",
+      "system_response": "Hide trajectory line. Spawn player projectile with velocity derived from drag vector. Play SFX."
+    },
+    {
+      "step": 4,
+      "player_action": "Wait",
+      "system_response": "Projectile hits enemy castle. Spawn CSS/Canvas particle explosion. Reduce enemy health bar. Screen shake."
+    },
+    {
+      "step": 5,
+      "player_action": "None",
+      "system_response": "If health <= 0, trigger End Card UI with 'Download Now' button."
+    }
+  ],
+  "parameters": [
+    {
+      "name": "gravity",
+      "type": "number",
+      "default": 900,
+      "variation_range": "500 - 1500",
+      "gameplay_effect": "Changes the arc of the projectiles, affecting aiming difficulty."
+    },
+    {
+      "name": "player_damage",
+      "type": "number",
+      "default": 34,
+      "variation_range": "20 - 50",
+      "gameplay_effect": "Determines how many hits it takes to destroy the enemy castle (default 3 hits)."
+    },
+    {
+      "name": "enemy_fire_rate_ms",
+      "type": "number",
+      "default": 3000,
+      "variation_range": "2000 - 5000",
+      "gameplay_effect": "Controls the pressure on the player. Lower means faster enemy attacks."
+    },
+    {
+      "name": "enemy_damage",
+      "type": "number",
+      "default": 20,
+      "variation_range": "10 - 40",
+      "gameplay_effect": "Determines how quickly the player loses."
+    }
+  ],
+  "acceptance_criteria": [
+    "Game runs entirely from a single HTML file with no external network requests.",
+    "File size is under 5MB (achieved by base64 encoding only necessary PNGs and compressing audio if used).",
+    "Drag-to-aim mechanic feels responsive on mobile touch screens.",
+    "Trajectory line accurately predicts the physics arc of the projectile.",
+    "Collisions between projectiles and castles register reliably.",
+    "End card displays correctly when win/loss condition is met."
+  ],
+  "non_goals_v1": [
+    "Dynamic mesh destruction or slicing of castle sprites.",
+    "Complex character animations or parsing PSB files.",
+    "Multiple weapon types or switching mechanics.",
+    "Landscape mode support (forcing portrait for mobile optimization)."
+  ]
+}
