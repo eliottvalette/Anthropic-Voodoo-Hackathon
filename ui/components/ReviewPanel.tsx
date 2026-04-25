@@ -12,6 +12,7 @@ interface ReviewPanelProps {
   onAccept: () => void
   onRetry: () => void
   onCorrect: (text: string) => void
+  onToggleFullscreen?: () => void
 }
 
 function ReviewControls({ onAccept, onRetry, onCorrect }: {
@@ -93,7 +94,7 @@ function Skeleton() {
 }
 
 export default function ReviewPanel({
-  steps, reviewContent, playableHtml, isAwaiting, onAccept, onRetry, onCorrect,
+  steps, reviewContent, playableHtml, isAwaiting, onAccept, onRetry, onCorrect, onToggleFullscreen,
 }: ReviewPanelProps) {
   const activeStep  = steps.find(s => s.status === 'active' || s.status === 'awaiting') ?? null
   const isLoading   = activeStep?.status === 'active'
@@ -121,18 +122,22 @@ export default function ReviewPanel({
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className={`flex-1 min-h-0 ${allDone ? 'overflow-hidden' : 'overflow-auto'}`}>
         {isLoading ? (
           <Skeleton />
         ) : allDone ? (
-          <div className="fade-slide-in h-full">
-            <PlayableViewer html={playableHtml!} />
+          <div className="h-full fade-slide-in">
+            <PlayableViewer html={playableHtml!} onToggleFullscreen={onToggleFullscreen} />
           </div>
         ) : activeStep ? (
-          <div className="fade-slide-in space-y-5">
-            {reviewContent[activeStep.id]}
+          <div className={`fade-slide-in ${activeStep.id === 'codegen' && playableHtml ? 'h-full flex flex-col gap-4' : 'space-y-5'}`}>
+            <div className={activeStep.id === 'codegen' && playableHtml ? 'shrink-0' : ''}>
+              {reviewContent[activeStep.id]}
+            </div>
             {activeStep.id === 'codegen' && playableHtml && (
-              <PlayableViewer html={playableHtml} />
+              <div className="flex-1 min-h-0">
+                <PlayableViewer html={playableHtml} onToggleFullscreen={onToggleFullscreen} />
+              </div>
             )}
           </div>
         ) : null}
