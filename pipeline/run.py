@@ -18,6 +18,7 @@ from .prompts import VIDEO_BREAKDOWN_PROMPT, feature_spec_prompt
 
 DEFAULT_MODEL = "models/gemini-3.1-pro-preview"
 DEFAULT_FALLBACK_MODEL = "models/gemini-2.5-pro"
+DEFAULT_OUTPUT_ROOT = Path("eliott-pipeline")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -30,7 +31,8 @@ def main(argv: list[str] | None = None) -> int:
 
     video_path = args.video.resolve()
     asset_dir = args.assets.resolve()
-    out_dir = resolve_out_dir(args.out, video_path)
+    output_root = args.output_root.resolve()
+    out_dir = resolve_out_dir(args.out, video_path, output_root)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     client = GeminiClient(api_key=api_key, timeout_seconds=args.request_timeout)
@@ -40,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
         "assets": str(asset_dir),
         "model": args.model,
         "fallback_model": args.fallback_model,
+        "output_root": str(output_root),
     }
 
     try:
@@ -140,18 +143,27 @@ def normalize_model_object(payload: Any, label: str) -> dict[str, Any]:
     raise ValueError(f"Expected {label} to be a JSON object, got {type(payload).__name__}")
 
 
-def resolve_out_dir(out: Path | None, video_path: Path) -> Path:
+def resolve_out_dir(out: Path | None, video_path: Path, output_root: Path) -> Path:
+    resolved_output_root = output_root.resolve()
     if out is not None:
-        return out.resolve()
+        if out.is_absolute():
+            resolved_out = out.resolve()
+            try:
+                resolved_out.relative_to(resolved_output_root)
+            except ValueError as exc:
+                raise ValueError(f"--out must be inside {resolved_output_root}; got {resolved_out}") from exc
+            return resolved_out
+        return resolved_output_root / out
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    return Path("runs") / f"{video_path.stem}_{stamp}"
+    return resolved_output_root / f"{video_path.stem}_{stamp}"
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Analyze gameplay video into a playable ad feature spec.")
     parser.add_argument("--video", type=Path, required=True, help="Input gameplay video path.")
     parser.add_argument("--assets", type=Path, required=True, help="Directory containing available game assets.")
-    parser.add_argument("--out", type=Path, default=None, help="Output run directory.")
+    parser.add_argument("--out", type=Path, default=None, help="Output run directory name or path inside --output-root.")
+    parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="Root directory for all pipeline outputs.")
     parser.add_argument("--env", type=Path, default=Path(".env"), help="Env file containing GEMINI_API_KEY.")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Primary Gemini model.")
     parser.add_argument("--fallback-model", default=DEFAULT_FALLBACK_MODEL, help="Fallback Gemini model.")

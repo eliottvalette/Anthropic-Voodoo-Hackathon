@@ -1,0 +1,170 @@
+{
+  "summary": "A 2D side-scrolling auto-battler where the player manages a moving castle by placing units into its rooms to attack an enemy castle while defending their own.",
+  "objective": "Destroy the enemy's red castle by depleting its health to 0% before the player's blue castle is destroyed.",
+  "controls": [
+    {
+      "timestamp": "00:05",
+      "observation": "Drag and drop gesture to select a unit from the bottom UI panel and place it into an empty room in the player's castle.",
+      "confidence": 1.0
+    }
+  ],
+  "layout": [
+    {
+      "timestamp": "00:00",
+      "observation": "Top of screen: Two health bars with percentage text. Blue on the left (player), Red on the right (enemy).",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:00",
+      "observation": "Center: Battlefield showing the two castles facing each other.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:05",
+      "observation": "Bottom: Unit selection panel with three character options (Cyclops, Skeleton, Orc) appears when a room is available.",
+      "confidence": 0.9
+    }
+  ],
+  "entities": [
+    {
+      "name": "Blue Castle",
+      "role": "Player base",
+      "visible_behavior": "Moves slightly, takes damage, houses player units in specific room slots.",
+      "asset_match": "Blue Castle.png",
+      "confidence": 1.0
+    },
+    {
+      "name": "Red Castle",
+      "role": "Enemy base",
+      "visible_behavior": "Moves slightly, takes damage, houses enemy units that automatically fire at the player.",
+      "asset_match": "Red Castle.png",
+      "confidence": 1.0
+    },
+    {
+      "name": "Skeleton Unit",
+      "role": "Player unit",
+      "visible_behavior": "Placed in a room, automatically fires projectiles at the enemy castle.",
+      "asset_match": "Character_Skeleton.psb",
+      "confidence": 1.0
+    },
+    {
+      "name": "Orc Unit",
+      "role": "Player unit",
+      "visible_behavior": "Placed in a room, automatically fires projectiles at the enemy castle.",
+      "asset_match": "Character_Orc.psb",
+      "confidence": 1.0
+    },
+    {
+      "name": "Cyclops Unit",
+      "role": "Player unit",
+      "visible_behavior": "Available in the UI, but not placed during the video.",
+      "asset_match": "Character_Cyclop.psb",
+      "confidence": 0.9
+    },
+    {
+      "name": "Projectiles",
+      "role": "Damage dealers",
+      "visible_behavior": "Fired by units, travel across the screen, explode on impact with the opposing castle.",
+      "asset_match": "Projectile_1.png, Projectile_2.png",
+      "confidence": 0.95
+    }
+  ],
+  "timeline": [
+    {
+      "timestamp": "00:00",
+      "observation": "Battle begins, castles exchange fire, health bars decrease.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:04",
+      "observation": "Blue castle takes significant damage, revealing empty rooms. Unit selection UI appears.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:06",
+      "observation": "Player drags the Skeleton unit into the top empty room.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:08",
+      "observation": "Skeleton unit begins firing at the Red castle.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:24",
+      "observation": "Another room becomes empty. Player drags the Orc unit into the bottom room.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:42",
+      "observation": "Blue castle health reaches 0% and explodes.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:50",
+      "observation": "Battle Failed screen appears.",
+      "confidence": 1.0
+    }
+  ],
+  "mechanics": [
+    {
+      "timestamp": "00:00",
+      "observation": "Global health system for each castle, represented by the top bars.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:05",
+      "observation": "Slot-based unit placement. Units can only be dropped into designated empty rooms.",
+      "confidence": 0.95
+    },
+    {
+      "timestamp": "00:08",
+      "observation": "Auto-attack: Once placed, units automatically spawn projectiles aimed at the enemy castle.",
+      "confidence": 1.0
+    },
+    {
+      "timestamp": "00:42",
+      "observation": "Win/Loss condition triggered when a castle's health reaches 0.",
+      "confidence": 1.0
+    }
+  ],
+  "visual_requirements": [
+    "2D cartoon art style.",
+    "Parallax scrolling or static background with moving elements to simulate tank tread movement.",
+    "Explosion and smoke particle effects when projectiles hit.",
+    "Visual degradation of castles as they take damage (e.g., walls breaking away).",
+    "Projectile trails.",
+    "UI overlays for health bars and unit selection."
+  ],
+  "prototype_must_have": [
+    "Two castles with overall health bars.",
+    "Ability to drag and drop at least one unit type into predefined slots on the player's castle.",
+    "Units automatically firing projectiles at the enemy castle.",
+    "Projectiles dealing damage and reducing castle health.",
+    "A win/loss state when a health bar reaches 0."
+  ],
+  "prototype_can_skip": [
+    "Complex visual degradation of the castles (walls breaking away dynamically).",
+    "Multiple unit types (one is sufficient for testing the core loop).",
+    "Elaborate particle systems for explosions.",
+    "Post-match reward screens and menus."
+  ],
+  "implementation_notes": [
+    "Define invisible drop zones (hitboxes) within the Blue Castle sprite for unit placement.",
+    "Use a simple state machine for units: 'In UI', 'Being Dragged', 'Placed/Firing'.",
+    "Projectiles can be implemented with simple linear interpolation (lerp) or basic physics velocity towards the enemy castle's bounding box.",
+    "Castle health can be a single global variable per side, ignoring individual room health for the prototype."
+  ],
+  "uncertainties": [
+    {
+      "question": "Do individual units have their own health, or do they die based on the castle's overall damage state?",
+      "why_it_matters": "Affects whether units need their own health tracking and hit detection, or if they are just visual representations of the castle's attack power.",
+      "confidence": 0.7
+    },
+    {
+      "question": "Are the castles actually moving forward, or is the background scrolling to create the illusion of movement?",
+      "why_it_matters": "Determines if the camera and physics need to handle moving objects or just a scrolling background.",
+      "confidence": 0.8
+    }
+  ]
+}
