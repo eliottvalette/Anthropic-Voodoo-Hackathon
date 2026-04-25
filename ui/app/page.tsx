@@ -7,20 +7,96 @@ import ReviewPanel from '@/components/ReviewPanel'
 import PlayableViewer from '@/components/PlayableViewer'
 import HistoryView from '@/components/HistoryView'
 import UtilsView from '@/components/UtilsView'
+import AssetReviewPanel from '@/components/AssetReviewPanel'
 import { createClient } from '@/utils/supabase/client'
+import { compareRequiredAssetsToImports, summarizeAssetCoverage, type ImportedAssetFile } from '@/utils/assetCoverage'
+import type { SandboxManifest } from '@/utils/sandboxTypes'
 
 type View = 'generator' | 'history' | 'library'
 
+// Single-stage test harness — coworker will reintroduce the full pipeline
+// stages around this. For now we only care that video → assets works.
 const INITIAL_STEPS: Step[] = [
-  { id: 'metadata', label: 'Metadata + Asset Inventory', estimate: '~0s',  status: 'idle' },
-  { id: 'upload',   label: 'Upload to Gemini',           estimate: '~16s', status: 'idle' },
-  { id: 'analysis', label: 'Video Analysis',             estimate: '~24s', status: 'idle' },
-  { id: 'codegen',  label: 'Feature Spec + HTML',        estimate: '~23s', status: 'idle' },
+  { id: 'assets', label: 'Asset Generation (video → assets)', estimate: '~live', status: 'idle' },
 ]
 
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+const ANALYSIS_POLL_MS = 2500
+const ANALYSIS_TIMEOUT_MS = 10 * 60 * 1000
+
+const UPLOAD_CHUNK_BYTES = 4 * 1024 * 1024 // 4 MB — well under Next.js dev's ~10 MB Route-Handler stream cap.
+
+async function uploadVideoForAnalysis(
+  file: File,
+  onProgress?: (bytes: number, total: number) => void,
+): Promise<string> {
+  const startResp = await fetch('/api/sandbox/runs/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name }),
+  })
+  if (!startResp.ok) throw new Error(await startResp.text())
+  const { run_id: runId } = await startResp.json() as { run_id: string }
+  if (!runId) throw new Error('start did not return a run_id')
+
+  let offset = 0
+  while (offset < file.size) {
+    const chunk = file.slice(offset, offset + UPLOAD_CHUNK_BYTES)
+    const chunkResp = await fetch(
+      `/api/sandbox/runs/chunk?run_id=${encodeURIComponent(runId)}&offset=${offset}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: chunk,
+      },
+    )
+    if (!chunkResp.ok) throw new Error(await chunkResp.text())
+    offset += chunk.size
+    onProgress?.(offset, file.size)
+  }
+
+  const finalResp = await fetch('/api/sandbox/runs/finalize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ run_id: runId }),
+  })
+  if (!finalResp.ok) throw new Error(await finalResp.text())
+  return runId
+}
+
+async function waitForAnalysisManifest(runId: string): Promise<SandboxManifest> {
+  const deadline = Date.now() + ANALYSIS_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    try {
+      const manifest = await fetchSandboxManifest(runId)
+      if (manifest.assets.length > 0) return manifest
+    } catch {
+      // retry
+    }
+    await delay(ANALYSIS_POLL_MS)
+  }
+  throw new Error('Timed out waiting for video analysis')
+}
 
 type ReviewDecision = { action: 'accept' } | { action: 'retry' } | { action: 'correct'; text: string }
+type FileWithRelativePath = File & { webkitRelativePath?: string }
+
+function toImportedAssetFiles(files: File[]): ImportedAssetFile[] {
+  return files.map(file => {
+    const withPath = file as FileWithRelativePath
+    return {
+      name: file.name,
+      relativePath: withPath.webkitRelativePath || file.name,
+      size: file.size,
+    }
+  })
+}
+
+async function fetchSandboxManifest(runId: string): Promise<SandboxManifest> {
+  const response = await fetch(`/api/sandbox/manifest?run=${encodeURIComponent(runId)}`, { cache: 'no-store' })
+  if (!response.ok) throw new Error(await response.text())
+  return response.json()
+}
 
 function VideoIcon() {
   return (
@@ -77,6 +153,7 @@ export default function Home() {
   const [hasRun, setHasRun]               = useState(false)
   const [playableHtml, setPlayableHtml]   = useState<string | null>(null)
   const [autoMode, setAutoMode]           = useState(false)
+  const [runId, setRunId]                 = useState<string | null>(null)
   const [isAwaiting, setIsAwaiting]       = useState(false)
   const [reviewContent, setReviewContent] = useState<Record<string, React.ReactNode>>({})
   const [fullscreen, setFullscreen]       = useState(false)
@@ -148,7 +225,7 @@ export default function Home() {
   }, [])
 
   const handleRun = useCallback(async () => {
-    if (!videoFiles.length || !assetFiles.length || isRunning) return
+    if (!videoFiles.length && !runId && isRunning) return
 
     setIsRunning(true)
     setHasRun(true)
@@ -159,116 +236,61 @@ export default function Home() {
     reviewResolverRef.current = null
 
     const videoFile = videoFiles[0]
+    const importedAssetFiles = toImportedAssetFiles(assetFiles)
 
-    // ── Step 1: Metadata ─────────────────────────────────────────────
-    let decision: ReviewDecision
-    activateStep('metadata')
-    const videoEl = document.createElement('video')
-    videoEl.preload = 'metadata'
-    const objectUrl = URL.createObjectURL(videoFile)
-    videoEl.src = objectUrl
-    await new Promise<void>(r => {
-      videoEl.onloadedmetadata = () => r()
-      videoEl.onerror = () => r()
-    })
-    URL.revokeObjectURL(objectUrl)
-
-    const duration    = videoEl.duration   ? `${Math.round(videoEl.duration)}s`               : '?'
-    const resolution  = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '?'
-    const totalSizeMB = [...videoFiles, ...assetFiles].reduce((acc, f) => acc + f.size, 0) / 1024 / 1024
-
-    completeStep('metadata', (
-      <div className="flex flex-wrap gap-x-6 gap-y-1">
-        <span><span className="font-semibold text-[#0F141C]">{videoFile.name}</span></span>
-        <span>{duration} · {resolution}</span>
-        <span><span className="font-semibold text-[#0F141C]">{assetFiles.length}</span> assets · {totalSizeMB.toFixed(0)} MB total</span>
-      </div>
-    ))
-
-    // ── Step 2: Upload ───────────────────────────────────────────────
-    activateStep('upload')
-    await delay(2000)
-    completeStep('upload', (
-      <span>Video uploaded · File state <span className="font-semibold text-[#0F141C]">ACTIVE</span></span>
-    ))
-
-    // ── Step 3: Analysis ─────────────────────────────────────────────
-    do {
-      activateStep('analysis')
-      await delay(2500)
-
-      awaitStep('analysis', (
-        <div>
-          <div>
-            <span className="font-semibold text-[#0F141C]">Castle Clashers</span>
-            <span className="ml-2 text-gray-400">Arcade · Portrait</span>
-          </div>
-          <div className="mt-1 text-gray-500">Aim and fire projectiles to destroy the enemy castle</div>
-          <Tags items={['Ballistic arc', 'Drag to aim', 'Health system', 'Auto-fire enemy', 'Particle FX']} />
-        </div>
-      ))
-      setReviewContent(prev => ({
-        ...prev,
-        analysis: (
-          <div className="space-y-5">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Video analysis</p>
-            <div>
-              <div className="text-2xl font-bold text-[#0F141C]">Castle Clashers</div>
-              <div className="text-sm text-gray-400 mt-0.5">Arcade · Portrait · 30s session</div>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Aim and fire projectiles to destroy the enemy castle before the timer runs out.
-            </p>
-            <div className="space-y-2">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Detected mechanics</div>
-              <div className="flex flex-wrap gap-1.5">
-                {['Ballistic arc', 'Drag to aim', 'Health system', 'Auto-fire enemy', 'Particle FX'].map(tag => (
-                  <span key={tag} className="px-3 py-1 rounded-full bg-[#0F141C] text-white text-[11px] font-medium">{tag}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ),
-      }))
-
-      decision = await waitForReview()
-      if (decision.action === 'correct') {
-        const correction = decision.text
-        setReviewContent(prev => ({
-          ...prev,
-          analysis: (
-            <div className="space-y-5">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Video analysis</p>
-              <div>
-                <div className="text-2xl font-bold text-[#0F141C]">Castle Clashers</div>
-                <div className="text-sm text-gray-400 mt-0.5">Arcade · Portrait · corrected</div>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">{correction}</p>
-            </div>
-          ),
-        }))
+    // Two paths into the panel:
+    //   1. Existing-run id provided → mount the panel directly (test mode).
+    //   2. Video uploaded → kick off analysis pipeline, then mount the panel.
+    activateStep('assets')
+    let activeRunId: string | null = runId
+    if (videoFile) {
+      try {
+        activeRunId = await uploadVideoForAnalysis(videoFile)
+        setRunId(activeRunId)
+      } catch (err) {
+        updateStep('assets', {
+          status: 'error' as StepStatus,
+          doneAt: Date.now(),
+          output: <span className="text-red-600">{err instanceof Error ? err.message : 'Upload failed'}</span>,
+        })
+        setIsRunning(false)
+        return
       }
-    } while (decision.action === 'retry')
-    acceptStep('analysis')
+    }
+    if (!activeRunId) {
+      updateStep('assets', {
+        status: 'error' as StepStatus,
+        doneAt: Date.now(),
+        output: <span className="text-red-600">Provide a video or set a run id first.</span>,
+      })
+      setIsRunning(false)
+      return
+    }
 
-    // ── Step 4: Codegen ──────────────────────────────────────────────
-    activateStep('codegen')
-    await delay(2000)
-    const mockHtml = await fetch('/mock-playable.html').then(r => r.text())
-    setPlayableHtml(mockHtml)
-    completeStep('codegen', (
+    awaitStep('assets', (
       <div className="flex flex-wrap gap-x-6 gap-y-1">
-        <span><span className="font-semibold text-[#0F141C]">Castle_Clashers_Playable</span> · 360×640</span>
-        <span>player_damage <span className="font-semibold text-[#0F141C]">34</span></span>
-        <span>gravity <span className="font-semibold text-[#0F141C]">900</span></span>
-        <span>session <span className="font-semibold text-[#0F141C]">30s</span></span>
+        <span>Run <span className="font-semibold text-[#0F141C]">{activeRunId}</span></span>
+        <span className="text-gray-500">{autoMode ? 'auto mode' : 'manual mode'}</span>
       </div>
     ))
+    setReviewContent({
+      assets: (
+        <AssetReviewPanel
+          runId={activeRunId}
+          importedFiles={importedAssetFiles}
+          rawImportedFiles={assetFiles}
+          autoMode={autoMode}
+        />
+      ),
+    })
 
+    // Don't await review — keep the step in 'awaiting' so the panel stays
+    // visible. AssetReviewPanel polls + runs coverage / regen / generate on
+    // its own. setIsRunning(false) lets the user start another run.
     setIsRunning(false)
-  }, [videoFiles, assetFiles, isRunning, activateStep, completeStep, awaitStep, acceptStep, waitForReview])
+  }, [runId, videoFiles, assetFiles, isRunning, autoMode, activateStep, awaitStep, updateStep])
 
-  const canRun = videoFiles.length > 0 && assetFiles.length > 0 && !isRunning
+  const canRun = (videoFiles.length > 0 || (runId !== null && runId.length > 0)) && !isRunning
   const today  = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   const uploadCard = (
@@ -291,6 +313,17 @@ export default function Home() {
           onFiles={setAssetFiles}
           files={assetFiles}
           icon={<AssetsIcon />}
+        />
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest shrink-0">Or test against run id</span>
+        <input
+          type="text"
+          value={runId ?? ''}
+          onChange={e => setRunId(e.target.value || null)}
+          placeholder="e.g. B11"
+          disabled={isRunning}
+          className="flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-[#0F141C] outline-none placeholder:text-gray-300 focus:border-[#0055FF]"
         />
       </div>
       <button

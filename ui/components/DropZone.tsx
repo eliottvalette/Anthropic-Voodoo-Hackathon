@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 interface DropZoneProps {
   label: string
@@ -58,6 +58,7 @@ export default function DropZone({
 }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const inputId = useId()
 
   useEffect(() => {
     if (inputRef.current && folder) {
@@ -92,8 +93,8 @@ export default function DropZone({
   const hasFiles = files.length > 0
 
   return (
-    <div
-      onClick={() => inputRef.current?.click()}
+    <label
+      htmlFor={inputId}
       onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
@@ -109,12 +110,13 @@ export default function DropZone({
       `}
     >
       <input
+        id={inputId}
         ref={inputRef}
         type="file"
         accept={accept}
         multiple={folder || multiple}
         onChange={handleChange}
-        className="hidden"
+        className="sr-only"
       />
 
       {hasFiles ? (
@@ -149,6 +151,6 @@ export default function DropZone({
           </div>
         </>
       )}
-    </div>
+    </label>
   )
 }

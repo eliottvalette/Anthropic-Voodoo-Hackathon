@@ -21,8 +21,10 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Login gate temporarily disabled for local testing.
+  // To restore auth routing, re-enable the block below.
+  /*
   const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
   const isPublic = pathname === '/login' || pathname.startsWith('/auth/')
 
@@ -37,6 +39,7 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/'
     return NextResponse.redirect(url)
   }
+  */
 
   return supabaseResponse
 }

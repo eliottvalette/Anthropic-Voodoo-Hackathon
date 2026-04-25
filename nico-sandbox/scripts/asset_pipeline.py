@@ -641,12 +641,27 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
         temperature=0.1,
         maxOutputTokens=16000,
     )
-    model, response = call_model_with_fallback(client, VIDEO_MODELS, contents=[part, VIDEO_INVENTORY_PROMPT], config=config)
-    parsed = getattr(response, "parsed", None)
-    if isinstance(parsed, dict):
-        payload = parsed
+    # Gemini occasionally returns a "successful" response whose `.parsed` is
+    # None and whose `.text` is malformed JSON (truncated mid-stream). Retry
+    # the call instead of letting the whole pipeline crash on one flake.
+    last_err: Exception | None = None
+    for attempt in range(3):
+        model, response = call_model_with_fallback(
+            client, VIDEO_MODELS, contents=[part, VIDEO_INVENTORY_PROMPT], config=config,
+        )
+        parsed = getattr(response, "parsed", None)
+        if isinstance(parsed, dict):
+            payload = parsed
+            break
+        try:
+            payload = json.loads(extract_json_payload(response.text or "{}"))
+            break
+        except json.JSONDecodeError as exc:
+            last_err = exc
+            print(f"[asset_pipeline] Gemini returned malformed JSON (attempt {attempt + 1}/3): {exc}")
     else:
-        payload = json.loads(extract_json_payload(response.text or "{}"))
+        raise RuntimeError(f"All Gemini attempts returned malformed manifest JSON: {last_err}")
+
     payload["_gemini_model"] = model
     payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
     write_json(manifests_dir / "01_gemini_video_manifest.json", payload)
