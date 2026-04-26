@@ -1712,11 +1712,12 @@ function setSfxVolume(v) { if (_sfxGain) _sfxGain.gain.value = Math.max(0, Math.
     }
     if (img) drawContain(img, -25, -67, 50, 64);
     ctx.rotate(side === "player" ? 0 : Math.PI);
+    // Per-unit HP bar — fills from left, colored by unit type.
     ctx.fillStyle = "#25282f";
     roundRect(0, -35, 36, 14, 7);
     ctx.fill();
     ctx.fillStyle = type.color;
-    roundRect(22, -32, 25, 8, 4);
+    roundRect(3, -32, 30, 8, 4);
     ctx.fill();
     ctx.restore();
   }

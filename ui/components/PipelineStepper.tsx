@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export type StepStatus = 'idle' | 'active' | 'awaiting' | 'done' | 'error'
 
@@ -33,8 +33,8 @@ function StepDot({ status }: { status: StepStatus }) {
 
   if (status === 'awaiting') {
     return (
-      <div className="w-6 h-6 rounded-full border-2 border-[#0F141C] bg-white flex items-center justify-center flex-shrink-0 z-10">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#0F141C]" />
+      <div className="w-6 h-6 rounded-full border-2 border-[#0055FF] bg-white flex items-center justify-center flex-shrink-0 z-10">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#0055FF]" />
       </div>
     )
   }
@@ -87,14 +87,27 @@ function ElapsedTimer({ startedAt, doneAt, estimate, status }: {
 }
 
 export default function PipelineStepper({ steps }: { steps: Step[] }) {
+  const activeIdx = steps.findIndex(s => s.status === 'active' || s.status === 'awaiting')
+  const refs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  useEffect(() => {
+    if (activeIdx < 0) return
+    const el = refs.current[steps[activeIdx].id]
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [activeIdx, steps])
+
   return (
     <div className="flex flex-col">
       {steps.map((step, i) => {
         const isLast = i === steps.length - 1
-        const lineColor = step.status === 'done' || step.status === 'awaiting' ? '#0F141C' : step.status === 'active' ? '#0055FF' : '#E5E7EB'
+        const lineColor = step.status === 'done' ? '#0F141C' : step.status === 'awaiting' || step.status === 'active' ? '#0055FF' : '#E5E7EB'
 
         return (
-          <div key={step.id} className="flex gap-4">
+          <div
+            key={step.id}
+            ref={el => { refs.current[step.id] = el }}
+            className="flex gap-4 scroll-mt-4"
+          >
             {/* Dot + connecting line */}
             <div className="flex flex-col items-center" style={{ width: 24 }}>
               <StepDot status={step.status} />
@@ -110,7 +123,9 @@ export default function PipelineStepper({ steps }: { steps: Step[] }) {
             <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-6'}`}>
               <div className="flex items-center justify-between" style={{ minHeight: 24 }}>
                 <span className={`text-sm font-semibold transition-colors duration-200 ${
-                  step.status === 'idle' ? 'text-gray-300' : 'text-[#0F141C]'
+                  step.status === 'idle' ? 'text-gray-300'
+                  : step.status === 'active' || step.status === 'awaiting' ? 'text-[#0055FF]'
+                  : 'text-[#0F141C]'
                 }`}>
                   {step.label}
                 </span>

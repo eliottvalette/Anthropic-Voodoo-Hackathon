@@ -22,6 +22,9 @@ type AssetReviewPanelProps = {
   importedFiles: ImportedAssetFile[]
   rawImportedFiles?: File[]
   autoMode?: boolean
+  // Called once the user (or auto-mode) signs off on the asset set. The host
+  // page uses this to gate the downstream pipeline (probe → video → assets …).
+  onComplete?: () => void
 }
 
 type PromptPayload = {
@@ -451,7 +454,7 @@ function AssetRow({
   )
 }
 
-export default function AssetReviewPanel({ runId, importedFiles, rawImportedFiles, autoMode = false }: AssetReviewPanelProps) {
+export default function AssetReviewPanel({ runId, importedFiles, rawImportedFiles, autoMode = false, onComplete }: AssetReviewPanelProps) {
   const [manifest, setManifest] = useState<SandboxManifest | null>(null)
   const [jobs, setJobs] = useState<SandboxJob[]>([])
   const [coverageReport, setCoverageReport] = useState<SandboxCoverageReport | null>(null)
@@ -469,6 +472,7 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
 
   const coverageStartedRef = useRef(false)
   const autoGenStartedRef = useRef(false)
+  const completeFiredRef = useRef(false)
 
   const load = useCallback(async () => {
     if (!runId) return
@@ -596,6 +600,36 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
     autoGenStartedRef.current = true
     handleGenerate(missingAssetIds)
   }, [autoMode, coverageStatus, handleGenerate, manifest, missingAssetIds, rawImportedFiles])
+
+  // Continue gate: every required asset must be either provided (imported /
+  // library) or generated (status === 'done'). Pending / running / errored
+  // assets block the gate; the user resolves them via regenerate or by
+  // switching to manual mode and re-picking.
+  const isReady = useMemo(() => {
+    if (!manifest || manifest.assets.length === 0) return false
+    if (coverageStatus === 'matching') return false
+    const hasGenRunning = (generationJob?.status === 'running') || isGenerating
+    const hasReanalyzeRunning = (reanalyzeJob?.status === 'running') || isReanalyzing
+    if (hasGenRunning || hasReanalyzeRunning) return false
+    return manifest.assets.every(asset => {
+      const cov = coverage.byId.get(asset.asset_id)?.coverage
+      if (cov === 'provided') return true
+      return asset.status === 'done'
+    })
+  }, [manifest, coverage, coverageStatus, generationJob, isGenerating, reanalyzeJob, isReanalyzing])
+
+  const handleContinue = useCallback(() => {
+    if (completeFiredRef.current) return
+    completeFiredRef.current = true
+    onComplete?.()
+  }, [onComplete])
+
+  // Auto-mode: once the gate is open, fire onComplete automatically.
+  useEffect(() => {
+    if (!autoMode) return
+    if (!isReady) return
+    handleContinue()
+  }, [autoMode, isReady, handleContinue])
 
   const handleRegenerate = useCallback(async (asset: SandboxAsset, additionalPrompt: string) => {
     if (!runId) return
@@ -811,6 +845,27 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
           <div className="mt-3 rounded-lg border border-[#0055FF1F] bg-[#0055FF08] px-3 py-2 text-xs font-medium text-[#0055FF]">
             Generation kicked off · Scenario is processing the queue. Watch the cards flip from{' '}
             <span className="font-mono">pending</span> → <span className="font-mono">running</span> → <span className="font-mono">done</span>.
+          </div>
+        )}
+
+        {onComplete && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
+            <div className="text-[11px] text-gray-500">
+              {isReady
+                ? 'All assets resolved. Continue to the rest of the pipeline.'
+                : (generationJob?.status === 'running' || isGenerating)
+                  ? 'Waiting for Scenario to finish generating…'
+                  : (reanalyzeJob?.status === 'running' || isReanalyzing)
+                    ? 'Waiting for Gemini re-analysis…'
+                    : 'Resolve any missing or errored assets to continue.'}
+            </div>
+            <button
+              onClick={handleContinue}
+              disabled={!isReady || completeFiredRef.current}
+              className="rounded-lg bg-[#0055FF] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#0044DD] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Continue to pipeline
+            </button>
           </div>
         )}
       </div>
