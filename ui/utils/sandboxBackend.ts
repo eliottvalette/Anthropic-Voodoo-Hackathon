@@ -135,10 +135,15 @@ export function readSandboxManifest(runIdInput?: string | null): SandboxManifest
   const extractedPayload = existsSync(extractedPath) ? readJson(extractedPath) : { assets: [] }
   const geminiPayload = existsSync(geminiPath) ? readJson(geminiPath) : { assets: [] }
   const extractedAssets = readAssetsFromPayload(extractedPayload)
-  const geminiAssets = readAssetsFromPayload(geminiPayload)
   const resultsById = indexByAssetId(readAssetsFromPayload(automationPayload))
   const extractedById = indexByAssetId(extractedAssets)
-  const sourceAssets = extractedAssets.length > 0 ? extractedAssets : geminiAssets
+  // Only expose assets once 03_extracted_assets_manifest.json has been
+  // written. Falling back to the raw gemini inventory lets the user click
+  // Generate during the extraction gap, which crashes the Python pipeline
+  // (run_full_asset_pipeline.py expects 03_*.json when --skip-extraction
+  // is set, and Generate is always invoked with that flag).
+  const extractionComplete = extractedAssets.length > 0
+  const sourceAssets = extractedAssets
 
   const assets = sourceAssets
     .map((source): SandboxAsset => {
@@ -171,6 +176,7 @@ export function readSandboxManifest(runIdInput?: string | null): SandboxManifest
     failed_assets: typeof automationPayload.failed_assets === 'number' ? automationPayload.failed_assets : undefined,
     planned_assets: typeof automationPayload.planned_assets === 'number' ? automationPayload.planned_assets : assets.length,
     art_style: (geminiPayload.art_style as SandboxManifest['art_style']) ?? null,
+    extraction_complete: extractionComplete,
     assets,
   }
 }

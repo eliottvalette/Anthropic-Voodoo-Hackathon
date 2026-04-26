@@ -29,6 +29,13 @@ export type SandboxManifest = {
   failed_assets?: number
   planned_assets?: number
   art_style?: SandboxArtStyle | null
+  // True once the Python pipeline has written
+  // manifests/03_extracted_assets_manifest.json. Until then, the asset list
+  // is empty by design — exposing the raw gemini inventory before
+  // extraction completes lets the user click Generate during the gap, and
+  // run_full_asset_pipeline.py crashes with FileNotFoundError because
+  // --skip-extraction expects 03_*.json to exist.
+  extraction_complete?: boolean
   assets: SandboxAsset[]
 }
 
