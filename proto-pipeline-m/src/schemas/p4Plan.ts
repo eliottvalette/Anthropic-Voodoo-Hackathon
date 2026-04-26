@@ -11,6 +11,23 @@ export const SCENE_ELEMENT_NAMES = [
 export const SceneElementNameSchema = z.enum(SCENE_ELEMENT_NAMES);
 export type SceneElementName = z.infer<typeof SceneElementNameSchema>;
 
+export const CANONICAL_PHASES = [
+  "idle",
+  "aiming",
+  "acting",
+  "resolving",
+  "win",
+  "loss",
+] as const;
+export type CanonicalPhase = (typeof CANONICAL_PHASES)[number];
+
+export const RESERVED_STATE_FIELDS = [
+  "phase",
+  "subPhase",
+  "turnIndex",
+  "isOver",
+] as const;
+
 export const StateFieldSchema = z
   .object({
     name: z.string().min(1),
@@ -119,6 +136,52 @@ export const P4PlanSchema = z
           });
         }
       }
+    }
+
+    const expected = CANONICAL_PHASES.join(",");
+    const actual = v.phases.join(",");
+    if (actual !== expected) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phases"],
+        message: `phases must equal canonical enum exactly: ["${CANONICAL_PHASES.join('","')}"] (got [${v.phases.map((p) => `"${p}"`).join(",")}])`,
+      });
+    }
+    const phaseSet = new Set<string>(CANONICAL_PHASES);
+    for (let i = 0; i < v.transitions.length; i++) {
+      const t = v.transitions[i]!;
+      if (!phaseSet.has(t.from)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["transitions", i, "from"],
+          message: `transitions[${i}].from "${t.from}" not in canonical phases`,
+        });
+      }
+      if (!phaseSet.has(t.to)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["transitions", i, "to"],
+          message: `transitions[${i}].to "${t.to}" not in canonical phases`,
+        });
+      }
+    }
+    const stateNamesAll = new Set(v.shared_state_shape.map((f) => f.name));
+    for (const reserved of RESERVED_STATE_FIELDS) {
+      if (!stateNamesAll.has(reserved)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["shared_state_shape"],
+          message: `shared_state_shape must contain reserved field "${reserved}"`,
+        });
+      }
+    }
+    const phaseField = v.shared_state_shape.find((f) => f.name === "phase");
+    if (phaseField && !phaseField.written_by.includes("actors")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["shared_state_shape"],
+        message: `state.phase must be written_by ["actors"] (only actors owns phase transitions)`,
+      });
     }
   });
 

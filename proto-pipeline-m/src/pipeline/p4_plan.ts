@@ -2,7 +2,32 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
-import { P4PlanSchema, type P4Plan } from "../schemas/p4Plan.ts";
+import { P4PlanSchema, type P4Plan, SCENE_ELEMENT_NAMES } from "../schemas/p4Plan.ts";
+
+function reconcileReadWriteIndex(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return raw;
+  const r = raw as Record<string, unknown>;
+  const fields = r.shared_state_shape;
+  const elements = r.scene_elements;
+  if (!Array.isArray(fields) || typeof elements !== "object" || elements === null) return raw;
+  const elMap = elements as Record<string, { reads?: unknown; writes?: unknown }>;
+  for (const f of fields) {
+    if (typeof f !== "object" || f === null) continue;
+    const field = f as Record<string, unknown>;
+    if (typeof field.name !== "string") continue;
+    const writers: string[] = [];
+    const readers: string[] = [];
+    for (const el of SCENE_ELEMENT_NAMES) {
+      const contract = elMap[el];
+      if (!contract) continue;
+      if (Array.isArray(contract.writes) && contract.writes.includes(field.name)) writers.push(el);
+      if (Array.isArray(contract.reads) && contract.reads.includes(field.name)) readers.push(el);
+    }
+    field.written_by = writers;
+    field.read_by = readers;
+  }
+  return raw;
+}
 
 export type P4PlanMeta = {
   step: string;
@@ -72,13 +97,15 @@ export async function runP4Plan(
   let attempt = 0;
   let lastErr: unknown;
   let sys = systemBase;
-  while (attempt < 2) {
+  const maxAttempts = 3;
+  while (attempt < maxAttempts) {
     attempt++;
     try {
       const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
         temperature: 0.3,
       });
-      const plan = P4PlanSchema.parse(r.data);
+      const reconciled = reconcileReadWriteIndex(r.data);
+      const plan = P4PlanSchema.parse(reconciled);
       if (plan.mechanic_name !== gameSpec.mechanic_name) {
         throw new Error(
           `plan.mechanic_name "${plan.mechanic_name}" != game_spec.mechanic_name "${gameSpec.mechanic_name}"`,
@@ -97,10 +124,10 @@ export async function runP4Plan(
       lastErr = e;
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(`[p4-plan] attempt ${attempt} failed: ${msg.slice(0, 300)}`);
-      if (attempt >= 2) break;
+      if (attempt >= maxAttempts) break;
       sys =
         systemBase +
-        `\n\nThe previous response failed validation: ${msg.slice(0, 400)}\n\nRe-emit ONLY a JSON object exactly matching the schema. tick_order must be exactly ["bg_ground","actors","projectiles","hud","end_card"]. Every reads/writes entry must reference a name declared in shared_state_shape. Two-way consistency: state.written_by / read_by must match scene_elements[*].writes / reads. mechanic_name must equal "${gameSpec.mechanic_name}" exactly.`;
+        `\n\nThe previous response failed validation: ${msg.slice(0, 600)}\n\nRe-emit ONLY a JSON object exactly matching the schema. tick_order must be exactly ["bg_ground","actors","projectiles","hud","end_card"]. Every entry in any scene_elements[*].reads or .writes must reference a name declared in shared_state_shape[*].name. mechanic_name must equal "${gameSpec.mechanic_name}" exactly. (You do not need to populate read_by/written_by — set them to []; we derive them from scene_elements.reads/writes.)`;
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));

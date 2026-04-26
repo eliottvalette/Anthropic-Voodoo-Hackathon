@@ -49,6 +49,13 @@ function staticChecks(
         `[actors] mechanic_name "${gameSpec.mechanic_name}" must appear verbatim in JS`,
       );
     }
+    const requiredCanonicalPhases = ["aiming", "acting", "resolving"] as const;
+    const missing = requiredCanonicalPhases.filter((p) => !sketch.js.includes(`"${p}"`) && !sketch.js.includes(`'${p}'`));
+    if (missing.length > 0) {
+      throw new Error(
+        `[actors] must drive canonical phase enum — missing literal phase string(s): ${missing.join(", ")}. Set state.phase = "aiming" / "acting" / "resolving" at the appropriate transitions.`,
+      );
+    }
   }
   if (element === "end_card") {
     if (!sketch.js.includes("__cta")) {
@@ -100,7 +107,8 @@ async function callOneSketch(
   let attempt = 0;
   let lastErr: unknown;
   let sys = systemBase;
-  while (attempt < 2) {
+  const maxAttempts = 3;
+  while (attempt < maxAttempts) {
     attempt++;
     try {
       const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
@@ -126,10 +134,22 @@ async function callOneSketch(
       lastErr = e;
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(`[p4-sketch:${element}] attempt ${attempt} failed: ${msg.slice(0, 250)}`);
-      if (attempt >= 2) break;
+      if (attempt >= maxAttempts) break;
+      const elementSpecifics: string[] = [];
+      if (element === "actors") {
+        elementSpecifics.push(
+          `MANDATORY: include the literal token \`${gameSpec.mechanic_name}\` somewhere in the js source — e.g. as the very first thing inside the object literal place a JS comment like \`/* mechanic:${gameSpec.mechanic_name} */\` so it appears verbatim in the JSON-encoded js string.`,
+        );
+      }
+      if (element === "end_card") {
+        elementSpecifics.push(
+          `MANDATORY: the js must call \`window.__cta(\\\"${gameSpec.cta_url}\\\")\` (or pass the same URL via a variable holding the literal string) so both the token \`__cta\` and the literal cta_url \`${gameSpec.cta_url}\` appear verbatim in the js source.`,
+        );
+      }
       sys =
         systemBase +
-        `\n\nThe previous response failed validation: ${msg.slice(0, 400)}\n\nRe-emit ONLY a JSON object {"element":"${element}","js":"...","uses_engine":[],"notes":"..."}. The js field must be an object literal expression with init/update/draw methods. Forbidden: setTimeout, setInterval, import, require, eval. assigned_element is "${element}".`;
+        `\n\nThe previous response failed validation: ${msg.slice(0, 400)}\n\nRe-emit ONLY a JSON object {"element":"${element}","js":"...","uses_engine":[],"notes":"..."}. The js field must be an object literal expression with init/update/draw methods. Forbidden: setTimeout, setInterval, import, require, eval. assigned_element is "${element}".` +
+        (elementSpecifics.length ? `\n\n${elementSpecifics.join("\n")}` : "");
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));

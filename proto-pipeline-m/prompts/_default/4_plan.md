@@ -30,7 +30,7 @@ Schema:
     }
   ],
   "numeric_params": { "<key>": <number|string|boolean> },
-  "phases": ["aiming", "projectile", "resolve", "win", "loss", ...],
+  "phases": ["idle", "aiming", "acting", "resolving", "win", "loss"],
   "transitions": [
     { "from": "<phase>", "to": "<phase>", "condition": "<plain-english predicate>" }
   ],
@@ -45,7 +45,12 @@ Schema:
 }
 
 Rules for `shared_state_shape`:
-- 6 to 14 fields. Always include: a frame counter, a phase enum, an `isOver` boolean, monotonic input counters (e.g. `dragsTotal`, `shotsFired`), and any genre-specific gameplay state.
+- 6 to 14 fields. Always include the FOUR RESERVED FIELDS (mandatory, exact names):
+  - `phase` — type `"idle|aiming|acting|resolving|win|loss"`, initial `"idle"`. WRITTEN ONLY BY `actors`. Read by any element that needs it.
+  - `subPhase` — type `string|null`, initial `null`. Free-form genre flavour name (e.g. `"player_aim"`, `"enemy_fire"`). Written by `actors`.
+  - `turnIndex` — type `number`, initial `0`. Integer counter, incremented by `actors` on each shot/turn cycle.
+  - `isOver` — type `boolean`, initial `false`. Set true by `actors` on terminal phase.
+- Then add monotonic input counters (e.g. `dragsTotal`, `shotsFired`), HP counters (`playerHp`, `enemyHp` as integers), and genre-specific state.
 - Field types unambiguous. Avoid `any`. Initial values must be valid JSON.
 - Every field must have at least one writer AND at least one reader. A field nobody reads is dead state; a field nobody writes is a constant (move it to `numeric_params`).
 
@@ -58,8 +63,9 @@ Rules for `scene_elements[*].reads` / `.writes`:
 - Reads/writes must be consistent with `state.written_by` / `read_by`. The schema enforces this two-way.
 
 Rules for `phases` and `transitions`:
-- 3 to 6 phases. Common: `aiming`, `projectile`, `resolve`, `win`, `loss`. Adapt to genre.
-- Every phase listed in `phases` must appear in at least one transition `from` or `to`. Every transition must reference a known phase.
+- `phases` MUST be EXACTLY `["idle","aiming","acting","resolving","win","loss"]` — same order, same spelling, no additions, no omissions. This is a CANONICAL ENUM. Genre flavour (e.g. "player_aim", "enemy_fire") goes in `state.subPhase`, NEVER in `phases`.
+- Every transition's `from` and `to` MUST be one of those six strings. Schema rejects unknown phase names.
+- Typical flow: `idle → aiming → acting → resolving → aiming` (next turn) OR `resolving → win` OR `resolving → loss`.
 - `condition` is plain English ("player releases drag", "projectile hits ground", "enemy_hp <= 0"). Sketches translate to JS.
 
 Rules for `events_emitted` / `events_consumed`:

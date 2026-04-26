@@ -33,7 +33,7 @@ Hard constraints (every sketch):
 - You may read `window.__A[<role>]` for assets. If a role is missing or null, fall back to procedural drawing (a colored rectangle is fine).
 - You may read `window.__engineState` only if your contract permits. You MUST NOT redefine `window.__engineState.snapshot` unless `assigned_element === "actors"` (only `actors` owns the snapshot, since it owns input).
 - You MUST NOT write to any state field not listed in your contract's `writes`. Reading fields not listed in `reads` is also forbidden.
-- The `mechanic_name` (= `game_spec.mechanic_name`) string must appear verbatim somewhere in the JS source (in a comment or string literal) ONLY if `assigned_element === "actors"`. Other elements should NOT include it.
+- The `mechanic_name` (= `game_spec.mechanic_name`) string must appear verbatim somewhere in the JS source (in a comment or string literal) ONLY if `assigned_element === "actors"`. Other elements should NOT include it. Concrete pattern for `actors`: place a JS comment as the first line inside the object literal, e.g. `/* mechanic:<game_spec.mechanic_name> */`, substituting the actual snake_case mechanic_name verbatim. The literal substring MUST survive into the emitted js string — do not paraphrase, do not split with whitespace, do not interpolate.
 - The `defining_hook` (if non-null in game_spec) must be visibly expressed by t=10s. If your element is one of the elements that contributes to the hook (typically `actors` or `projectiles`), include behavior that makes it visible.
 - Coordinates assume `plan.viewport` (typically 360x640). Layout for portrait mobile.
 
@@ -41,7 +41,13 @@ Per-element extra constraints:
 
 - `bg_ground`: must paint a non-uniform background fill on EVERY frame from frame 1 — a horizon line, sky gradient, ground tile, or layered bands. Never a single solid color. If a `background` asset exists in `__A`, draw it cover-fit; else procedural gradient + ground band.
 
-- `actors`: owns input. Bind pointer events in `init` (`canvas.addEventListener("pointerdown"...)` etc.), translate to phase transitions per `plan.transitions`. Update monotonic input counters declared in `shared_state_shape`. Override `window.__engineState.snapshot` to return all monotonic counters AND current state fields the verifier needs (`phase`, `playerHp`, `enemyHp`, `projectiles`, `inputs`, `ctaVisible`). On phase change to `win` or `loss`, set `state.isOver = true`.
+- `actors`: owns input AND owns the canonical phase machine. Bind pointer events in `init` (`canvas.addEventListener("pointerdown"...)`). Update monotonic input counters declared in `shared_state_shape`. Override `window.__engineState.snapshot` to return all monotonic counters AND the canonical state fields the verifier reads (`phase`, `subPhase`, `turnIndex`, `isOver`, `ctaVisible`, `playerHp`, `enemyHp`, `projectiles`, `inputs`).
+  - The `state.phase` field MUST take values from the CANONICAL ENUM only: `"idle" | "aiming" | "acting" | "resolving" | "win" | "loss"`. Use `state.subPhase` for genre-specific flavour (e.g. `"player_aim"`, `"enemy_fire"`).
+  - On scene start: set `state.phase = "aiming"` (player can immediately aim).
+  - On each fire/release input: set `state.phase = "acting"` and `state.turnIndex = state.turnIndex + 1`.
+  - When the projectile resolves (lands, hits, fizzles): set `state.phase = "resolving"`. On the very next tick, transition to `"aiming"` (next turn) OR `"win"` / `"loss"` if a terminal HP condition was met.
+  - On terminal phase (`"win"` or `"loss"`): set `state.isOver = true` immediately. The `end_card` element will set `state.ctaVisible = true` once it draws.
+  - The literal strings `"aiming"`, `"acting"`, `"resolving"` MUST appear verbatim in your JS source — they are the contract with the verifier.
 
 - `projectiles`: handle spawn (consume `events_consumed` like `fire_projectile`), physics, hit detection, impact VFX. On hit, decrement target HP via the field listed in your `writes`. Emit `hit_target` or `miss` via the event list field in shared_state.
 
