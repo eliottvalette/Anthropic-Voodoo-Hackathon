@@ -30,7 +30,7 @@
   const PLAYER_DAMAGE_CRIT   = 66.8;     // 2× normal
   const ENEMY_DAMAGE         = 20.0;     // % per non-glance enemy hit
   const ENEMY_GLANCE_RATE    = 0.40;
-  const PROJECTILE_GRAVITY   = 0.00078;  // world units per ms²
+  const PROJECTILE_GRAVITY   = 0.00054;  // world units per ms²
   const HIT_STOP_MS          = 60;
   const HIT_STOP_CRIT_MS     = 130;
   const SLOWMO_DURATION_MS   = 320;
@@ -41,6 +41,7 @@
   const ROCKET_SWAY_AMPLITUDE = 12;
   const ROCKET_LANE_SPACING  = 12;
   const ROCKET_VELOCITY_FAN  = 0.014;
+  const ROCKET_SPEED_STEP    = 0.075;
   // Destruction physics — world-units per second² and fractional damping/sec.
   const DESTRUCT = {
     gravity:        780,
@@ -931,10 +932,6 @@
     const type = unitTypes[slot];
     const startX = from.x;
     const startY = from.y - 20;
-    if (!isRocketType(type)) {
-      return [createProjectile(side, slot, type, startX, startY, vx, vy, isCrit)];
-    }
-
     const dir = vNormSafe({ x: vx, y: vy });
     const normal = { x: -dir.y, y: dir.x };
     const center = (ROCKET_SALVO_COUNT - 1) * 0.5;
@@ -942,14 +939,17 @@
     for (let i = 0; i < ROCKET_SALVO_COUNT; i += 1) {
       const lane = i - center;
       const offset = lane * ROCKET_LANE_SPACING;
+      const speedMul = 1 + lane * ROCKET_SPEED_STEP;
+      const drawW = isRocketType(type) ? 46 : 34;
+      const drawH = isRocketType(type) ? 28 : 24;
       rockets.push(createProjectile(
         side,
         slot,
         type,
         startX + normal.x * offset,
         startY + normal.y * offset,
-        vx + normal.x * lane * ROCKET_VELOCITY_FAN,
-        vy + normal.y * lane * ROCKET_VELOCITY_FAN,
+        vx * speedMul + normal.x * lane * ROCKET_VELOCITY_FAN,
+        vy * speedMul + normal.y * lane * ROCKET_VELOCITY_FAN,
         isCrit,
         {
           damageScale: ROCKET_DAMAGE_SCALE,
@@ -961,8 +961,8 @@
           trailCount: isCrit ? 2 : 1,
           trailSize: isCrit ? 8 : 6,
           feedbackScale: 0.42,
-          drawW: 46,
-          drawH: 28,
+          drawW,
+          drawH,
           leadBias: Math.abs(lane),
           isRocket: true,
         }
@@ -1096,11 +1096,9 @@
   }
   function recoil(side, slot, isCrit, type) {
     const p = unitSlots[side][slot];
-    const isRocket = isRocketType(type);
-    const count = isRocket ? (isCrit ? 18 : 12) : (isCrit ? 14 : 8);
+    const count = isCrit ? 18 : 12;
     burst(state.particles, p.x, p.y - 8, "rgba(255,255,255,0.7)", count, 0.06);
-    smoke(state.particles, p.x, p.y - 4, isRocket ? (isCrit ? 12 : 8) : (isCrit ? 9 : 5));
-    playSfx("shoot");
+    smoke(state.particles, p.x, p.y - 4, isCrit ? 12 : 8);
     if (side === "player") haptic("tap");
     if (isCrit) { flash("#fff8d4", 90); shake.trigger(4); }
   }
