@@ -44,6 +44,21 @@ Output: one HTML file, no CDN, no iframe, ≤5MB, MRAID-ready.
 cd slides && npm install && npm run dev   # http://localhost:3001
 ```
 
+## Vercel projects
+
+This repo is deployed to Vercel as a monorepo with two separate Projects:
+
+| Vercel Project | Root Directory | Purpose |
+|---|---|---|
+| `anthropic-voodoo-hackathon` | `ui/` | Main product UI |
+| `anthropic-voodoo-hackathon-phsl` | `slides/` | Jury deck / live slides |
+
+Rules:
+
+- Both projects must use `Framework Preset = Next.js`
+- Do not use `Other` for `ui/` or `slides/`
+- `ui/vercel.json` and `slides/vercel.json` both pin `"framework": "nextjs"`
+
 **Pipeline** — see `proto-pipeline-e/README.md` and
 `proto-pipeline-m/CLAUDE.md`.
 
