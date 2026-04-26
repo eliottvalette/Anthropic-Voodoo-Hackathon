@@ -7,7 +7,7 @@ import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
 import { writeP3 } from "./p3_aggregator.ts";
 import { runP4 } from "./p4_codegen.ts";
-import { verify } from "./verify.ts";
+import { verify, buildRetryAddendum } from "./verify.ts";
 import { GameSpecSchema } from "../schemas/gameSpec.ts";
 import type { VerifyReport } from "../schemas/verifyReport.ts";
 import {
@@ -172,6 +172,30 @@ export async function runPipeline(
   let report = await verify(p4.htmlPath, gameSpec.mechanic_name);
   let retries = 0;
 
+  const writeFailureSummary = async (r: typeof report, attempt: number) => {
+    if (r.runs) return;
+    const failed = failingAsserts(r);
+    const addendum = buildRetryAddendum(r);
+    const summary = [
+      `runId: ${runId}`,
+      `attempt: ${attempt}`,
+      `failingAsserts: ${failed.join(" | ")}`,
+      `phasesSeen: ${(r.trajectory?.phasesSeen ?? []).join(",")}`,
+      `turnIndicesSeen: ${(r.trajectory?.turnIndicesSeen ?? []).join(",")}`,
+      `inputsTotal: ${r.trajectory?.inputsTotal ?? 0}`,
+      `hpDeltaPlayer: ${r.trajectory?.hpDeltaPlayer ?? "null"}`,
+      `hpDeltaEnemy: ${r.trajectory?.hpDeltaEnemy ?? "null"}`,
+      ``,
+      `--- retry addendum ---`,
+      addendum,
+      ``,
+      `--- next step ---`,
+      `Invoke the browser-tester agent on this runDir to get a structured fix-hint.`,
+    ].join("\n");
+    await writeFile(join(outDir, "verify_failure_summary.txt"), summary, "utf8");
+  };
+  await writeFailureSummary(report, 0);
+
   while (!report.runs && retries < maxRetries) {
     retries++;
     const routing = routeFailures(report);
@@ -205,6 +229,7 @@ export async function runPipeline(
     stages.push(...p4.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
     repaired = repaired || p4.meta.repaired;
     report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+    await writeFailureSummary(report, retries);
   }
 
   await writeFile(

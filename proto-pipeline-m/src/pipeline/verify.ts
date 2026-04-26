@@ -189,7 +189,7 @@ export async function verify(
       recordSnap(s.snap);
       if (
         (turnIndicesSeen.size >= 2) ||
-        (phasesSeen.has("aiming") && phasesSeen.has("projectile"))
+        (phasesSeen.has("aiming") && phasesSeen.has("acting"))
       ) {
         turnLoopObserved = true;
       }
@@ -246,7 +246,7 @@ export async function verify(
       recordSnap(s.snap);
       lastSnap = s.snap;
       const snap = s.snap as Record<string, unknown> | null;
-      if (snap && (snap.ctaVisible === true || snap.phase === "ended" || typeof snap.result === "string")) {
+      if (snap && (snap.ctaVisible === true || snap.phase === "win" || snap.phase === "loss" || typeof snap.result === "string")) {
         ctaReachable = true;
         break;
       }
@@ -320,7 +320,7 @@ export function buildRetryAddendum(report: VerifyReport): string {
   if (!report.mraidOk) lines.push("CTA did not call mraid.open(...) — wire CTA tap to call window.mraid.open(STORE_URL) with window.open fallback.");
   if (!report.mechanicStringMatch) lines.push("HTML did not contain the mechanic_name string — embed `mechanic_name` constant verbatim somewhere reachable in JS.");
   if (!report.interactionStateChange) lines.push("Pointer interaction did not increment window.__engineState.inputs nor change snapshot — wire pointerdown/pointerup to bump inputs and update phase.");
-  if (!report.turnLoopObserved) lines.push("Turn loop not observed — phase must transition aiming → projectile → enemy_wait → projectile, and turnIndex must change at least once after a shot.");
+  if (!report.turnLoopObserved) lines.push("Turn loop not observed — state.phase must reach BOTH \"aiming\" and \"acting\" (canonical enum), or state.turnIndex must increment at least twice. Genre flavour goes in state.subPhase, not state.phase.");
   if (!report.hpDecreasesOnHit) lines.push("HP never decreased after drag bursts — playerHp/enemyHp must be discrete integers (start at 3) and decrement on impact, not continuous bars.");
   if (!report.ctaReachable) lines.push("CTA never became reachable — set window.__engineState.ctaVisible=true when a side reaches 0 HP and on first drag in test mode if your end condition is too long.");
   if (report.consoleErrors.length > 0) lines.push(`Console errors must be eliminated: ${report.consoleErrors.slice(0, 3).join(" | ")}`);
