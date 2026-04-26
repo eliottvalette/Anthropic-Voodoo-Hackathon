@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: oklch(1 0 0);
+  --surface: oklch(0.98 0.003 80);
+  --ink: oklch(0.2161 0.0061 56.04);
+  --muted: oklch(0.556 0 0);
+  --line: oklch(0.92 0.004 80);
+  --brand: oklch(0.6639 0.2147 37.25);
+  --brand-soft: oklch(0.95 0.04 50);
+  --amber: oklch(0.8106 0.170361 75.8706);
+  --radius: 0.625rem;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.font-display {
+  font-family: Sora, Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.deck-stage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0c;
+  overflow: hidden;
+}
+
+.deck-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100vw;
+  max-width: 100vw;
+  max-height: 100vh;
+  background: var(--bg);
+  overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.55);
+}
+
+@media (min-aspect-ratio: 16/9) {
+  .deck-frame { width: auto; height: 100vh; }
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 360ms ease, transform 360ms ease;
+  transform: translateX(32px);
+  pointer-events: none;
+}
+.slide[data-active='true'] {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.dot-grid {
+  background-image: radial-gradient(circle, oklch(0.85 0.005 80) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.brand-underline {
+  background-image: linear-gradient(90deg, var(--brand), var(--amber));
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+  background-position: 0 100%;
+  padding-bottom: 6px;
+}
+
+@keyframes lit {
+  0% { opacity: 0.25; transform: translateY(8px); filter: saturate(0.4); }
+  100% { opacity: 1; transform: translateY(0); filter: saturate(1); }
+}
+.stage-card {
+  transition: all 280ms ease;
+  opacity: 0.35;
+}
+.stage-card[data-lit='true'] {
+  animation: lit 420ms ease-out forwards;
+  border-color: var(--brand);
+  background: var(--bg);
+  box-shadow: 0 12px 30px -16px oklch(0.6639 0.2147 37.25 / 0.45);
+}
+
+@keyframes pulse-arrow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.arrow-pulse[data-lit='true'] {
+  animation: pulse-arrow 1s ease-in-out infinite;
+}
+
+@page {
+  size: 1920px 1080px;
+  margin: 0;
+}
+
+@media print {
+  body { background: white; }
+  .deck-stage { display: block; height: auto; }
+  .deck-frame { box-shadow: none; width: 1920px; height: 1080px; aspect-ratio: auto; page-break-after: always; }
+  .slide {
+    position: relative !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    page-break-after: always;
+    break-after: page;
+    width: 1920px;
+    height: 1080px;
+  }
+  .nav-hud { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
