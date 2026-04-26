@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import threading
 import time
 import urllib.request
 from dataclasses import dataclass
@@ -803,15 +804,32 @@ def _claude_inventory_via_openrouter(frame_jpegs: list[bytes], fps_hint: float) 
 
 
 def _try_gemini_manifest(client: Any, video_path: Path, fps: float) -> dict[str, Any]:
-    """The original Gemini path: upload + analyze. Wrapped with a wall-clock
-    timeout so a hung upload doesn't deadlock the whole pipeline."""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        upload_future = pool.submit(upload_video_resilient, client, video_path)
+    """The original Gemini path: upload + analyze. Uses a daemon thread for
+    the upload so a hang on Gemini's Files API doesn't deadlock the whole
+    pipeline. (ThreadPoolExecutor's `with` context manager calls
+    shutdown(wait=True) on exit, which would block on the hung upload —
+    daemon threads sidestep that and are GC'd when the process exits.)"""
+    holder: dict[str, Any] = {}
+
+    def _upload_worker() -> None:
         try:
-            uploaded = upload_future.result(timeout=UPLOAD_HARD_TIMEOUT_S)
-        except concurrent.futures.TimeoutError:
-            upload_future.cancel()
-            raise RuntimeError(f"Gemini Files API upload exceeded {UPLOAD_HARD_TIMEOUT_S}s wall clock")
+            holder['result'] = upload_video_resilient(client, video_path)
+        except BaseException as exc:  # noqa: BLE001 — preserve original error class
+            holder['error'] = exc
+
+    t = threading.Thread(target=_upload_worker, daemon=True, name='gemini-upload')
+    t.start()
+    t.join(timeout=UPLOAD_HARD_TIMEOUT_S)
+    if t.is_alive():
+        # Daemon thread is still running; abandon it. It'll be killed when
+        # the Python process exits. The upload may eventually succeed in
+        # the background but we no longer care — falling through to Claude.
+        raise RuntimeError(f"Gemini Files API upload exceeded {UPLOAD_HARD_TIMEOUT_S}s wall clock")
+    if 'error' in holder:
+        raise holder['error']
+    uploaded = holder.get('result')
+    if uploaded is None:
+        raise RuntimeError("Gemini upload thread returned no result")
     uploaded = wait_for_file(client, uploaded.name)
 
     part = types.Part(
