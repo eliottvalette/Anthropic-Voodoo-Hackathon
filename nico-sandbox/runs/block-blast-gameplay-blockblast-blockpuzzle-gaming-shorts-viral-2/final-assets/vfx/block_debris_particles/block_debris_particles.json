@@ -1,0 +1,31 @@
+{
+  "asset_id": "block_debris_particles",
+  "name": "Block Debris Particles",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/block_debris_particles.png",
+  "payload": {
+    "summary": "A procedural debris system that generates 3D-looking block fragments and swirl shapes using dynamic Graphics textures. It simulates depth through simple shading and uses a radial burst with gravity for a tactile 'shatter' effect.",
+    "duration_ms": 1000,
+    "palette": [
+      "#F8E8D0",
+      "#E899B0",
+      "#FFD700",
+      "#FFFFFF"
+    ],
+    "particle_config": {
+      "count": 16,
+      "velocity_range": {
+        "min": 150,
+        "max": 350
+      },
+      "gravity_y": 800,
+      "angular_velocity": 720,
+      "scale_curve": "1 to 0",
+      "alpha_curve": "1 to 0",
+      "blend_mode": "NORMAL"
+    },
+    "typescript": "export class DebrisManager {\n  static init(scene: Phaser.Scene) {\n    // Create Cube Texture\n    const g = scene.make.graphics({ x: 0, y: 0, add: false });\n    g.fillStyle(0xffffff);\n    g.fillRect(0, 0, 12, 12);\n    g.fillStyle(0x000000, 0.2);\n    g.fillRect(8, 0, 4, 12); // Side shading\n    g.fillRect(0, 8, 12, 4); // Bottom shading\n    g.generateTexture('debris_cube', 12, 12);\n\n    // Create Swirl Texture\n    g.clear();\n    g.lineStyle(2, 0xffffff);\n    g.beginPath();\n    for (let i = 0; i < 10; i++) {\n      const angle = 0.1 * i;\n      const x = 8 + (2 + i) * Math.cos(angle * 5);\n      const y = 8 + (2 + i) * Math.sin(angle * 5);\n      if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);\n    }\n    g.strokePath();\n    g.generateTexture('debris_swirl', 16, 16);\n  }\n\n  static spawn(scene: Phaser.Scene, x: number, y: number, color: number = 0xF8E8D0) {\n    const textures = ['debris_cube', 'debris_swirl'];\n    textures.forEach(tex => {\n      const emitter = scene.add.particles(x, y, tex, {\n        speed: { min: 100, max: 300 },\n        angle: { min: 0, max: 360 },\n        scale: { start: 0.8, end: 0 },\n        rotate: { start: 0, end: 360 },\n        gravityY: 700,\n        lifespan: 800,\n        quantity: 6,\n        tint: color,\n        emitting: false\n      });\n      emitter.explode(6);\n      scene.time.delayedCall(1000, () => emitter.destroy());\n    });\n\n    // Add small white sparkles\n    const sparkles = scene.add.particles(x, y, 'debris_cube', {\n      speed: { min: 50, max: 150 },\n      scale: { start: 0.4, end: 0 },\n      alpha: { start: 1, end: 0 },\n      blendMode: 'ADD',\n      lifespan: 400,\n      emitting: false\n    });\n    sparkles.explode(8);\n    scene.time.delayedCall(500, () => sparkles.destroy());\n  }\n}"
+  }
+}

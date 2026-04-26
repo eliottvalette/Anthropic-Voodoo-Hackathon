@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Combo Text",
+      "box_2d": [
+        302,
+        278,
+        373,
+        721
+      ],
+      "confidence": 1.0,
+      "notes": "The 'Combo' text feedback displayed on the screen."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

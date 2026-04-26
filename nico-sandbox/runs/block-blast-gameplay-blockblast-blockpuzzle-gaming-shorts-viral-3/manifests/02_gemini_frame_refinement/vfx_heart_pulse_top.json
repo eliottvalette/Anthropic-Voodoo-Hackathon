@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Combo Heart Pulse",
+      "box_2d": [
+        364,
+        609,
+        551,
+        722
+      ],
+      "confidence": 0.9,
+      "notes": "A glowing heart effect indicating a combo, located within the game grid."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

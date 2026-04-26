@@ -1,0 +1,41 @@
+{
+  "asset_id": "vertical_clear_glow",
+  "name": "Vertical Clear Glow",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/vertical_clear_glow.png",
+  "payload": {
+    "summary": "A high-intensity vertical beam effect designed for line-clearing mechanics. It features a layered additive glow (white core, yellow inner, orange outer) that expands horizontally while fading, accompanied by a burst of outward-flying sparks to emphasize the impact.",
+    "duration_ms": 450,
+    "palette": [
+      "#FFFFFF",
+      "#FFF700",
+      "#FFA500",
+      "#FF4500"
+    ],
+    "particle_config": {
+      "count": 40,
+      "emitter_shape": "vertical_line",
+      "velocity_x": {
+        "min": -300,
+        "max": 300
+      },
+      "velocity_y": {
+        "min": -100,
+        "max": 100
+      },
+      "scale": {
+        "start": 0.6,
+        "end": 0
+      },
+      "alpha": {
+        "start": 1,
+        "end": 0
+      },
+      "lifespan": 400,
+      "blend_mode": "ADD"
+    },
+    "typescript": "async function playVerticalClearEffect(scene: Phaser.Scene, x: number, y: number, height: number) {\n  const duration = 450;\n  const colors = [0xFFFFFF, 0xFFFF00, 0xFFA500];\n\n  // Create a 4x4 white circle texture for particles if it doesn't exist\n  if (!scene.textures.exists('glow_particle')) {\n    const graphics = scene.make.graphics({ x: 0, y: 0, add: false });\n    graphics.fillStyle(0xffffff, 1);\n    graphics.fillCircle(2, 2, 2);\n    graphics.generateTexture('glow_particle', 4, 4);\n  }\n\n  // 1. The Main Beam (Procedural Graphics)\n  const beam = scene.add.graphics();\n  beam.setBlendMode(Phaser.BlendModes.ADD);\n\n  scene.tweens.add({\n    targets: beam,\n    alpha: 0,\n    duration: duration,\n    ease: 'Cubic.easeOut',\n    onUpdate: (tween) => {\n      const p = tween.progress;\n      const width = 60 * (1 - p);\n      beam.clear();\n      // Outer Glow\n      beam.fillStyle(colors[2], 0.3 * (1 - p));\n      beam.fillRect(x - width, y - height / 2, width * 2, height);\n      // Inner Glow\n      beam.fillStyle(colors[1], 0.6 * (1 - p));\n      beam.fillRect(x - width / 2, y - height / 2, width, height);\n      // Core\n      beam.fillStyle(colors[0], 1 - p);\n      beam.fillRect(x - 4, y - height / 2, 8, height);\n    },\n    onComplete: () => beam.destroy()\n  });\n\n  // 2. Particle Burst\n  const emitter = scene.add.particles(x, y, 'glow_particle', {\n    emitZone: { type: 'random', source: new Phaser.Geom.Rectangle(-5, -height / 2, 10, height) },\n    speedX: { min: -400, max: 400 },\n    speedY: { min: -50, max: 50 },\n    scale: { start: 1.5, end: 0 },\n    alpha: { start: 1, end: 0 },\n    lifespan: 400,\n    blendMode: 'ADD',\n    tint: [0xFFFF00, 0xFFFFFF, 0xFFA500],\n    quantity: 40,\n    frequency: -1\n  });\n\n  emitter.explode();\n  \n  // Cleanup\n  scene.time.delayedCall(duration + 100, () => emitter.destroy());\n}"
+  }
+}

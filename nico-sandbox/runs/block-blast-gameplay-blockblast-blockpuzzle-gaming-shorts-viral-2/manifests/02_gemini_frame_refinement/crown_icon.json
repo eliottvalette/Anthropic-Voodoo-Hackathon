@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Crown Icon",
+      "box_2d": [
+        0,
+        53,
+        20,
+        127
+      ],
+      "confidence": 0.9,
+      "notes": "A simple, flat, golden-yellow crown icon."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

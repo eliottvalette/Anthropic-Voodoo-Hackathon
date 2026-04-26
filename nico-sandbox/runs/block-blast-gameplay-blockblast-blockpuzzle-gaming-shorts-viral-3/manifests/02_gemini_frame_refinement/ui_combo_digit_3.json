@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Combo Digit 3",
+      "box_2d": [
+        312,
+        448,
+        346,
+        510
+      ],
+      "confidence": 0.9,
+      "notes": "The digit 3 is part of the combo indicator, appearing as a stylized pinkish-orange number."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Pink Block Tile",
+      "box_2d": [
+        303,
+        391,
+        364,
+        498
+      ],
+      "confidence": 0.9,
+      "notes": "A single pink block tile with a heart shape in the center."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

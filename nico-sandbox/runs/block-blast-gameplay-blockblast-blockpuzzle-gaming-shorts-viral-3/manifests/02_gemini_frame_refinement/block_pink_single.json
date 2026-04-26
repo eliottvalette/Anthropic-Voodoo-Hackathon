@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Pink Heart Tile",
+      "box_2d": [
+        241,
+        58,
+        301,
+        166
+      ],
+      "confidence": 1.0,
+      "notes": "A single pink heart tile from the puzzle grid."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

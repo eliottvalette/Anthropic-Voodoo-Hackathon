@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Vertical Clear Glow",
+      "box_2d": [
+        363,
+        608,
+        551,
+        724
+      ],
+      "confidence": 0.95,
+      "notes": "A vertical golden-yellow glowing bar with light particles, indicating a vertical line clear."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

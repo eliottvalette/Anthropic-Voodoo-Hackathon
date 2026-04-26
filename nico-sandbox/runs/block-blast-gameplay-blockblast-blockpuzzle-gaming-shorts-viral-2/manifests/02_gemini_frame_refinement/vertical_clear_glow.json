@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Vertical Clear Glow",
+      "box_2d": [
+        363,
+        608,
+        551,
+        724
+      ],
+      "confidence": 0.95,
+      "notes": "A bright, glowing vertical bar with a yellowish-white center and fading edges, indicating a cleared column."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

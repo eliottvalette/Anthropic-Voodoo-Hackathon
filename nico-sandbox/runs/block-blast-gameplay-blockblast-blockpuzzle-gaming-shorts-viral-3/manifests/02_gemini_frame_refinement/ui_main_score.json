@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Main Score Display",
+      "box_2d": [
+        69,
+        199,
+        141,
+        800
+      ],
+      "confidence": 1.0,
+      "notes": "The large white score display '262598' at the top of the screen."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

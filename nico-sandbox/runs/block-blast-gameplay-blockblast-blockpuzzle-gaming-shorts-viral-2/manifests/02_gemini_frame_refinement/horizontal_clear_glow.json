@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Horizontal Clear Glow",
+      "box_2d": [
+        427,
+        56,
+        550,
+        943
+      ],
+      "confidence": 0.95,
+      "notes": "A bright, glowing horizontal bar with a yellowish-white center and fading edges, indicating a cleared row."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

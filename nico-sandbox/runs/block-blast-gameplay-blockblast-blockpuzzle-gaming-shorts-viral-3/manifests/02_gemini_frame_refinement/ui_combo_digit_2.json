@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Combo Digit 2",
+      "box_2d": [
+        339,
+        663,
+        371,
+        716
+      ],
+      "confidence": 1.0,
+      "notes": "The combo digit '2' is located to the right of the 'Combo' text."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

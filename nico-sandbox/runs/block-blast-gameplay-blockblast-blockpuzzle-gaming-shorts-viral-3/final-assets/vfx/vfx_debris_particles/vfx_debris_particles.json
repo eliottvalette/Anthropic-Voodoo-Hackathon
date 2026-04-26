@@ -1,0 +1,12 @@
+{
+  "asset_id": "vfx_debris_particles",
+  "name": "Block Debris Particles",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_debris_particles.png",
+  "payload": {
+    "summary": "Gemini returned non-JSON procedural VFX output.",
+    "raw": "{\n  \"summary\": \"A procedural particle burst simulating 3D block fragments using rotating squares, radial velocity, and additive blending for a high-energy 'clear' feedback.\",\n  \"duration_ms\": 800,\n  \"palette\": [\n    \"#FFF9C4\",\n    \"#F8BBD0\",\n    \"#FFD54F\"\n  ],\n  \"particle_config\": {\n    \"count\": 16,\n    \"shape\": \"square\",\n    \"size_range\": [\n      4,\n      8\n    ],\n    \"velocity_range\": [\n      150,\n      400\n    ],\n    \"gravity\": 600,\n    \"rotation_speed\": [\n      -360,\n      360\n    ],\n    \"alpha_curve\": \"linear_fade\",\n    \"scale_curve\": \"shrink_to_zero\",\n    \"blend_mode\": \"ADD\"\n  },\n  \"typescript\": \"export const createBlockDebris = (scene: Phaser.Scene, x: number, y: number, colorHex: string = '#FFF9C4') => {\\n  const texKey = 'debris_sq';\\n  if (!scene.textures.exists(texKey)) {\\n    const g = scene.make.graphics({ x: 0, y: 0, add: false });\\n    g.fillStyle(0xffffff).fillRect(0, 0, 8, 8);\\n    g.generateTexture(texKey, 8, 8);\\n  }\\n\\n  const color = Phaser.Display.Color.HexStringToColor(colorHex).color;\\n  const emitter = scene.add.particles(x, y, texKey, {\\n    lifespan: 800,\\n    speed: { min: 150, max: 400 },\\n    angle: { min: 0, max: 360 },\\n    gravityY: 600,\\n    scale: { start: 1.2, end: 0 },\\n    alpha: { start: 1, end: 0 },\\n    rotate: { min: 0, max: 720 },\\n    tint: color,\\n    blendMode: 'ADD',\\n    emitting: false\\n  });\\n\\n  emitter.explode(16);\\n  scene.time.delayedCall(1000, () => emitter.destroy());\\n};\"\n}\n}"
+  }
+}

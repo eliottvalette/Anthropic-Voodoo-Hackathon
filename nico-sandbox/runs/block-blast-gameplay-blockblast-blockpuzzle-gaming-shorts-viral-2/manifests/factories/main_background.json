@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "asset_id": "main_background",
+    "route": "background_plate",
+    "category": "background",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds/main_background.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/manifests/factories/main_background.json",
+    "steps": [
+      "extract_clean_plate",
+      "scenario_background_cleanup",
+      "optional_lora_ab_test",
+      "gemini_plate_qa"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+      "model_hHuMquQ1QvEGHS1w7tGuYXud",
+      "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+      "model_uPCFzAgcZVB6sdTdRS7XXQ6Z"
+    ],
+    "gemini_tasks": [
+      "plate_occlusion_notes",
+      "candidate_qa"
+    ],
+    "outputs": {
+      "plate": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds/main_background.png",
+      "lora_candidates": [
+        {
+          "model_id": "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+          "name": "Battle Arenas 2.0",
+          "best_for": "cartoon fantasy battlegrounds and side-view arena plates"
+        },
+        {
+          "model_id": "model_hHuMquQ1QvEGHS1w7tGuYXud",
+          "name": "Cartoon Backgrounds 2.0",
+          "best_for": "bold casual game backgrounds and end-card scenery"
+        },
+        {
+          "model_id": "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+          "name": "Bold Line Environments 2.0",
+          "best_for": "clean outlined environments with stylized depth"
+        },
+        {
+          "model_id": "model_uPCFzAgcZVB6sdTdRS7XXQ6Z",
+          "name": "Top-down TD Game",
+          "best_for": "top-down maps, lanes, forests, deserts, and strategy-game terrain"
+        }
+      ]
+    },
+    "prompts": {
+      "scenario_background": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Main Background\nDescription: A solid, warm, medium-brown background that fills the screen behind the game board.\nGameplay role: Provides a neutral backdrop for the game elements.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D puzzle game featuring soft, candy-like blocks with heart imprints on a warm brown background.\nRendering technique: 2D vector-style with soft shading to create a faux-3D beveled appearance.\nLine work: No outlines on game pieces; thick, contrasting outlines on UI text.\nPalette: Warm and sweet: dark chocolate browns, soft pinks, cream/light yellows, with bright UI accents.\nShading: Soft gradients and edge highlights for a tactile, rounded feel.\nScale / proportions: Chunky, stylized, and tactile, resembling physical candy or game pieces.\nDO NOT use any of these styles: pixel art, photorealistic, gritty, sci-fi, hand-drawn sketch, low-poly 3D, flat vector.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite."
+    },
+    "notes": [
+      "Opaque plate output; no alpha removal."
+    ]
+  },
+  "result": {
+    "asset_id": "main_background",
+    "name": "Main Background",
+    "category": "background",
+    "route": "background_plate",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/main_background.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds/main_background.png",
+    "scenario_asset_id": "asset_KBYubWY76qjsv1Brjqn8rS9Q",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_1HUsCmHgPx2iRGvRxoJRmBx5"
+      },
+      {
+        "step": "background_plate_cleanup",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_mnAx4JzLv8FQuwx5LJ1m9Rnd",
+        "asset_id": "asset_KBYubWY76qjsv1Brjqn8rS9Q"
+      }
+    ]
+  }
+}

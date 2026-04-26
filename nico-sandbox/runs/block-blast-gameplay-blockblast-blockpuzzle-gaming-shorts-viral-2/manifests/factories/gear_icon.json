@@ -1,0 +1,82 @@
+{
+  "plan": {
+    "asset_id": "gear_icon",
+    "route": "ui_asset",
+    "category": "ui",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/gear_icon.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/manifests/factories/gear_icon.json",
+    "steps": [
+      "gemini_ui_description",
+      "choose_html_svg_or_png",
+      "optional_ui_lora_recreation",
+      "qa_legibility"
+    ],
+    "scenario_models": [
+      "model_2CrDSJ7FsBZckLpakS4JyS6A",
+      "model_mcYj5uGzXteUw6tKapsaDgBP"
+    ],
+    "gemini_tasks": [
+      "ocr",
+      "layout_description",
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/gear_icon.png",
+      "ui_lora_candidates": [
+        {
+          "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+          "name": "Human Interface 2.0",
+          "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+        },
+        {
+          "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+          "name": "Game UI Essentials 2.0",
+          "best_for": "icons, buttons, badges, and casual mobile UI elements"
+        }
+      ]
+    },
+    "prompts": {
+      "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Gear Icon\nCategory: ui\nDescription: A simple, flat, light brown gear icon.\nGameplay role: Settings menu button.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D puzzle game featuring soft, candy-like blocks with heart imprints on a warm brown background.\nRendering technique: 2D vector-style with soft shading to create a faux-3D beveled appearance.\nLine work: No outlines on game pieces; thick, contrasting outlines on UI text.\nPalette: Warm and sweet: dark chocolate browns, soft pinks, cream/light yellows, with bright UI accents.\nShading: Soft gradients and edge highlights for a tactile, rounded feel.\nScale / proportions: Chunky, stylized, and tactile, resembling physical candy or game pieces.\nDO NOT use any of these styles: pixel art, photorealistic, gritty, sci-fi, hand-drawn sketch, low-poly 3D, flat vector.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+    },
+    "notes": [
+      "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+    ]
+  },
+  "result": {
+    "asset_id": "gear_icon",
+    "name": "Gear Icon",
+    "category": "ui",
+    "route": "ui_asset",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/gear_icon.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/gear_icon.png",
+    "scenario_asset_id": "asset_XF9F2CBcNCNoP6FHaSVjvu2f",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_Rd3PofbazVcJWVdpgvjzbNyg"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_SA69cuiWQ5c6WW6xvMU9wUWH",
+        "asset_ids": [
+          "asset_3y23bbL1SrTmCtHJUNHpNXFu"
+        ],
+        "selected_asset_id": "asset_3y23bbL1SrTmCtHJUNHpNXFu"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_photoroom-background-removal",
+        "job_id": "job_mys1ggD6WdteUygJRVwBgD7U",
+        "asset_id": "asset_A2yH2ZxzC1a6qmBRckNZ2WHM"
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_93FcgFmYzLi3yFyfPCbi6KQX",
+        "asset_id": "asset_XF9F2CBcNCNoP6FHaSVjvu2f"
+      }
+    ]
+  }
+}

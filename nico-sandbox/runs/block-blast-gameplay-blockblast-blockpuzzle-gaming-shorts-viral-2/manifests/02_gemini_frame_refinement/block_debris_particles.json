@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Block Debris Particles",
+      "box_2d": [
+        416,
+        56,
+        549,
+        943
+      ],
+      "confidence": 0.95,
+      "notes": "Small, 3D-looking flying debris particles, including tiny cubes and swirl shapes in cream and pink colors, accompanying a line clear."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

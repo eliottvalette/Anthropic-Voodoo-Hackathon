@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "T-Shape Cream Piece (4 Tiles)",
+      "box_2d": [
+        551,
+        169,
+        673,
+        719
+      ],
+      "confidence": 0.9,
+      "notes": "A T-shaped piece composed of four cream heart tiles."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Thumbs Up Feedback",
+      "box_2d": [
+        379,
+        636,
+        414,
+        696
+      ],
+      "confidence": 0.9,
+      "notes": "A small green circular icon with a white thumbs-up symbol inside."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

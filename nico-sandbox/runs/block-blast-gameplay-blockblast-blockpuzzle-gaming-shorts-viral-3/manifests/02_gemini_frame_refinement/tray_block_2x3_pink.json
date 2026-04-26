@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "2x3 Pink Rectangle Piece",
+      "box_2d": [
+        805,
+        749,
+        838,
+        833
+      ],
+      "confidence": 0.9,
+      "notes": "A 2x3 pink rectangle piece in the tray."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

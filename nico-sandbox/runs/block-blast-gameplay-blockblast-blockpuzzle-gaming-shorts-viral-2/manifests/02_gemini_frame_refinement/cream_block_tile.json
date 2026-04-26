@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Cream Block Tile",
+      "box_2d": [
+        427,
+        58,
+        488,
+        166
+      ],
+      "confidence": 0.9,
+      "notes": "A single cream-colored square tile with a heart shape in the center."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

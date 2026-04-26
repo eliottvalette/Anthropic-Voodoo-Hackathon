@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Puzzle Grid",
+      "box_2d": [
+        175,
+        52,
+        677,
+        947
+      ],
+      "confidence": 1.0,
+      "notes": "The 8x8 dark brown grid where the puzzle blocks are placed."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

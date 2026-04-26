@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Twinkling Star Sparkles",
+      "box_2d": [
+        464,
+        307,
+        486,
+        327
+      ],
+      "confidence": 0.9,
+      "notes": "A single small yellow sparkle effect visible near the 'Combo' text."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

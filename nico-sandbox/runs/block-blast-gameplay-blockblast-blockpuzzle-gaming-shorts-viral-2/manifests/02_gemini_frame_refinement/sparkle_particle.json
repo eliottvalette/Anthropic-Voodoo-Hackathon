@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Sparkle Particle",
+      "box_2d": [
+        271,
+        335,
+        294,
+        377
+      ],
+      "confidence": 0.9,
+      "notes": "A small yellow star-shaped sparkle particle near the 'Good!' text."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

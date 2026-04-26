@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Main Background",
+      "box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "confidence": 1.0,
+      "notes": "The solid brown background plate behind all game elements."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

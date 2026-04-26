@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Great Text",
+      "box_2d": [
+        241,
+        434,
+        267,
+        588
+      ],
+      "confidence": 1.0,
+      "notes": "The word 'Great!' in a bubbly, rounded font, colored bright yellow with a darker orange/brown outline."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

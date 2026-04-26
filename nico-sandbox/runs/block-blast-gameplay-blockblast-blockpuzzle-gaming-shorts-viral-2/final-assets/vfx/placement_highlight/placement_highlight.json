@@ -1,0 +1,45 @@
+{
+  "asset_id": "placement_highlight",
+  "name": "Placement Highlight",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/placement_highlight.png",
+  "payload": {
+    "summary": "A high-intensity 'snap' effect consisting of a central glowing square flash and a brief burst of outward-radiating particles to emphasize block placement. The effect uses additive blending to create a 'light-bleed' look over the pink heart blocks.",
+    "duration_ms": 300,
+    "palette": [
+      "#FFFFFF",
+      "#FFD1DC",
+      "#FF69B4"
+    ],
+    "particle_config": {
+      "count": 12,
+      "emitter_positions": "Center of the placed block cell",
+      "velocity_ranges": {
+        "x": [
+          -150,
+          150
+        ],
+        "y": [
+          -150,
+          150
+        ]
+      },
+      "size_curve": {
+        "start": 1.2,
+        "end": 0
+      },
+      "alpha_curve": {
+        "start": 1,
+        "end": 0
+      },
+      "rotation_range": [
+        0,
+        360
+      ],
+      "blend_mode": "ADD"
+    },
+    "typescript": "export function playPlacementHighlight(scene: Phaser.Scene, x: number, y: number, cellSize: number) {\n  // Create procedural white square texture if it doesn't exist\n  if (!scene.textures.exists('vfx_square')) {\n    const graphics = scene.make.graphics({ x: 0, y: 0, add: false });\n    graphics.fillStyle(0xffffff, 1);\n    graphics.fillRect(0, 0, 32, 32);\n    graphics.generateTexture('vfx_square', 32, 32);\n  }\n\n  // 1. Central Flash Square\n  const flash = scene.add.image(x, y, 'vfx_square');\n  flash.setDisplaySize(cellSize, cellSize);\n  flash.setBlendMode(Phaser.BlendModes.ADD);\n  flash.setTint(0xffffff);\n\n  scene.tweens.add({\n    targets: flash,\n    scale: (cellSize / 32) * 1.2,\n    alpha: 0,\n    duration: 250,\n    ease: 'Power2',\n    onComplete: () => flash.destroy()\n  });\n\n  // 2. Particle Burst\n  const emitter = scene.add.particles(x, y, 'vfx_square', {\n    speed: { min: 50, max: 150 },\n    scale: { start: 0.2, end: 0 },\n    alpha: { start: 0.8, end: 0 },\n    rotate: { min: 0, max: 360 },\n    lifespan: 300,\n    blendMode: 'ADD',\n    tint: [0xffffff, 0xffd1dc],\n    quantity: 12\n  });\n\n  emitter.explode();\n  \n  // Cleanup\n  scene.time.delayedCall(350, () => emitter.destroy());\n}"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Great! Feedback Text",
+      "box_2d": [
+        241,
+        434,
+        267,
+        588
+      ],
+      "confidence": 1.0,
+      "notes": "Stylized gold/yellow text saying 'Great!' with a thick white border."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

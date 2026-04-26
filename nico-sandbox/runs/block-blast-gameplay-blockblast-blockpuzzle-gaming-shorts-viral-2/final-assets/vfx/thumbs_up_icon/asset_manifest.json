@@ -1,0 +1,45 @@
+{
+  "plan": {
+    "asset_id": "thumbs_up_icon",
+    "route": "procedural_vfx",
+    "category": "effect",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.ts",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/asset_manifest.json",
+    "steps": [
+      "gemini_vfx_temporal_description",
+      "emit_particle_config",
+      "emit_typescript_function"
+    ],
+    "scenario_models": [],
+    "gemini_tasks": [
+      "procedural_vfx_codegen"
+    ],
+    "outputs": {
+      "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.json",
+      "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.ts"
+    },
+    "prompts": {
+      "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Thumbs Up Icon\nDescription: A small, glowing green circular icon containing a white thumbs-up symbol.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+    },
+    "notes": [
+      "No Scenario image generation by default; recreate with code and tune in engine."
+    ]
+  },
+  "result": {
+    "asset_id": "thumbs_up_icon",
+    "name": "Thumbs Up Icon",
+    "category": "effect",
+    "route": "procedural_vfx",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/thumbs_up_icon.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.ts",
+    "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.json",
+    "gemini_model": "gemini-3-flash-preview",
+    "steps": [
+      {
+        "step": "procedural_vfx_codegen",
+        "model": "gemini-3-flash-preview"
+      }
+    ]
+  }
+}

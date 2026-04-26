@@ -1,0 +1,36 @@
+{
+  "asset_id": "thumbs_up_icon",
+  "name": "Thumbs Up Icon",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/thumbs_up_icon.png",
+  "payload": {
+    "summary": "A procedural 'Thumbs Up' feedback icon featuring a glowing green gradient hand silhouette, a dark green outline, and a subtle heart-shaped background glow. The effect includes a 'pop' animation with secondary sparkle particles.",
+    "duration_ms": 600,
+    "palette": [
+      "#a2fca2",
+      "#2d8a2d",
+      "#ffffff",
+      "#fce4c4",
+      "#4ade80"
+    ],
+    "particle_config": {
+      "count": 8,
+      "velocity": {
+        "min": 50,
+        "max": 150
+      },
+      "size": {
+        "start": 4,
+        "end": 0
+      },
+      "alpha": {
+        "start": 1,
+        "end": 0
+      },
+      "blend_mode": "ADD"
+    },
+    "typescript": "class ThumbsUpVFX extends Phaser.GameObjects.Container {\n  constructor(scene: Phaser.Scene, x: number, y: number) {\n    super(scene, x, y);\n    \n    const bgHeart = scene.add.graphics();\n    bgHeart.fillStyle(0xfce4c4, 0.4);\n    this.drawHeart(bgHeart, 0, 0, 60);\n    \n    const icon = scene.add.graphics();\n    const bounds = { w: 40, h: 40 };\n    \n    // Draw Thumbs Up Shape\n    icon.lineStyle(4, 0x2d8a2d, 1);\n    icon.fillStyle(0xa2fca2, 1);\n    \n    // Procedural path for a stylized thumbs up\n    const path = [\n      {x: -15, y: 5}, {x: -15, y: 20}, {x: 15, y: 20}, // Bottom/Palm\n      {x: 20, y: 15}, {x: 20, y: -5}, // Fingers side\n      {x: 5, y: -5}, {x: 10, y: -25}, // Thumb base to tip\n      {x: -5, y: -25}, {x: -10, y: -5}, // Thumb tip to wrist\n      {x: -25, y: -5}, {x: -25, y: 5} // Wrist\n    ];\n    \n    icon.beginPath();\n    icon.moveTo(path[0].x, path[0].y);\n    path.forEach(p => icon.lineTo(p.x, p.y));\n    icon.closePath();\n    icon.fillPath();\n    icon.strokePath();\n\n    this.add([bgHeart, icon]);\n    scene.add.existing(this);\n\n    // Pop Animation\n    this.setScale(0);\n    scene.tweens.add({\n      targets: this,\n      scale: { from: 0, to: 1.2 },\n      duration: 150,\n      ease: 'Back.easeOut',\n      onComplete: () => {\n        scene.tweens.add({\n          targets: this,\n          scale: 1,\n          duration: 100\n        });\n        this.emitParticles(scene);\n      }\n    });\n\n    // Cleanup\n    scene.time.delayedCall(600, () => this.destroy());\n  }\n\n  private drawHeart(g: Phaser.GameObjects.Graphics, x: number, y: number, size: number) {\n    g.beginPath();\n    g.moveTo(x, y + size / 4);\n    g.quadraticCurveTo(x, y, x + size / 4, y);\n    g.quadraticCurveTo(x + size / 2, y, x + size / 2, y + size / 4);\n    g.quadraticCurveTo(x + size / 2, y, x + size * 0.75, y);\n    g.quadraticCurveTo(x + size, y, x + size, y + size / 4);\n    g.quadraticCurveTo(x + size, y + size / 2, x + size / 2, y + size * 0.75);\n    g.quadraticCurveTo(x, y + size / 2, x, y + size / 4);\n    g.fillPath();\n  }\n\n  private emitParticles(scene: Phaser.Scene) {\n    const emitter = scene.add.particles(0, 0, 'white_pixel', {\n      x: this.x,\n      y: this.y,\n      speed: { min: 50, max: 120 },\n      scale: { start: 0.5, end: 0 },\n      alpha: { start: 1, end: 0 },\n      tint: 0x4ade80,\n      lifespan: 400,\n      blendMode: 'ADD',\n      quantity: 8,\n      emitting: false\n    });\n    emitter.explode();\n    scene.time.delayedCall(500, () => emitter.destroy());\n  }\n}"
+  }
+}

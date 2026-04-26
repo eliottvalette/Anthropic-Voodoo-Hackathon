@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "1x4 Horizontal Cream Line Piece",
+      "box_2d": [
+        241,
+        58,
+        425,
+        719
+      ],
+      "confidence": 0.9,
+      "notes": "A horizontal line piece composed of four cream heart tiles."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

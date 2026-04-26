@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Floating Score Popup",
+      "box_2d": [
+        171,
+        387,
+        220,
+        612
+      ],
+      "confidence": 0.95,
+      "notes": "Floating pink numeric text '+211' indicating points earned."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

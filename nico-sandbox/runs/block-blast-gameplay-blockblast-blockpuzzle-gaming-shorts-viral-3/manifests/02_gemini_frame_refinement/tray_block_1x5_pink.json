@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "1x5 Vertical Pink Line Piece",
+      "box_2d": [
+        241,
+        833,
+        674,
+        942
+      ],
+      "confidence": 1.0,
+      "notes": "A long vertical line piece composed of five pink heart tiles."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Cream Heart Tile",
+      "box_2d": [
+        427,
+        58,
+        487,
+        166
+      ],
+      "confidence": 0.9,
+      "notes": "A single cream heart tile on the game board."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

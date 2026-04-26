@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Combo Text Asset",
+      "box_2d": [
+        68,
+        199,
+        141,
+        799
+      ],
+      "confidence": 0.9,
+      "notes": "The large score text '262598' is the primary text asset visible, as no specific 'Combo' text is currently on screen during this frame."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

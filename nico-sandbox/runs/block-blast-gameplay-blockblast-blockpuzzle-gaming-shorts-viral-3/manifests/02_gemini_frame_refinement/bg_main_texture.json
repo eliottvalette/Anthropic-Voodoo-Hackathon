@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Main Background Plate",
+      "box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "confidence": 1.0,
+      "notes": "The solid warm chocolate-brown background with a subtle texture that covers the entire game screen."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

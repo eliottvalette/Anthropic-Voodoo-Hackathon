@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "High Score Text",
+      "box_2d": [
+        0,
+        148,
+        18,
+        363
+      ],
+      "confidence": 0.9,
+      "notes": "The high score text located at the top left of the screen."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

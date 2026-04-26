@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Tray Block 3x3 Pink",
+      "box_2d": [
+        779,
+        133,
+        864,
+        282
+      ],
+      "confidence": 1.0,
+      "notes": "A 3x3 square arrangement of pink heart tiles in the selection tray."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

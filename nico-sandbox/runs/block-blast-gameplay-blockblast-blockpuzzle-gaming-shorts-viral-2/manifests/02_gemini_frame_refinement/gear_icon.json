@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Gear Icon",
+      "box_2d": [
+        0,
+        866,
+        27,
+        944
+      ],
+      "confidence": 0.9,
+      "notes": "A simple, flat, light brown gear icon located in the top right corner."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

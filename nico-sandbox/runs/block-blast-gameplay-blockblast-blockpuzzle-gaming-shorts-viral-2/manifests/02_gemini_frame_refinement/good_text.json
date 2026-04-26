@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Good Text",
+      "box_2d": [
+        211,
+        322,
+        294,
+        703
+      ],
+      "confidence": 1.0,
+      "notes": "The word 'Good!' in a bubbly, rounded font, colored bright green with a darker green outline."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

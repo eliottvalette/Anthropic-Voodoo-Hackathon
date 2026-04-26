@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Placement Highlight",
+      "box_2d": [
+        178,
+        500,
+        364,
+        832
+      ],
+      "confidence": 0.95,
+      "notes": "A bright, semi-transparent white/pink square highlight that flashes over grid cells when a block is placed."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Crown High Score Icon",
+      "box_2d": [
+        0,
+        52,
+        21,
+        128
+      ],
+      "confidence": 0.95,
+      "notes": "A small, golden crown icon with three points and a rounded base, located at the top left of the screen."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

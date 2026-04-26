@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "United Text Asset",
+      "box_2d": [
+        368,
+        233,
+        470,
+        532
+      ],
+      "confidence": 0.95,
+      "notes": "The 'Unit' text asset with pink outline and white fill."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

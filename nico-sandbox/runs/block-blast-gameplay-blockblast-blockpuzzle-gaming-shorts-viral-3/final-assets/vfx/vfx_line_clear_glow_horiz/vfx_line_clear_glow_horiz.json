@@ -1,0 +1,38 @@
+{
+  "asset_id": "vfx_line_clear_glow_horiz",
+  "name": "Horizontal Clear Glow",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_horiz.png",
+  "payload": {
+    "summary": "A high-intensity horizontal row-clear effect featuring a dual-layered golden beam (bright core + soft outer glow) accompanied by floating square and circular particles that dissipate vertically.",
+    "duration_ms": 800,
+    "palette": [
+      "#FFD700",
+      "#FFFACD",
+      "#FFFFFF",
+      "#E8A317"
+    ],
+    "particle_config": {
+      "count": 30,
+      "shapes": [
+        "square",
+        "circle"
+      ],
+      "emitter_area": "horizontal_line",
+      "velocity_y": [
+        -60,
+        60
+      ],
+      "velocity_x": [
+        -20,
+        20
+      ],
+      "scale_curve": "1.0 to 0.0",
+      "alpha_curve": "1.0 to 0.0",
+      "blend_mode": "ADD"
+    },
+    "typescript": "function createHorizontalClearGlow(scene: Phaser.Scene, x: number, y: number, width: number) {\n  const GLOW_COLOR = 0xFFD700;\n  const CORE_COLOR = 0xFFFFFF;\n\n  // Procedural texture generation for particles\n  if (!scene.textures.exists('vfx_square')) {\n    const g = scene.make.graphics({ x: 0, y: 0, add: false });\n    g.fillStyle(0xffffff).fillRect(0, 0, 8, 8);\n    g.generateTexture('vfx_square', 8, 8);\n    g.clear().fillCircle(4, 4, 4);\n    g.generateTexture('vfx_circle', 8, 8);\n  }\n\n  // Create the beam layers\n  const container = scene.add.container(x, y);\n  const outerGlow = scene.add.rectangle(0, 0, width, 40, GLOW_COLOR, 0.4).setBlendMode(Phaser.BlendModes.ADD);\n  const innerBeam = scene.add.rectangle(0, 0, width, 12, CORE_COLOR, 0.8).setBlendMode(Phaser.BlendModes.ADD);\n  container.add([outerGlow, innerBeam]);\n\n  // Particle Emitter\n  const emitter = scene.add.particles(0, 0, 'vfx_square', {\n    x: { min: -width / 2, max: width / 2 },\n    y: { min: -10, max: 10 },\n    speedY: { min: -80, max: 80 },\n    speedX: { min: -30, max: 30 },\n    scale: { start: 1.2, end: 0 },\n    alpha: { start: 1, end: 0 },\n    lifespan: 600,\n    blendMode: 'ADD',\n    tint: [0xFFD700, 0xFFFACD, 0xFFFFFF],\n    frequency: 15,\n    maxParticles: 25\n  });\n  container.add(emitter);\n\n  // Animation Sequence\n  scene.tweens.add({\n    targets: [outerGlow, innerBeam],\n    scaleY: 2.5,\n    alpha: 0,\n    duration: 150,\n    yoyo: true,\n    hold: 100,\n    onComplete: () => {\n      scene.tweens.add({\n        targets: container,\n        alpha: 0,\n        duration: 500,\n        onComplete: () => container.destroy()\n      });\n    }\n  });\n\n  // Secondary circular sparkles\n  scene.add.particles(x, y, 'vfx_circle', {\n    emitZone: { type: 'random', source: new Phaser.Geom.Rectangle(-width / 2, -5, width, 10) },\n    speed: { min: 10, max: 40 },\n    scale: { start: 0.5, end: 0 },\n    lifespan: 800,\n    quantity: 10,\n    blendMode: 'ADD',\n    stopAfter: 15\n  });\n}"
+  }
+}

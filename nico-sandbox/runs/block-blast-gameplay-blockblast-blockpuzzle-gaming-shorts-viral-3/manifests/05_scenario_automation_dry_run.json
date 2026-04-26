@@ -1,0 +1,2164 @@
+{
+  "status": "dry_run",
+  "updated_at": "2026-04-26T06:51:09.095521+00:00",
+  "source_video": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/source.mp4",
+  "run_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3",
+  "planned_assets": 29,
+  "assets": [
+    {
+      "asset_id": "bg_main_texture",
+      "route": "background_plate",
+      "category": "background",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds/bg_main_texture.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/bg_main_texture.json",
+      "steps": [
+        "extract_clean_plate",
+        "scenario_background_cleanup",
+        "optional_lora_ab_test",
+        "gemini_plate_qa"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+        "model_hHuMquQ1QvEGHS1w7tGuYXud",
+        "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+        "model_uPCFzAgcZVB6sdTdRS7XXQ6Z"
+      ],
+      "gemini_tasks": [
+        "plate_occlusion_notes",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "plate": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds/bg_main_texture.png",
+        "lora_candidates": [
+          {
+            "model_id": "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+            "name": "Battle Arenas 2.0",
+            "best_for": "cartoon fantasy battlegrounds and side-view arena plates"
+          },
+          {
+            "model_id": "model_hHuMquQ1QvEGHS1w7tGuYXud",
+            "name": "Cartoon Backgrounds 2.0",
+            "best_for": "bold casual game backgrounds and end-card scenery"
+          },
+          {
+            "model_id": "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+            "name": "Bold Line Environments 2.0",
+            "best_for": "clean outlined environments with stylized depth"
+          },
+          {
+            "model_id": "model_uPCFzAgcZVB6sdTdRS7XXQ6Z",
+            "name": "Top-down TD Game",
+            "best_for": "top-down maps, lanes, forests, deserts, and strategy-game terrain"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_background": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Main Background Plate\nDescription: A solid warm chocolate-brown background with a subtle leather or paper-like texture.\nGameplay role: Static background for the entire game screen.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite."
+      },
+      "notes": [
+        "Opaque plate output; no alpha removal."
+      ],
+      "name": "Main Background Plate",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/bg_main_texture.png",
+      "recreation_strategy": "background_plate_cleanup"
+    },
+    {
+      "asset_id": "block_cream_single",
+      "route": "static_sprite",
+      "category": "other",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/block_cream_single.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/block_cream_single.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/block_cream_single.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Cream Heart Tile\nCategory: other\nDescription: A square cream-colored tile with a soft beveled edge and a light brown heart icon embossed in the center.\nGameplay role: Basic building block for puzzle shapes.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Cream Heart Tile",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/block_cream_single.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "block_pink_single",
+      "route": "static_sprite",
+      "category": "other",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/block_pink_single.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/block_pink_single.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/block_pink_single.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Pink Heart Tile\nCategory: other\nDescription: A square pink tile with a soft beveled edge and a darker pink heart icon embossed in the center.\nGameplay role: Basic building block for puzzle shapes.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Pink Heart Tile",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/block_pink_single.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "game_grid_8x8",
+      "route": "background_plate",
+      "category": "background",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds/game_grid_8x8.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/game_grid_8x8.json",
+      "steps": [
+        "extract_clean_plate",
+        "scenario_background_cleanup",
+        "optional_lora_ab_test",
+        "gemini_plate_qa"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+        "model_hHuMquQ1QvEGHS1w7tGuYXud",
+        "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+        "model_uPCFzAgcZVB6sdTdRS7XXQ6Z"
+      ],
+      "gemini_tasks": [
+        "plate_occlusion_notes",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "plate": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/backgrounds/game_grid_8x8.png",
+        "lora_candidates": [
+          {
+            "model_id": "model_mqgQv6BPF2Vd7mkbnpZBKfKV",
+            "name": "Battle Arenas 2.0",
+            "best_for": "cartoon fantasy battlegrounds and side-view arena plates"
+          },
+          {
+            "model_id": "model_hHuMquQ1QvEGHS1w7tGuYXud",
+            "name": "Cartoon Backgrounds 2.0",
+            "best_for": "bold casual game backgrounds and end-card scenery"
+          },
+          {
+            "model_id": "model_D8GZ4GXnGgLXYZbj9rfZ4Gxe",
+            "name": "Bold Line Environments 2.0",
+            "best_for": "clean outlined environments with stylized depth"
+          },
+          {
+            "model_id": "model_uPCFzAgcZVB6sdTdRS7XXQ6Z",
+            "name": "Top-down TD Game",
+            "best_for": "top-down maps, lanes, forests, deserts, and strategy-game terrain"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_background": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Puzzle Grid\nDescription: An 8x8 grid of dark brown squares with thin, slightly lighter brown dividing lines.\nGameplay role: The play area where blocks are placed.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite."
+      },
+      "notes": [
+        "Opaque plate output; no alpha removal."
+      ],
+      "name": "Puzzle Grid",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/game_grid_8x8.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "tray_block_3x3_pink",
+      "route": "static_sprite",
+      "category": "other",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/tray_block_3x3_pink.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/tray_block_3x3_pink.json",
+      "steps": [
+        "upload_crop",
+        "scenario_gemini_recreate",
+        "photoroom_alpha",
+        "padding_trim"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover"
+      ],
+      "gemini_tasks": [
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/sprites/tray_block_3x3_pink.png"
+      },
+      "prompts": {
+        "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Tray Block 3x3 Pink\nCategory: other\nDescription: A 3x3 square arrangement of pink heart tiles, shown at a smaller scale in the selection tray.\nGameplay role: Selectable block shape.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Video crop is reference evidence; Scenario recreation supplies final pixels."
+      ],
+      "name": "Tray Block 3x3 Pink",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_3x3_pink.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "vfx_debris_particles",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_debris_particles",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_debris_particles/vfx_debris_particles.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_debris_particles/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_debris_particles/vfx_debris_particles.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_debris_particles/vfx_debris_particles.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Block Debris Particles\nDescription: Small, square-shaped particles in pink and cream that burst outward when a line is cleared.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Block Debris Particles",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_debris_particles.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "vfx_sparkle_stars",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_sparkle_stars",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_sparkle_stars/vfx_sparkle_stars.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_sparkle_stars/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_sparkle_stars/vfx_sparkle_stars.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_sparkle_stars/vfx_sparkle_stars.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Twinkling Star Sparkles\nDescription: Small, four-pointed yellow stars that appear around feedback text.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Twinkling Star Sparkles",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_sparkle_stars.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "text_combo_banner",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_combo_banner.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/text_combo_banner.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_combo_banner.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Text Asset\nCategory: ui\nDescription: Bubbly, rounded 'Combo' text in cream color with a thick brown outline and golden glow.\nGameplay role: Feedback text appearing during line clears.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Combo Text Asset",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_combo_banner.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "text_good_label",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_good_label.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/text_good_label.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_good_label.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Good! Feedback Text\nCategory: ui\nDescription: Stylized green text saying 'Good!' with a thick white border and soft shadow.\nGameplay role: Positive reinforcement for clearing lines.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Good! Feedback Text",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_good_label.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "text_great_label",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_great_label.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/text_great_label.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_great_label.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Great! Feedback Text\nCategory: ui\nDescription: Stylized gold/yellow text saying 'Great!' with a thick white border.\nGameplay role: Positive reinforcement for high-scoring moves.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Great! Feedback Text",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_great_label.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "text_united_banner",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_united_banner.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/text_united_banner.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/text_united_banner.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: United Text Asset\nCategory: ui\nDescription: Italicized, bubbly 'United' text in white with a thick pink outline.\nGameplay role: Feedback text for high-tier line clears.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "United Text Asset",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_united_banner.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_combo_digit_2",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_combo_digit_2.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_combo_digit_2.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_combo_digit_2.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Digit 2\nCategory: ui\nDescription: A large, stylized orange-pink digit '2' with a white outline.\nGameplay role: Indicates the current combo multiplier.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Combo Digit 2",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_combo_digit_2.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_combo_digit_3",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_combo_digit_3.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_combo_digit_3.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_combo_digit_3.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Digit 3\nCategory: ui\nDescription: A large, stylized orange-pink digit '3' with a white outline.\nGameplay role: Indicates the current combo multiplier.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Combo Digit 3",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_combo_digit_3.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_crown_icon",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_crown_icon.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_crown_icon.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_crown_icon.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Crown High Score Icon\nCategory: ui\nDescription: A small, golden crown icon with three points and a rounded base.\nGameplay role: Visual indicator for the high score section.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Crown High Score Icon",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_crown_icon.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_high_score_value",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_high_score_value.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_high_score_value.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_high_score_value.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: High Score Text\nCategory: ui\nDescription: Yellow-gold numeric text displaying the player's all-time high score.\nGameplay role: Displays the persistent high score.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "High Score Text",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_high_score_value.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_main_score",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_main_score.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_main_score.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_main_score.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Main Score Display\nCategory: ui\nDescription: Large, bold white sans-serif numbers with a soft drop shadow.\nGameplay role: Displays the player's current session score.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Main Score Display",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_main_score.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "ui_score_popup_pink",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_score_popup_pink.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_score_popup_pink.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_score_popup_pink.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Floating Score Popup\nCategory: ui\nDescription: Floating pink numeric text with a '+' sign (e.g., +211, +158).\nGameplay role: Shows immediate points earned from a move.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Floating Score Popup",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_score_popup_pink.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "tray_block_1x4_cream",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x4_cream/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_1x4_cream",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 1x4 Horizontal Cream Line Piece\nDescription: A horizontal line piece composed of four cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "1x4 Horizontal Cream Line Piece",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_1x4_cream.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_1x5_pink",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_1x5_pink/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_1x5_pink",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 1x5 Vertical Pink Line Piece\nDescription: A long vertical line piece composed of five pink heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "1x5 Vertical Pink Line Piece",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_1x5_pink.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_2x2_cream",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x2_cream/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_2x2_cream",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 2x2 Cream Block Piece\nDescription: A square piece composed of four cream-colored heart tiles in a 2x2 arrangement.\nGameplay role: A playable piece in the tray to be dragged onto the grid.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "2x2 Cream Block Piece",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_2x2_cream.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_2x3_pink",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_2x3_pink/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_2x3_pink",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 2x3 Pink Rectangle Piece\nDescription: A large rectangular piece composed of six pink heart tiles (2 rows, 3 columns).\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "2x3 Pink Rectangle Piece",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_2x3_pink.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_l_cream_3",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_cream_3/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_l_cream_3",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: L-Shape Cream Piece (3 Tiles)\nDescription: A small L-shaped piece made of three cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "L-Shape Cream Piece (3 Tiles)",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_l_cream_3.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_l_pink_3",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_l_pink_3/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_l_pink_3",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: L-Shape Pink Piece (3 Tiles)\nDescription: A small L-shaped piece made of three pink heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "L-Shape Pink Piece (3 Tiles)",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_l_pink_3.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "tray_block_t_cream_4",
+      "route": "character_rig",
+      "category": "character",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/full.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/asset_manifest.json",
+      "steps": [
+        "upload_best_seed_crop",
+        "scenario_gemini_clean_full_body",
+        "photoroom_alpha",
+        "scenario_gemini_part_sheet",
+        "slice_part_sheet",
+        "optional_sam_or_qwen_fallback",
+        "emit_rig_json"
+      ],
+      "scenario_models": [
+        "model_google-gemini-3-1-flash",
+        "model_photoroom-background-removal",
+        "model_pixa-background-removal",
+        "model_scenario-padding-remover",
+        "model_meta-sam-3-1-image",
+        "model_qwen-image-layered"
+      ],
+      "gemini_tasks": [
+        "part_label_qa",
+        "pivot_anchor_estimation",
+        "animation_suggestion"
+      ],
+      "outputs": {
+        "full": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/full.png",
+        "parts_sheet": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/parts_sheet.png",
+        "parts_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/parts",
+        "rig": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/characters/tray_block_t_cream_4/rig.json",
+        "expected_parts": [
+          "shadow",
+          "body",
+          "head",
+          "arm_back",
+          "arm_front",
+          "leg_back",
+          "leg_front",
+          "weapon"
+        ],
+        "part_sheet_grid": {
+          "columns": 4,
+          "rows": 2,
+          "order": [
+            "head",
+            "body",
+            "arm_front",
+            "arm_back",
+            "leg_front",
+            "leg_back",
+            "weapon",
+            "shadow"
+          ]
+        },
+        "rig_template": {
+          "asset_id": "tray_block_t_cream_4",
+          "version": 1,
+          "coordinate_space": "normalized_source_image",
+          "anchor": {
+            "x": 0.5,
+            "y": 0.92
+          },
+          "parts": [
+            {
+              "id": "shadow",
+              "file": "parts/shadow.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "draw_order": 0
+            },
+            {
+              "id": "leg_back",
+              "file": "parts/leg_back.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 1
+            },
+            {
+              "id": "body",
+              "file": "parts/body.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.62
+              },
+              "draw_order": 2
+            },
+            {
+              "id": "arm_back",
+              "file": "parts/arm_back.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 3
+            },
+            {
+              "id": "head",
+              "file": "parts/head.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.72
+              },
+              "draw_order": 4
+            },
+            {
+              "id": "leg_front",
+              "file": "parts/leg_front.png",
+              "pivot": {
+                "x": 0.5,
+                "y": 0.18
+              },
+              "draw_order": 5
+            },
+            {
+              "id": "arm_front",
+              "file": "parts/arm_front.png",
+              "pivot": {
+                "x": 0.3,
+                "y": 0.22
+              },
+              "draw_order": 6
+            },
+            {
+              "id": "weapon",
+              "file": "parts/weapon.png",
+              "pivot": {
+                "x": 0.18,
+                "y": 0.5
+              },
+              "draw_order": 7
+            }
+          ],
+          "animations": [
+            {
+              "id": "idle",
+              "duration_ms": 900,
+              "loop": true,
+              "description": "subtle breathing/bounce using body, head, and arm rotations"
+            },
+            {
+              "id": "attack",
+              "duration_ms": 500,
+              "loop": false,
+              "description": "anticipation, strike/release, recoil"
+            },
+            {
+              "id": "hit",
+              "duration_ms": 300,
+              "loop": false,
+              "description": "quick backward squash, tint flash, recover"
+            }
+          ]
+        }
+      },
+      "prompts": {
+        "scenario_base": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: T-Shape Cream Piece (4 Tiles)\nDescription: A T-shaped piece composed of four cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+        "parts_sheet": "Create a transparent 4x2 character parts sheet in the fixed slot order: head, body, arm_front, arm_back, leg_front, leg_back, weapon, shadow. No labels, no grid lines, no scenery.",
+        "segmentation_fallback": "Use broad visual category prompts or bounding boxes only; SAM outputs masks, not painted color parts."
+      },
+      "notes": [
+        "Parts plus rig.json are the runtime target; generated parts sheet is the default, PSB is optional artist handoff only."
+      ],
+      "name": "T-Shape Cream Piece (4 Tiles)",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_t_cream_4.png",
+      "recreation_strategy": "layered_character_parts"
+    },
+    {
+      "asset_id": "ui_thumbs_up_icon",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_thumbs_up_icon.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_thumbs_up_icon.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_thumbs_up_icon.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Thumbs Up Feedback\nCategory: ui\nDescription: A small green circular icon with a white thumbs-up symbol inside.\nGameplay role: Appears over cleared tiles to indicate a good move.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Thumbs Up Feedback",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_thumbs_up_icon.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "vfx_line_clear_glow_horiz",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_horiz",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_horiz/vfx_line_clear_glow_horiz.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_horiz/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_horiz/vfx_line_clear_glow_horiz.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_horiz/vfx_line_clear_glow_horiz.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Horizontal Clear Glow\nDescription: A horizontal golden-yellow glowing bar with light particles and sparkles.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Horizontal Clear Glow",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_horiz.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "vfx_line_clear_glow_vert",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_vert",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_vert/vfx_line_clear_glow_vert.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_vert/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_vert/vfx_line_clear_glow_vert.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_line_clear_glow_vert/vfx_line_clear_glow_vert.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Vertical Clear Glow\nDescription: A vertical golden-yellow glowing bar with light particles.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Vertical Clear Glow",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_vert.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    },
+    {
+      "asset_id": "ui_settings_gear",
+      "route": "ui_asset",
+      "category": "ui",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_settings_gear.png",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/manifests/factories/ui_settings_gear.json",
+      "steps": [
+        "gemini_ui_description",
+        "choose_html_svg_or_png",
+        "optional_ui_lora_recreation",
+        "qa_legibility"
+      ],
+      "scenario_models": [
+        "model_2CrDSJ7FsBZckLpakS4JyS6A",
+        "model_mcYj5uGzXteUw6tKapsaDgBP"
+      ],
+      "gemini_tasks": [
+        "ocr",
+        "layout_description",
+        "candidate_qa"
+      ],
+      "outputs": {
+        "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/ui/ui_settings_gear.png",
+        "ui_lora_candidates": [
+          {
+            "model_id": "model_2CrDSJ7FsBZckLpakS4JyS6A",
+            "name": "Human Interface 2.0",
+            "best_for": "HUDs, menus, buttons, frames, and game UI mockups"
+          },
+          {
+            "model_id": "model_mcYj5uGzXteUw6tKapsaDgBP",
+            "name": "Game UI Essentials 2.0",
+            "best_for": "icons, buttons, badges, and casual mobile UI elements"
+          }
+        ]
+      },
+      "prompts": {
+        "scenario_ui": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Settings Icon\nCategory: ui\nDescription: A simple cream-colored gear icon.\nGameplay role: Button to open settings menu.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+      },
+      "notes": [
+        "Prefer HTML/CSS for simple counters/labels; use Scenario UI LoRAs for graphical UI art."
+      ],
+      "name": "Settings Icon",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_settings_gear.png",
+      "recreation_strategy": "ui_vector_or_sprite"
+    },
+    {
+      "asset_id": "vfx_heart_pulse_top",
+      "route": "procedural_vfx",
+      "category": "effect",
+      "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_heart_pulse_top",
+      "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_heart_pulse_top/vfx_heart_pulse_top.ts",
+      "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_heart_pulse_top/asset_manifest.json",
+      "steps": [
+        "gemini_vfx_temporal_description",
+        "emit_particle_config",
+        "emit_typescript_function"
+      ],
+      "scenario_models": [],
+      "gemini_tasks": [
+        "procedural_vfx_codegen"
+      ],
+      "outputs": {
+        "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_heart_pulse_top/vfx_heart_pulse_top.json",
+        "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/final-assets/vfx/vfx_heart_pulse_top/vfx_heart_pulse_top.ts"
+      },
+      "prompts": {
+        "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Combo Heart Pulse\nDescription: A large, glowing pink heart that appears at the top center of the screen.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+      },
+      "notes": [
+        "No Scenario image generation by default; recreate with code and tune in engine."
+      ],
+      "name": "Combo Heart Pulse",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_heart_pulse_top.png",
+      "recreation_strategy": "reference_recreate_then_alpha"
+    }
+  ]
+}

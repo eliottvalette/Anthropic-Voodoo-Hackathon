@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "United Text",
+      "box_2d": [
+        366,
+        233,
+        469,
+        532
+      ],
+      "confidence": 0.9,
+      "notes": "The word 'Unit' (part of 'United') in a bubbly, rounded font, colored white with a pink gradient and a thick red outline."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

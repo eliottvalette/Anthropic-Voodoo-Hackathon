@@ -1,0 +1,45 @@
+{
+  "plan": {
+    "asset_id": "block_debris_particles",
+    "route": "procedural_vfx",
+    "category": "effect",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.ts",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/asset_manifest.json",
+    "steps": [
+      "gemini_vfx_temporal_description",
+      "emit_particle_config",
+      "emit_typescript_function"
+    ],
+    "scenario_models": [],
+    "gemini_tasks": [
+      "procedural_vfx_codegen"
+    ],
+    "outputs": {
+      "config": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.json",
+      "code": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.ts"
+    },
+    "prompts": {
+      "gemini_codegen": "Analyze this gameplay VFX asset and recreate it as procedural browser-game code, not as a Scenario-generated sprite.\n\nAsset: Block Debris Particles\nDescription: Small, 3D-looking flying debris particles, including tiny cubes and swirl shapes in cream and pink colors.\nGameplay role: \n\nReturn a compact implementation plan for a Phaser/Canvas playable ad:\n- visual read at mobile scale,\n- duration in milliseconds,\n- color palette,\n- particle counts,\n- emitter positions,\n- velocity ranges,\n- size/alpha/rotation curves,\n- blend mode,\n- cleanup timing,\n- TypeScript code for a reusable function.\n\nThe output should be deterministic enough to recreate the effect without needing a PNG sprite sheet.\nDo not include external assets."
+    },
+    "notes": [
+      "No Scenario image generation by default; recreate with code and tune in engine."
+    ]
+  },
+  "result": {
+    "asset_id": "block_debris_particles",
+    "name": "Block Debris Particles",
+    "category": "effect",
+    "route": "procedural_vfx",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/block_debris_particles.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.ts",
+    "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.json",
+    "gemini_model": "gemini-3-flash-preview",
+    "steps": [
+      {
+        "step": "procedural_vfx_codegen",
+        "model": "gemini-3-flash-preview"
+      }
+    ]
+  }
+}

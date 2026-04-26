@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "L-Shape Cream Piece (3 Tiles)",
+      "box_2d": [
+        798,
+        468,
+        845,
+        538
+      ],
+      "confidence": 0.9,
+      "notes": "A small L-shaped piece made of three cream heart tiles in the tray."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

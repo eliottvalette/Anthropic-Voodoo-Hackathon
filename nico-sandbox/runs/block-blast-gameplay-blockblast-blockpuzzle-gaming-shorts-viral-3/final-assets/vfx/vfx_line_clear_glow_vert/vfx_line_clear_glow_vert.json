@@ -1,0 +1,42 @@
+{
+  "asset_id": "vfx_line_clear_glow_vert",
+  "name": "Vertical Clear Glow",
+  "category": "effect",
+  "route": "procedural_vfx",
+  "gemini_model": "gemini-3-flash-preview",
+  "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_vert.png",
+  "payload": {
+    "summary": "A procedural vertical column clear effect featuring golden-yellow glowing heart blocks and a shimmering particle trail. It uses a central light beam, procedurally drawn heart shapes with inner glows, and an additive particle emitter to simulate a high-energy match-3 clear.",
+    "duration_ms": 800,
+    "palette": [
+      "#FFFFFF",
+      "#FFF176",
+      "#FFD600",
+      "#FF8F00",
+      "#E65100"
+    ],
+    "particle_config": {
+      "count": 50,
+      "lifespan": 600,
+      "speedY": {
+        "min": -150,
+        "max": -50
+      },
+      "speedX": {
+        "min": -20,
+        "max": 20
+      },
+      "scale": {
+        "start": 0.5,
+        "end": 0
+      },
+      "alpha": {
+        "start": 1,
+        "end": 0
+      },
+      "blendMode": "ADD",
+      "frequency": 15
+    },
+    "typescript": "function createVerticalClearEffect(scene: Phaser.Scene, x: number, y: number, height: number) {\n  const container = scene.add.container(x, y);\n  const colors = [0xFFD600, 0xFFF176, 0xFFFFFF];\n\n  // 1. Vertical Beam Glow\n  const beam = scene.add.graphics();\n  beam.fillStyle(0xFFFFFF, 0.6);\n  beam.fillRect(-20, -height / 2, 40, height);\n  beam.setBlendMode(Phaser.BlendModes.ADD);\n  container.add(beam);\n\n  // 2. Procedural Hearts (3 blocks high)\n  const blockSize = height / 3;\n  for (let i = 0; i < 3; i++) {\n    const heartY = -height / 2 + (i * blockSize) + blockSize / 2;\n    const heart = scene.add.graphics();\n    \n    // Draw Heart Shape\n    heart.fillStyle(0xFFD600, 1);\n    const drawHeart = (g: Phaser.GameObjects.Graphics, size: number) => {\n      g.beginPath();\n      g.moveTo(0, size * 0.3);\n      g.bezierCurveTo(size * 0.5, -size * 0.2, size * 1.2, size * 0.5, 0, size * 1.2);\n      g.bezierCurveTo(-size * 1.2, size * 0.5, -size * 0.5, -size * 0.2, 0, size * 0.3);\n      g.closePath();\n      g.fillPath();\n    };\n\n    heart.setPosition(0, heartY);\n    drawHeart(heart, 25);\n    \n    // Inner Glow\n    const innerGlow = scene.add.graphics();\n    innerGlow.fillStyle(0xFFFFFF, 0.8);\n    innerGlow.setPosition(0, heartY);\n    drawHeart(innerGlow, 15);\n    innerGlow.setBlendMode(Phaser.BlendModes.ADD);\n    \n    container.add([heart, innerGlow]);\n  }\n\n  // 3. Particle Emitter\n  const particles = scene.add.particles(0, 0, 'white_pixel', {\n    x: { min: -25, max: 25 },\n    y: { min: -height / 2, max: height / 2 },\n    lifespan: 600,\n    speedY: { min: -100, max: -20 },\n    scale: { start: 4, end: 0 },\n    alpha: { start: 1, end: 0 },\n    blendMode: 'ADD',\n    frequency: 10,\n    emitting: true\n  });\n  container.add(particles);\n\n  // 4. Animation Timeline\n  scene.tweens.add({\n    targets: container,\n    alpha: { from: 1, to: 0 },\n    scaleX: { from: 1, to: 1.5 },\n    duration: 800,\n    ease: 'Cubic.easeOut',\n    onComplete: () => {\n      container.destroy();\n    }\n  });\n\n  // Flash effect\n  scene.tweens.add({\n    targets: beam,\n    scaleX: 2,\n    alpha: 0,\n    duration: 300,\n    ease: 'Expo.easeOut'\n  });\n}"
+  }
+}

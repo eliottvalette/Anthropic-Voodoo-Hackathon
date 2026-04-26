@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Block Debris Particles",
+      "box_2d": [
+        431,
+        184,
+        540,
+        676
+      ],
+      "confidence": 0.9,
+      "notes": "Small square-shaped particles bursting outward during line clear."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "Settings Icon",
+      "box_2d": [
+        0,
+        866,
+        27,
+        944
+      ],
+      "confidence": 1.0,
+      "notes": "A simple cream-colored gear icon located in the top right corner."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

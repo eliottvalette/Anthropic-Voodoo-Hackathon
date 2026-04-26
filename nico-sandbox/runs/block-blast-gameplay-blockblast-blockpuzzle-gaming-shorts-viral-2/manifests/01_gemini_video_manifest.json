@@ -1,0 +1,536 @@
+{
+  "video_summary": "A casual block puzzle game where the player places pink and cream heart-imprinted blocks onto a dark brown grid to clear lines and score points.",
+  "gameplay_loop": "The player selects block shapes from the bottom of the screen and drags them onto the 8x8 grid. Filling a horizontal or vertical line clears those blocks, triggering visual effects, score popups, and combo multipliers.",
+  "camera_and_canvas": "2D top-down view, static camera, portrait orientation.",
+  "art_style": {
+    "summary": "Casual 2D puzzle game featuring soft, candy-like blocks with heart imprints on a warm brown background.",
+    "rendering": "2D vector-style with soft shading to create a faux-3D beveled appearance.",
+    "line_work": "No outlines on game pieces; thick, contrasting outlines on UI text.",
+    "palette": "Warm and sweet: dark chocolate browns, soft pinks, cream/light yellows, with bright UI accents.",
+    "shading": "Soft gradients and edge highlights for a tactile, rounded feel.",
+    "scale_feel": "Chunky, stylized, and tactile, resembling physical candy or game pieces.",
+    "anti_styles": [
+      "pixel art",
+      "photorealistic",
+      "gritty",
+      "sci-fi",
+      "hand-drawn sketch",
+      "low-poly 3D",
+      "flat vector"
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "main_background",
+      "name": "Main Background",
+      "category": "background",
+      "visual_description": "A solid, warm, medium-brown background that fills the screen behind the game board.",
+      "gameplay_role": "Provides a neutral backdrop for the game elements.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        5.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "sample_color",
+        "generate_solid_background"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "A simple solid color or very subtle gradient.",
+      "priority": 5,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "grid_board",
+      "name": "Grid Board",
+      "category": "background",
+      "visual_description": "A dark brown, 8x8 grid board with a subtle, slightly rough texture, resembling dark chocolate or stained wood.",
+      "gameplay_role": "The main play area where blocks are placed.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        5.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        170,
+        50,
+        670,
+        950
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "crop",
+        "remove_ui",
+        "enhance_texture"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "Needs to be clean of any placed blocks for a base template.",
+      "priority": 5,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "pink_block_tile",
+      "name": "Pink Block Tile",
+      "category": "other",
+      "visual_description": "A single square tile, colored soft pink, with a raised heart shape in the center and beveled edges, resembling a piece of chocolate or candy.",
+      "gameplay_role": "The primary puzzle piece used to fill the grid.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        2.0,
+        4.0
+      ],
+      "approx_box_2d": [
+        170,
+        50,
+        230,
+        160
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "vectorize_or_recreate"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "",
+      "priority": 5,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "cream_block_tile",
+      "name": "Cream Block Tile",
+      "category": "other",
+      "visual_description": "A single square tile, colored cream or light yellow, with a raised heart shape in the center and beveled edges.",
+      "gameplay_role": "A secondary puzzle piece used to fill the grid.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        2.0,
+        4.0
+      ],
+      "approx_box_2d": [
+        550,
+        160,
+        610,
+        270
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "vectorize_or_recreate"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "",
+      "priority": 5,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "crown_icon",
+      "name": "Crown Icon",
+      "category": "ui",
+      "visual_description": "A simple, flat, golden-yellow crown icon.",
+      "gameplay_role": "Decorative UI element next to the high score.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        5.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        10,
+        50,
+        50,
+        130
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "vectorize"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "gear_icon",
+      "name": "Gear Icon",
+      "category": "ui",
+      "visual_description": "A simple, flat, light brown gear icon.",
+      "gameplay_role": "Settings menu button.",
+      "best_timestamp_s": 0.0,
+      "fallback_timestamps_s": [
+        5.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        10,
+        860,
+        50,
+        940
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "vectorize"
+      ],
+      "animation_notes": "Static.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "glowing_heart_ui",
+      "name": "Glowing Heart UI",
+      "category": "effect",
+      "visual_description": "A large, soft, glowing pink heart shape that pulses behind the top score area.",
+      "gameplay_role": "Visual feedback for achieving a combo.",
+      "best_timestamp_s": 6.0,
+      "fallback_timestamps_s": [
+        8.0,
+        10.0
+      ],
+      "approx_box_2d": [
+        0,
+        300,
+        150,
+        700
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "isolate_glow",
+        "recreate_soft_brush"
+      ],
+      "animation_notes": "Pulses in size and opacity.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "horizontal_clear_glow",
+      "name": "Horizontal Clear Glow",
+      "category": "effect",
+      "visual_description": "A bright, glowing horizontal bar with a yellowish-white center and fading edges.",
+      "gameplay_role": "Visual effect indicating a cleared row.",
+      "best_timestamp_s": 0.2,
+      "fallback_timestamps_s": [
+        10.6
+      ],
+      "approx_box_2d": [
+        420,
+        50,
+        480,
+        950
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "isolate_glow",
+        "recreate_additive_blend"
+      ],
+      "animation_notes": "Fades in quickly, holds briefly, then fades out.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vertical_clear_glow",
+      "name": "Vertical Clear Glow",
+      "category": "effect",
+      "visual_description": "A bright, glowing vertical bar with a yellowish-white center and fading edges.",
+      "gameplay_role": "Visual effect indicating a cleared column.",
+      "best_timestamp_s": 6.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        170,
+        720,
+        670,
+        830
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "isolate_glow",
+        "recreate_additive_blend"
+      ],
+      "animation_notes": "Fades in quickly, holds briefly, then fades out.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "block_debris_particles",
+      "name": "Block Debris Particles",
+      "category": "effect",
+      "visual_description": "Small, 3D-looking flying debris particles, including tiny cubes and swirl shapes in cream and pink colors.",
+      "gameplay_role": "Particle effect accompanying a line clear.",
+      "best_timestamp_s": 0.4,
+      "fallback_timestamps_s": [
+        6.2,
+        10.8
+      ],
+      "approx_box_2d": [
+        400,
+        100,
+        500,
+        900
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_individual_particles"
+      ],
+      "animation_notes": "Bursts outward from the cleared line and fades out.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "sparkle_particle",
+      "name": "Sparkle Particle",
+      "category": "effect",
+      "visual_description": "A simple, glowing four-pointed star or diamond shape, usually white or light yellow.",
+      "gameplay_role": "Accent particle effect for clears and popups.",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        6.4,
+        11.4
+      ],
+      "approx_box_2d": [
+        200,
+        300,
+        250,
+        350
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_vector_shape"
+      ],
+      "animation_notes": "Scales up and fades out.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "combo_text",
+      "name": "Combo Text",
+      "category": "ui",
+      "visual_description": "The word 'Combo' in a bubbly, rounded font, colored light brown with a darker brown outline and a slight 3D pop effect.",
+      "gameplay_role": "Feedback text for consecutive clears.",
+      "best_timestamp_s": 0.6,
+      "fallback_timestamps_s": [
+        6.4,
+        11.0
+      ],
+      "approx_box_2d": [
+        300,
+        300,
+        400,
+        700
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_typography"
+      ],
+      "animation_notes": "Pops up, scales slightly, then fades.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "good_text",
+      "name": "Good Text",
+      "category": "ui",
+      "visual_description": "The word 'Good!' in a bubbly, rounded font, colored bright green with a darker green outline.",
+      "gameplay_role": "Positive feedback text.",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        200,
+        300,
+        300,
+        700
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_typography"
+      ],
+      "animation_notes": "Pops up, scales slightly, then fades.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "great_text",
+      "name": "Great Text",
+      "category": "ui",
+      "visual_description": "The word 'Great!' in a bubbly, rounded font, colored bright yellow with a darker orange/brown outline.",
+      "gameplay_role": "Positive feedback text for larger clears.",
+      "best_timestamp_s": 11.4,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        200,
+        300,
+        300,
+        700
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_typography"
+      ],
+      "animation_notes": "Pops up, scales slightly, then fades.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "united_text",
+      "name": "United Text",
+      "category": "ui",
+      "visual_description": "The word 'United' in a bubbly, rounded font, colored white with a pink gradient and a thick red outline.",
+      "gameplay_role": "Special feedback text for multi-line clears.",
+      "best_timestamp_s": 10.8,
+      "fallback_timestamps_s": [
+        11.0
+      ],
+      "approx_box_2d": [
+        400,
+        250,
+        550,
+        750
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_typography"
+      ],
+      "animation_notes": "Pops up, scales slightly, then fades.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "thumbs_up_icon",
+      "name": "Thumbs Up Icon",
+      "category": "effect",
+      "visual_description": "A small, glowing green circular icon containing a white thumbs-up symbol.",
+      "gameplay_role": "Appears on blocks being cleared during a combo.",
+      "best_timestamp_s": 6.2,
+      "fallback_timestamps_s": [
+        6.4
+      ],
+      "approx_box_2d": [
+        350,
+        600,
+        420,
+        680
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "vectorize"
+      ],
+      "animation_notes": "Pops in and fades out quickly.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "placement_highlight",
+      "name": "Placement Highlight",
+      "category": "effect",
+      "visual_description": "A bright, semi-transparent white/pink square highlight that flashes over grid cells when a block is placed.",
+      "gameplay_role": "Visual feedback confirming block placement.",
+      "best_timestamp_s": 3.8,
+      "fallback_timestamps_s": [
+        9.0
+      ],
+      "approx_box_2d": [
+        170,
+        500,
+        420,
+        830
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop",
+        "recreate_semi_transparent_shape"
+      ],
+      "animation_notes": "Flashes briefly upon placement.",
+      "background_plate_notes": "",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "score_popup_text",
+      "name": "Score Popup Text",
+      "category": "ui",
+      "visual_description": "Floating numbers indicating points gained, appearing in pink or yellow bubbly font.",
+      "gameplay_role": "Shows points earned from actions.",
+      "best_timestamp_s": 0.6,
+      "fallback_timestamps_s": [
+        6.4,
+        11.0
+      ],
+      "approx_box_2d": [
+        100,
+        400,
+        150,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop",
+        "remove_background",
+        "recreate_typography"
+      ],
+      "animation_notes": "Floats upwards and fades out.",
+      "background_plate_notes": "",
+      "priority": 4,
+      "animated_parts": []
+    }
+  ],
+  "_gemini_model": "gemini-3.1-pro-preview",
+  "_gemini_file": {
+    "name": "files/gd3mi2idb2ub",
+    "uri": "https://generativelanguage.googleapis.com/v1beta/files/gd3mi2idb2ub"
+  }
+}

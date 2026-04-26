@@ -1,0 +1,16 @@
+{
+  "boxes": [
+    {
+      "label": "2x2 Cream Block Piece",
+      "box_2d": [
+        794,
+        450,
+        850,
+        550
+      ],
+      "confidence": 1.0,
+      "notes": "A 2x2 cream-colored block piece located in the tray area below the main grid."
+    }
+  ],
+  "_gemini_model": "gemini-3-flash-preview"
+}

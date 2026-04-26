@@ -1,0 +1,490 @@
+{
+  "status": "complete",
+  "updated_at": "2026-04-26T06:42:34.461872+00:00",
+  "source_video": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/source.mp4",
+  "run_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2",
+  "plan_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/manifests/05_scenario_automation_plan.json",
+  "planned_assets": 18,
+  "completed_assets": 18,
+  "failed_assets": 0,
+  "assets": [
+    {
+      "asset_id": "glowing_heart_ui",
+      "name": "Glowing Heart UI",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/glowing_heart_ui.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/glowing_heart_ui/glowing_heart_ui.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/glowing_heart_ui/glowing_heart_ui.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "sparkle_particle",
+      "name": "Sparkle Particle",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/sparkle_particle.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/sparkle_particle/sparkle_particle.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/sparkle_particle/sparkle_particle.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "horizontal_clear_glow",
+      "name": "Horizontal Clear Glow",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/horizontal_clear_glow.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/horizontal_clear_glow/horizontal_clear_glow.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/horizontal_clear_glow/horizontal_clear_glow.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "block_debris_particles",
+      "name": "Block Debris Particles",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/block_debris_particles.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/block_debris_particles/block_debris_particles.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "vertical_clear_glow",
+      "name": "Vertical Clear Glow",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/vertical_clear_glow.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/vertical_clear_glow/vertical_clear_glow.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/vertical_clear_glow/vertical_clear_glow.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "placement_highlight",
+      "name": "Placement Highlight",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/placement_highlight.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/placement_highlight/placement_highlight.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/placement_highlight/placement_highlight.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "thumbs_up_icon",
+      "name": "Thumbs Up Icon",
+      "category": "effect",
+      "route": "procedural_vfx",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/thumbs_up_icon.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.ts",
+      "config_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/vfx/thumbs_up_icon/thumbs_up_icon.json",
+      "gemini_model": "gemini-3-flash-preview",
+      "steps": [
+        {
+          "step": "procedural_vfx_codegen",
+          "model": "gemini-3-flash-preview"
+        }
+      ]
+    },
+    {
+      "asset_id": "main_background",
+      "name": "Main Background",
+      "category": "background",
+      "route": "background_plate",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/main_background.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds/main_background.png",
+      "scenario_asset_id": "asset_KBYubWY76qjsv1Brjqn8rS9Q",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_1HUsCmHgPx2iRGvRxoJRmBx5"
+        },
+        {
+          "step": "background_plate_cleanup",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_mnAx4JzLv8FQuwx5LJ1m9Rnd",
+          "asset_id": "asset_KBYubWY76qjsv1Brjqn8rS9Q"
+        }
+      ]
+    },
+    {
+      "asset_id": "gear_icon",
+      "name": "Gear Icon",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/gear_icon.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/gear_icon.png",
+      "scenario_asset_id": "asset_XF9F2CBcNCNoP6FHaSVjvu2f",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_Rd3PofbazVcJWVdpgvjzbNyg"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_SA69cuiWQ5c6WW6xvMU9wUWH",
+          "asset_ids": [
+            "asset_3y23bbL1SrTmCtHJUNHpNXFu"
+          ],
+          "selected_asset_id": "asset_3y23bbL1SrTmCtHJUNHpNXFu"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_mys1ggD6WdteUygJRVwBgD7U",
+          "asset_id": "asset_A2yH2ZxzC1a6qmBRckNZ2WHM"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_93FcgFmYzLi3yFyfPCbi6KQX",
+          "asset_id": "asset_XF9F2CBcNCNoP6FHaSVjvu2f"
+        }
+      ]
+    },
+    {
+      "asset_id": "good_text",
+      "name": "Good Text",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/good_text.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/good_text.png",
+      "scenario_asset_id": "asset_pFMxSHswiCT2UbEn4FPfB1Ti",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_eYwzbWJvUCqWZoo22Yq71ZoP"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_8GP3HjQj5E2VvdzgTgJ6Wc9t",
+          "asset_ids": [
+            "asset_1kPc5g69W8GgdWB9mkcj62fd"
+          ],
+          "selected_asset_id": "asset_1kPc5g69W8GgdWB9mkcj62fd"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_Cqogfnig9wSFCpBuSmYFB4Yr",
+          "asset_id": "asset_9GvKYq3joaaZEtqxGviNtzvT"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_snj6sBdVZW4MG11ck1Q2u4J4",
+          "asset_id": "asset_pFMxSHswiCT2UbEn4FPfB1Ti"
+        }
+      ]
+    },
+    {
+      "asset_id": "score_popup_text",
+      "name": "Score Popup Text",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/score_popup_text.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/score_popup_text.png",
+      "scenario_asset_id": "asset_XWDc7P2qkcrKE3EpNPVMXyWb",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_HcvaCdwGjaimjJhosPQduMre"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_rdBYF5n1VdSj9FLTfwygkDYY",
+          "asset_ids": [
+            "asset_DSvVgFu1pLMoiVwjo5BsjfeF"
+          ],
+          "selected_asset_id": "asset_DSvVgFu1pLMoiVwjo5BsjfeF"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_7HnuE6PgNXQWWdL6qgfhZAN3",
+          "asset_id": "asset_P45818DyVZRMaSSUj71M8Asm"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_FYs3HMtp5pYWcsx8yE2HwfLk",
+          "asset_id": "asset_XWDc7P2qkcrKE3EpNPVMXyWb"
+        }
+      ]
+    },
+    {
+      "asset_id": "combo_text",
+      "name": "Combo Text",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/combo_text.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/combo_text.png",
+      "scenario_asset_id": "asset_ZuArN6R8bGHAc1oCAKrFM7Qk",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_P2Qjjm9TKaRLi2mot2DnE7wt"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_kUdRL8TjHG5Mu2Y8Jujk9kYQ",
+          "asset_ids": [
+            "asset_uXGK3CfmNNrRbAebGai8WKs3"
+          ],
+          "selected_asset_id": "asset_uXGK3CfmNNrRbAebGai8WKs3"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_7daQm3VzD32kz8xLZpXZf7au",
+          "asset_id": "asset_XNXm3b3WmmZqEby7dCpSxK47"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_Cj9kN9sR3NXV72HdZNp1qGS8",
+          "asset_id": "asset_ZuArN6R8bGHAc1oCAKrFM7Qk"
+        }
+      ]
+    },
+    {
+      "asset_id": "crown_icon",
+      "name": "Crown Icon",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/crown_icon.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/crown_icon.png",
+      "scenario_asset_id": "asset_2JY2qow7XfQvaMovez7xmMNX",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_6Ro1426U6kdbD6sAaug8mCYo"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_oFjvdXQCpVM9mRMBxRGLWjY3",
+          "asset_ids": [
+            "asset_gPxQcPNZ877mSttdSy4a3sYA"
+          ],
+          "selected_asset_id": "asset_gPxQcPNZ877mSttdSy4a3sYA"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_HspPAFEdvANUvdJuEXaNC6NE",
+          "asset_id": "asset_SA55NCTqNL7Nkg97tioR5RQA"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_ydKjFhfithsZ7zLDqJxRH2f1",
+          "asset_id": "asset_2JY2qow7XfQvaMovez7xmMNX"
+        }
+      ]
+    },
+    {
+      "asset_id": "grid_board",
+      "name": "Grid Board",
+      "category": "background",
+      "route": "background_plate",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/grid_board.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/backgrounds/grid_board.png",
+      "scenario_asset_id": "asset_RqkinZvDkpETW8v4XDFTr1cP",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_Sden3oDtnWqBJFLFAG1Md2Ec"
+        },
+        {
+          "step": "background_plate_cleanup",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_Hkt64kgUCz8CNBjXX5UUo8Po",
+          "asset_id": "asset_RqkinZvDkpETW8v4XDFTr1cP"
+        }
+      ]
+    },
+    {
+      "asset_id": "cream_block_tile",
+      "name": "Cream Block Tile",
+      "category": "other",
+      "route": "static_sprite",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/cream_block_tile.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites/cream_block_tile.png",
+      "scenario_asset_id": "asset_MsYzgF3v1iHDeW6gChd66EQH",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_iSaaD5qQ4kcWwP3uSjk3ZNnM"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_qicd4kN29bRA2JDjMg2W3usx",
+          "asset_ids": [
+            "asset_Two1Eq2U8VJx1NGKJpDhDMRr"
+          ],
+          "selected_asset_id": "asset_Two1Eq2U8VJx1NGKJpDhDMRr"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_ixpcvgC53JsfzTCLorc8RP4P",
+          "asset_id": "asset_po37i7UtJUN3wdvnT4fx925A"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_BHiqRssEehLQmsLqpwWxr6yK",
+          "asset_id": "asset_MsYzgF3v1iHDeW6gChd66EQH"
+        }
+      ]
+    },
+    {
+      "asset_id": "pink_block_tile",
+      "name": "Pink Block Tile",
+      "category": "other",
+      "route": "static_sprite",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/pink_block_tile.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites/pink_block_tile.png",
+      "scenario_asset_id": "asset_4qbxL4te7SFGMme46DytrU1c",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_CnMMHArLjpwCvX3gEDGBfe32"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_9bRBG34kcJxVFE9uZTWWUSCK",
+          "asset_ids": [
+            "asset_pS2qCXMd2BDYhVZwGokRxfk6"
+          ],
+          "selected_asset_id": "asset_pS2qCXMd2BDYhVZwGokRxfk6"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_B65rRodpLgbhvoVioq9RMLj5",
+          "asset_id": "asset_JpbTYVHWRTSjQPc6NNvU7UQ2"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_EV9gxQf3sTZ6HsxC76EzEbuK",
+          "asset_id": "asset_4qbxL4te7SFGMme46DytrU1c"
+        }
+      ]
+    },
+    {
+      "asset_id": "united_text",
+      "name": "United Text",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/united_text.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/united_text.png",
+      "scenario_asset_id": "asset_413XCufh5sZo7MPNvB4Wj85R",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_trBXJBsRUDRXT1ENE4iaGf6C"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_XiDGPef8NGgEqH1TeYWGj7d7",
+          "asset_ids": [
+            "asset_cZ5n9J7gx6DUX8jMZMpdwDDD"
+          ],
+          "selected_asset_id": "asset_cZ5n9J7gx6DUX8jMZMpdwDDD"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_216BLGaRiqLZ5Jf7QgnNfHws",
+          "asset_id": "asset_NTna61GS8eu2E7JHGd5Ngqhw"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_YTtiqPg4sr1Hg9cKnahjXCYn",
+          "asset_id": "asset_413XCufh5sZo7MPNvB4Wj85R"
+        }
+      ]
+    },
+    {
+      "asset_id": "great_text",
+      "name": "Great Text",
+      "category": "ui",
+      "route": "ui_asset",
+      "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/great_text.png",
+      "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/ui/great_text.png",
+      "scenario_asset_id": "asset_TTM3RTnHPQSARswSb7qm3jJT",
+      "steps": [
+        {
+          "step": "upload_reference_crop",
+          "asset_id": "asset_7GRKS5HAXbt8VQxBoUBw59PJ"
+        },
+        {
+          "step": "reference_guided_sprite_recreation",
+          "model_id": "model_google-gemini-3-1-flash",
+          "job_id": "job_Jw2MwfCCWE1abfZrcTi2hofb",
+          "asset_ids": [
+            "asset_7kS4wJF6sFK1qDUcRqWvCB8u"
+          ],
+          "selected_asset_id": "asset_7kS4wJF6sFK1qDUcRqWvCB8u"
+        },
+        {
+          "step": "background_removal",
+          "model_id": "model_photoroom-background-removal",
+          "job_id": "job_ru8JixZkyEXrrT5KWggjzyod",
+          "asset_id": "asset_Sb3TJDmsGcu6AyDRTs4rVDyk"
+        },
+        {
+          "step": "transparent_padding_trim",
+          "model_id": "model_scenario-padding-remover",
+          "job_id": "job_HuDR7HqrMh1jXaWBrF4pBtvV",
+          "asset_id": "asset_TTM3RTnHPQSARswSb7qm3jJT"
+        }
+      ]
+    }
+  ]
+}

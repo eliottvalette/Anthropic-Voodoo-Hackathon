@@ -1,0 +1,1176 @@
+{
+  "art_style": {
+    "summary": "Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.",
+    "rendering": "2D vector-cartoon with clean gradients and soft inner glows.",
+    "line_work": "Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.",
+    "palette": "Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.",
+    "shading": "Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.",
+    "scale_feel": "Toy-like and tactile; blocks feel like physical plastic or candy tiles.",
+    "anti_styles": [
+      "pixel art",
+      "photorealistic",
+      "3D rendered",
+      "hand-drawn raster",
+      "gritty",
+      "neon",
+      "minimalist flat"
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "bg_main_texture",
+      "name": "Main Background Plate",
+      "category": "background",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/bg_main_texture_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/bg_main_texture.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/bg_main_texture_debug.png",
+      "gemini_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "padded_bbox_px": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "ControlNet Scribble for texture consistency",
+        "Inpainting to remove UI elements"
+      ],
+      "scenario_prompt": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Main Background Plate\nDescription: A solid warm chocolate-brown background with a subtle leather or paper-like texture.\nGameplay role: Static background for the entire game screen.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite.",
+      "animation_notes": "Static background.",
+      "background_plate_notes": "The texture is very subtle; ensure the brown remains warm and not too dark.",
+      "priority": 1,
+      "visual_description": "A solid warm chocolate-brown background with a subtle leather or paper-like texture.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "block_cream_single",
+      "name": "Cream Heart Tile",
+      "category": "other",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/block_cream_single_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/block_cream_single.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/block_cream_single_debug.png",
+      "gemini_box_2d": [
+        427,
+        58,
+        487,
+        166
+      ],
+      "bbox_px": [
+        63,
+        820,
+        179,
+        935
+      ],
+      "padded_bbox_px": [
+        42,
+        799,
+        200,
+        956
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Image-to-Image with high denoising",
+        "Upscale to 512px"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Cream Heart Tile\nCategory: other\nDescription: A square cream-colored tile with a soft beveled edge and a light brown heart icon embossed in the center.\nGameplay role: Basic building block for puzzle shapes.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pulses slightly when part of a cleared line.",
+      "background_plate_notes": "Needs clean alpha transparency.",
+      "priority": 1,
+      "visual_description": "A square cream-colored tile with a soft beveled edge and a light brown heart icon embossed in the center.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "block_pink_single",
+      "name": "Pink Heart Tile",
+      "category": "other",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/block_pink_single_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/block_pink_single.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/block_pink_single_debug.png",
+      "gemini_box_2d": [
+        241,
+        58,
+        301,
+        166
+      ],
+      "bbox_px": [
+        63,
+        463,
+        179,
+        578
+      ],
+      "padded_bbox_px": [
+        42,
+        442,
+        200,
+        599
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Image-to-Image with high denoising",
+        "Upscale to 512px"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Pink Heart Tile\nCategory: other\nDescription: A square pink tile with a soft beveled edge and a darker pink heart icon embossed in the center.\nGameplay role: Basic building block for puzzle shapes.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pulses slightly when part of a cleared line.",
+      "background_plate_notes": "Needs clean alpha transparency.",
+      "priority": 1,
+      "visual_description": "A square pink tile with a soft beveled edge and a darker pink heart icon embossed in the center.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "game_grid_8x8",
+      "name": "Puzzle Grid",
+      "category": "background",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/game_grid_8x8_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/game_grid_8x8.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/game_grid_8x8_debug.png",
+      "gemini_box_2d": [
+        175,
+        52,
+        677,
+        947
+      ],
+      "bbox_px": [
+        56,
+        336,
+        1023,
+        1300
+      ],
+      "padded_bbox_px": [
+        0,
+        162,
+        1080,
+        1474
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Vectorize grid lines",
+        "Layered PSD for grid cells"
+      ],
+      "scenario_prompt": "Using the reference frame/crop, recreate a clean gameplay background plate for the playable ad.\n\nAsset: Puzzle Grid\nDescription: An 8x8 grid of dark brown squares with thin, slightly lighter brown dividing lines.\nGameplay role: The play area where blocks are placed.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the original scene composition, camera angle, palette, and lighting.\nRemove foreground characters, projectiles, UI, tutorial hands, and transient VFX when they cover the background.\nReconstruct hidden background details plausibly and keep the result seamless enough to sit behind gameplay.\nDo not create a poster, logo, new character, or new UI.\nReturn an opaque rectangular background plate, not a transparent sprite.",
+      "animation_notes": "Static, but cells may highlight when a block is hovered over them.",
+      "background_plate_notes": "The grid is slightly darker than the main background.",
+      "priority": 2,
+      "visual_description": "An 8x8 grid of dark brown squares with thin, slightly lighter brown dividing lines.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_3x3_pink",
+      "name": "Tray Block 3x3 Pink",
+      "category": "other",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_3x3_pink_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_3x3_pink.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_3x3_pink_debug.png",
+      "gemini_box_2d": [
+        779,
+        133,
+        864,
+        282
+      ],
+      "bbox_px": [
+        144,
+        1496,
+        305,
+        1659
+      ],
+      "padded_bbox_px": [
+        115,
+        1467,
+        334,
+        1688
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Assemble from single tile assets",
+        "Apply tray-specific scaling"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Tray Block 3x3 Pink\nCategory: other\nDescription: A 3x3 square arrangement of pink heart tiles, shown at a smaller scale in the selection tray.\nGameplay role: Selectable block shape.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Glows slightly when available; shrinks when dragged.",
+      "background_plate_notes": "The tray blocks are smaller than the grid blocks until picked up.",
+      "priority": 2,
+      "visual_description": "A 3x3 square arrangement of pink heart tiles, shown at a smaller scale in the selection tray.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vfx_debris_particles",
+      "name": "Block Debris Particles",
+      "category": "effect",
+      "timestamp_s": 0.2,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/vfx_debris_particles_0.200s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_debris_particles.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/vfx_debris_particles_debug.png",
+      "gemini_box_2d": [
+        431,
+        184,
+        540,
+        676
+      ],
+      "bbox_px": [
+        199,
+        828,
+        730,
+        1037
+      ],
+      "padded_bbox_px": [
+        103,
+        790,
+        826,
+        1075
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Particle system simulation",
+        "Match color and physics of the video"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Block Debris Particles\nCategory: effect\nDescription: Small, square-shaped particles in pink and cream that burst outward when a line is cleared.\nGameplay role: Visual feedback for clearing blocks.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Fast outward burst with gravity-based fall-off.",
+      "background_plate_notes": "None.",
+      "priority": 2,
+      "visual_description": "Small, square-shaped particles in pink and cream that burst outward when a line is cleared.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vfx_sparkle_stars",
+      "name": "Twinkling Star Sparkles",
+      "category": "effect",
+      "timestamp_s": 0.8,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/vfx_sparkle_stars_0.800s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_sparkle_stars.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/vfx_sparkle_stars_debug.png",
+      "gemini_box_2d": [
+        464,
+        307,
+        486,
+        327
+      ],
+      "bbox_px": [
+        332,
+        891,
+        353,
+        933
+      ],
+      "padded_bbox_px": [
+        295,
+        864,
+        391,
+        960
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Create star sprite",
+        "Animate scale and rotation"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Twinkling Star Sparkles\nCategory: effect\nDescription: Small, four-pointed yellow stars that appear around feedback text.\nGameplay role: Decorative visual polish for rewards.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Stars rotate and scale down quickly after appearing.",
+      "background_plate_notes": "None.",
+      "priority": 2,
+      "visual_description": "Small, four-pointed yellow stars that appear around feedback text.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "text_combo_banner",
+      "name": "Combo Text Asset",
+      "category": "ui",
+      "timestamp_s": 0.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/text_combo_banner_0.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_combo_banner.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/text_combo_banner_debug.png",
+      "gemini_box_2d": [
+        68,
+        199,
+        141,
+        799
+      ],
+      "bbox_px": [
+        215,
+        131,
+        863,
+        271
+      ],
+      "padded_bbox_px": [
+        98,
+        106,
+        980,
+        296
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Reference-based vector recreation"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Text Asset\nCategory: ui\nDescription: Bubbly, rounded 'Combo' text in cream color with a thick brown outline and golden glow.\nGameplay role: Feedback text appearing during line clears.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pops in with a scale-up bounce effect.",
+      "background_plate_notes": "Often accompanied by a number (e.g., 'Combo 2').",
+      "priority": 3,
+      "visual_description": "Bubbly, rounded 'Combo' text in cream color with a thick brown outline and golden glow.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "text_good_label",
+      "name": "Good! Feedback Text",
+      "category": "ui",
+      "timestamp_s": 0.8,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/text_good_label_0.800s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_good_label.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/text_good_label_debug.png",
+      "gemini_box_2d": [
+        110,
+        380,
+        180,
+        620
+      ],
+      "bbox_px": [
+        410,
+        211,
+        670,
+        346
+      ],
+      "padded_bbox_px": [
+        363,
+        187,
+        717,
+        370
+      ],
+      "confidence": null,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Recreate text with green gradient and white stroke"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Good! Feedback Text\nCategory: ui\nDescription: Stylized green text saying 'Good!' with a thick white border and soft shadow.\nGameplay role: Positive reinforcement for clearing lines.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pops in with a scale-up bounce and floats upward slightly before fading.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "Stylized green text saying 'Good!' with a thick white border and soft shadow.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "text_great_label",
+      "name": "Great! Feedback Text",
+      "category": "ui",
+      "timestamp_s": 11.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/text_great_label_11.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_great_label.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/text_great_label_debug.png",
+      "gemini_box_2d": [
+        241,
+        434,
+        267,
+        588
+      ],
+      "bbox_px": [
+        469,
+        463,
+        635,
+        513
+      ],
+      "padded_bbox_px": [
+        439,
+        440,
+        665,
+        536
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Recreate text with gold gradient and white stroke"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Great! Feedback Text\nCategory: ui\nDescription: Stylized gold/yellow text saying 'Great!' with a thick white border.\nGameplay role: Positive reinforcement for high-scoring moves.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pops in with a scale-up bounce and floats upward.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "Stylized gold/yellow text saying 'Great!' with a thick white border.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "text_united_banner",
+      "name": "United Text Asset",
+      "category": "ui",
+      "timestamp_s": 10.8,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/text_united_banner_10.800s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/text_united_banner.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/text_united_banner_debug.png",
+      "gemini_box_2d": [
+        368,
+        233,
+        470,
+        532
+      ],
+      "bbox_px": [
+        252,
+        707,
+        575,
+        902
+      ],
+      "padded_bbox_px": [
+        194,
+        672,
+        633,
+        937
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Reference-based vector recreation"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: United Text Asset\nCategory: ui\nDescription: Italicized, bubbly 'United' text in white with a thick pink outline.\nGameplay role: Feedback text for high-tier line clears.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Slides in or pulses when active.",
+      "background_plate_notes": "Layered behind or below the Combo text.",
+      "priority": 3,
+      "visual_description": "Italicized, bubbly 'United' text in white with a thick pink outline.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_combo_digit_2",
+      "name": "Combo Digit 2",
+      "category": "ui",
+      "timestamp_s": 6.4,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_combo_digit_2_6.400s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_combo_digit_2.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_combo_digit_2_debug.png",
+      "gemini_box_2d": [
+        339,
+        663,
+        371,
+        716
+      ],
+      "bbox_px": [
+        716,
+        651,
+        773,
+        712
+      ],
+      "padded_bbox_px": [
+        697,
+        634,
+        793,
+        730
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Extract digit sprite",
+        "Clean up edges"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Digit 2\nCategory: ui\nDescription: A large, stylized orange-pink digit '2' with a white outline.\nGameplay role: Indicates the current combo multiplier.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Bounces and scales up when appearing.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "A large, stylized orange-pink digit '2' with a white outline.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_combo_digit_3",
+      "name": "Combo Digit 3",
+      "category": "ui",
+      "timestamp_s": 11.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_combo_digit_3_11.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_combo_digit_3.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_combo_digit_3_debug.png",
+      "gemini_box_2d": [
+        312,
+        448,
+        346,
+        510
+      ],
+      "bbox_px": [
+        484,
+        599,
+        551,
+        664
+      ],
+      "padded_bbox_px": [
+        470,
+        584,
+        566,
+        680
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Extract digit sprite",
+        "Clean up edges"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Digit 3\nCategory: ui\nDescription: A large, stylized orange-pink digit '3' with a white outline.\nGameplay role: Indicates the current combo multiplier.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Bounces and scales up when appearing.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "A large, stylized orange-pink digit '3' with a white outline.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_crown_icon",
+      "name": "Crown High Score Icon",
+      "category": "ui",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_crown_icon_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_crown_icon.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_crown_icon_debug.png",
+      "gemini_box_2d": [
+        0,
+        52,
+        21,
+        128
+      ],
+      "bbox_px": [
+        56,
+        0,
+        138,
+        40
+      ],
+      "padded_bbox_px": [
+        41,
+        0,
+        153,
+        68
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Extract icon",
+        "Clean up edges"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Crown High Score Icon\nCategory: ui\nDescription: A small, golden crown icon with three points and a rounded base.\nGameplay role: Visual indicator for the high score section.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Static icon.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "A small, golden crown icon with three points and a rounded base.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_high_score_value",
+      "name": "High Score Text",
+      "category": "ui",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_high_score_value_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_high_score_value.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_high_score_value_debug.png",
+      "gemini_box_2d": [
+        0,
+        148,
+        18,
+        363
+      ],
+      "bbox_px": [
+        160,
+        0,
+        392,
+        35
+      ],
+      "padded_bbox_px": [
+        118,
+        0,
+        434,
+        66
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Identify font",
+        "Recreate text with yellow gradient"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: High Score Text\nCategory: ui\nDescription: Yellow-gold numeric text displaying the player's all-time high score.\nGameplay role: Displays the persistent high score.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Static text.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "Yellow-gold numeric text displaying the player's all-time high score.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_main_score",
+      "name": "Main Score Display",
+      "category": "ui",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_main_score_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_main_score.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_main_score_debug.png",
+      "gemini_box_2d": [
+        69,
+        199,
+        141,
+        800
+      ],
+      "bbox_px": [
+        215,
+        132,
+        864,
+        271
+      ],
+      "padded_bbox_px": [
+        98,
+        107,
+        981,
+        296
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Text-to-Image for font reference",
+        "Vectorize in Illustrator"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Main Score Display\nCategory: ui\nDescription: Large, bold white sans-serif numbers with a soft drop shadow.\nGameplay role: Displays the player's current session score.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Numbers count up rapidly when points are earned.",
+      "background_plate_notes": "The font is clean and modern.",
+      "priority": 3,
+      "visual_description": "Large, bold white sans-serif numbers with a soft drop shadow.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_score_popup_pink",
+      "name": "Floating Score Popup",
+      "category": "ui",
+      "timestamp_s": 0.8,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_score_popup_pink_0.800s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_score_popup_pink.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_score_popup_pink_debug.png",
+      "gemini_box_2d": [
+        171,
+        387,
+        220,
+        612
+      ],
+      "bbox_px": [
+        418,
+        328,
+        661,
+        422
+      ],
+      "padded_bbox_px": [
+        374,
+        311,
+        705,
+        439
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Recreate numeric font with pink color"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Floating Score Popup\nCategory: ui\nDescription: Floating pink numeric text with a '+' sign (e.g., +211, +158).\nGameplay role: Shows immediate points earned from a move.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Floats upward and fades out quickly.",
+      "background_plate_notes": "None.",
+      "priority": 3,
+      "visual_description": "Floating pink numeric text with a '+' sign (e.g., +211, +158).",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_1x4_cream",
+      "name": "1x4 Horizontal Cream Line Piece",
+      "category": "other",
+      "timestamp_s": 9.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_1x4_cream_9.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_1x4_cream.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_1x4_cream_debug.png",
+      "gemini_box_2d": [
+        241,
+        58,
+        425,
+        719
+      ],
+      "bbox_px": [
+        63,
+        463,
+        777,
+        816
+      ],
+      "padded_bbox_px": [
+        0,
+        399,
+        906,
+        880
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single cream tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 1x4 Horizontal Cream Line Piece\nDescription: A horizontal line piece composed of four cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A horizontal line piece composed of four cream heart tiles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_1x5_pink",
+      "name": "1x5 Vertical Pink Line Piece",
+      "category": "other",
+      "timestamp_s": 9.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_1x5_pink_9.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_1x5_pink.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_1x5_pink_debug.png",
+      "gemini_box_2d": [
+        241,
+        833,
+        674,
+        942
+      ],
+      "bbox_px": [
+        900,
+        463,
+        1017,
+        1294
+      ],
+      "padded_bbox_px": [
+        879,
+        313,
+        1038,
+        1444
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single pink tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 1x5 Vertical Pink Line Piece\nDescription: A long vertical line piece composed of five pink heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A long vertical line piece composed of five pink heart tiles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_2x2_cream",
+      "name": "2x2 Cream Block Piece",
+      "category": "other",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_2x2_cream_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_2x2_cream.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_2x2_cream_debug.png",
+      "gemini_box_2d": [
+        794,
+        450,
+        850,
+        550
+      ],
+      "bbox_px": [
+        486,
+        1524,
+        594,
+        1632
+      ],
+      "padded_bbox_px": [
+        467,
+        1505,
+        613,
+        1651
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single cream tile assets",
+        "Apply tray scaling"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 2x2 Cream Block Piece\nDescription: A square piece composed of four cream-colored heart tiles in a 2x2 arrangement.\nGameplay role: A playable piece in the tray to be dragged onto the grid.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Shrinks slightly when appearing in the tray; expands to full size when dragged.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A square piece composed of four cream-colored heart tiles in a 2x2 arrangement.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_2x3_pink",
+      "name": "2x3 Pink Rectangle Piece",
+      "category": "other",
+      "timestamp_s": 5.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_2x3_pink_5.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_2x3_pink.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_2x3_pink_debug.png",
+      "gemini_box_2d": [
+        805,
+        749,
+        838,
+        833
+      ],
+      "bbox_px": [
+        809,
+        1546,
+        900,
+        1609
+      ],
+      "padded_bbox_px": [
+        793,
+        1530,
+        916,
+        1626
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single pink tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: 2x3 Pink Rectangle Piece\nDescription: A large rectangular piece composed of six pink heart tiles (2 rows, 3 columns).\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A large rectangular piece composed of six pink heart tiles (2 rows, 3 columns).",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_l_cream_3",
+      "name": "L-Shape Cream Piece (3 Tiles)",
+      "category": "other",
+      "timestamp_s": 5.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_l_cream_3_5.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_l_cream_3.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_l_cream_3_debug.png",
+      "gemini_box_2d": [
+        798,
+        468,
+        845,
+        538
+      ],
+      "bbox_px": [
+        505,
+        1532,
+        581,
+        1622
+      ],
+      "padded_bbox_px": [
+        491,
+        1516,
+        595,
+        1638
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single cream tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: L-Shape Cream Piece (3 Tiles)\nDescription: A small L-shaped piece made of three cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A small L-shaped piece made of three cream heart tiles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_l_pink_3",
+      "name": "L-Shape Pink Piece (3 Tiles)",
+      "category": "other",
+      "timestamp_s": 5.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_l_pink_3_5.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_l_pink_3.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_l_pink_3_debug.png",
+      "gemini_box_2d": [
+        798,
+        171,
+        845,
+        246
+      ],
+      "bbox_px": [
+        185,
+        1532,
+        266,
+        1622
+      ],
+      "padded_bbox_px": [
+        170,
+        1516,
+        281,
+        1638
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single pink tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: L-Shape Pink Piece (3 Tiles)\nDescription: A small L-shaped piece made of three pink heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A small L-shaped piece made of three pink heart tiles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tray_block_t_cream_4",
+      "name": "T-Shape Cream Piece (4 Tiles)",
+      "category": "other",
+      "timestamp_s": 9.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/tray_block_t_cream_4_9.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/tray_block_t_cream_4.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/tray_block_t_cream_4_debug.png",
+      "gemini_box_2d": [
+        551,
+        169,
+        673,
+        719
+      ],
+      "bbox_px": [
+        183,
+        1058,
+        777,
+        1292
+      ],
+      "padded_bbox_px": [
+        76,
+        1016,
+        884,
+        1334
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "layered_character_parts",
+      "scenario_pipeline": [
+        "Assemble from single cream tile assets"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate this character/object as a clean 2D mobile game animation seed.\n\nAsset: T-Shape Cream Piece (4 Tiles)\nDescription: A T-shaped piece composed of four cream heart tiles.\nGameplay role: A playable piece in the tray.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the character identity, silhouette, palette, proportions, facing direction, outfit, weapon, and readable facial/body features.\nMake one crisp neutral/base pose on transparent background, suitable for later animation.\nDo not add scenery, UI, extra characters, labels, or poster composition.\n\nThe later animation pass should generate full strips at once from this approved seed, keeping the same character, facing direction, palette, silhouette, outfit proportions, and transparent canvas.",
+      "animation_notes": "Glows slightly when it first appears in the tray.",
+      "background_plate_notes": "None.",
+      "priority": 4,
+      "visual_description": "A T-shaped piece composed of four cream heart tiles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_thumbs_up_icon",
+      "name": "Thumbs Up Feedback",
+      "category": "ui",
+      "timestamp_s": 6.2,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_thumbs_up_icon_6.200s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_thumbs_up_icon.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_thumbs_up_icon_debug.png",
+      "gemini_box_2d": [
+        379,
+        636,
+        414,
+        696
+      ],
+      "bbox_px": [
+        687,
+        728,
+        752,
+        795
+      ],
+      "padded_bbox_px": [
+        672,
+        714,
+        768,
+        810
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Vectorize icon"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Thumbs Up Feedback\nCategory: ui\nDescription: A small green circular icon with a white thumbs-up symbol inside.\nGameplay role: Appears over cleared tiles to indicate a good move.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Floats upward and fades out.",
+      "background_plate_notes": "Multiple icons appear simultaneously.",
+      "priority": 4,
+      "visual_description": "A small green circular icon with a white thumbs-up symbol inside.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vfx_line_clear_glow_horiz",
+      "name": "Horizontal Clear Glow",
+      "category": "effect",
+      "timestamp_s": 0.2,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/vfx_line_clear_glow_horiz_0.200s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_horiz.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/vfx_line_clear_glow_horiz_debug.png",
+      "gemini_box_2d": [
+        427,
+        55,
+        550,
+        944
+      ],
+      "bbox_px": [
+        59,
+        820,
+        1020,
+        1056
+      ],
+      "padded_bbox_px": [
+        0,
+        778,
+        1080,
+        1098
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "VFX prompt for 'golden energy beam with sparkles'",
+        "Additive blending in engine"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Horizontal Clear Glow\nCategory: effect\nDescription: A horizontal golden-yellow glowing bar with light particles and sparkles.\nGameplay role: Visual effect for clearing a horizontal line.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Expands from the center and fades out quickly.",
+      "background_plate_notes": "Should be semi-transparent.",
+      "priority": 4,
+      "visual_description": "A horizontal golden-yellow glowing bar with light particles and sparkles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vfx_line_clear_glow_vert",
+      "name": "Vertical Clear Glow",
+      "category": "effect",
+      "timestamp_s": 6.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/vfx_line_clear_glow_vert_6.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_line_clear_glow_vert.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/vfx_line_clear_glow_vert_debug.png",
+      "gemini_box_2d": [
+        363,
+        608,
+        551,
+        724
+      ],
+      "bbox_px": [
+        657,
+        697,
+        782,
+        1058
+      ],
+      "padded_bbox_px": [
+        635,
+        632,
+        804,
+        1123
+      ],
+      "confidence": 0.95,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "VFX prompt for 'vertical golden energy beam'",
+        "Additive blending in engine"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Vertical Clear Glow\nCategory: effect\nDescription: A vertical golden-yellow glowing bar with light particles.\nGameplay role: Visual effect for clearing a vertical line.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Expands and fades out.",
+      "background_plate_notes": "Should be semi-transparent.",
+      "priority": 4,
+      "visual_description": "A vertical golden-yellow glowing bar with light particles.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_settings_gear",
+      "name": "Settings Icon",
+      "category": "ui",
+      "timestamp_s": 0.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/ui_settings_gear_0.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/ui_settings_gear.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/ui_settings_gear_debug.png",
+      "gemini_box_2d": [
+        0,
+        866,
+        27,
+        944
+      ],
+      "bbox_px": [
+        935,
+        0,
+        1020,
+        52
+      ],
+      "padded_bbox_px": [
+        920,
+        0,
+        1035,
+        74
+      ],
+      "confidence": 1.0,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "Vectorize icon"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Settings Icon\nCategory: ui\nDescription: A simple cream-colored gear icon.\nGameplay role: Button to open settings menu.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Static.",
+      "background_plate_notes": "Top right corner.",
+      "priority": 5,
+      "visual_description": "A simple cream-colored gear icon.",
+      "animated_parts": []
+    },
+    {
+      "asset_id": "vfx_heart_pulse_top",
+      "name": "Combo Heart Pulse",
+      "category": "effect",
+      "timestamp_s": 6.0,
+      "frame_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/frames/vfx_heart_pulse_top_6.000s.png",
+      "crop_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/extracted/crops/vfx_heart_pulse_top.png",
+      "debug_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-3/qa/debug-overlays/vfx_heart_pulse_top_debug.png",
+      "gemini_box_2d": [
+        364,
+        609,
+        551,
+        722
+      ],
+      "bbox_px": [
+        658,
+        699,
+        780,
+        1058
+      ],
+      "padded_bbox_px": [
+        636,
+        634,
+        802,
+        1123
+      ],
+      "confidence": 0.9,
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "Image-to-Image for glowing heart",
+        "Alpha mask generation"
+      ],
+      "scenario_prompt": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Combo Heart Pulse\nCategory: effect\nDescription: A large, glowing pink heart that appears at the top center of the screen.\nGameplay role: Visual indicator of an active combo streak.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D vector-style puzzle game with a 'sweet' candy-like aesthetic, featuring soft beveled blocks and a warm chocolate-toned background.\nRendering technique: 2D vector-cartoon with clean gradients and soft inner glows.\nLine work: Thin, subtle dark-brown outlines on blocks to provide depth; UI text uses thick brown drop shadows.\nPalette: Warm and saturated, dominated by dusty pink, cream, chocolate brown, and golden yellow.\nShading: Soft cel-shading with subtle top-down gradients on blocks to create a tactile, 3D-beveled appearance.\nScale / proportions: Toy-like and tactile; blocks feel like physical plastic or candy tiles.\nDO NOT use any of these styles: pixel art, photorealistic, 3D rendered, hand-drawn raster, gritty, neon, minimalist flat.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read.",
+      "animation_notes": "Pulses in size rhythmically.",
+      "background_plate_notes": "Positioned behind the score or at the very top edge.",
+      "priority": 5,
+      "visual_description": "A large, glowing pink heart that appears at the top center of the screen.",
+      "animated_parts": [
+        {
+          "part_id": "heart_glow",
+          "description": "Outer glow of the heart",
+          "motion": "pulsing opacity",
+          "frames_recommended": 8,
+          "loop": true
+        }
+      ]
+    }
+  ]
+}

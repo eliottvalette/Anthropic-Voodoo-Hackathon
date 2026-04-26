@@ -1,0 +1,1117 @@
+{
+  "video_summary": "A block-puzzle mobile game with a chocolate/candy aesthetic where players drag Tetris-like piece sets onto an 8x8 grid to complete full rows or columns, which then clear with particle effects and score popups. The theme uses heart-embossed tiles in pink (strawberry chocolate) and tan/cream (white chocolate) colors on a dark chocolate brown grid background.",
+  "gameplay_loop": "Three piece shapes are displayed below the grid at all times. The player drags one piece at a time onto the grid. When a full row or column is completed, it clears with a golden or pink glowing sweep effect, debris particles fly off, and score popups ('Good!', 'Great!', 'Combo') appear. Cleared lines award points shown in the top score counter. A heart icon above the score pulses purple when combos are achieved. The loop continues until no pieces can be placed.",
+  "camera_and_canvas": "Fixed vertical portrait camera, no scrolling or zoom. Canvas is approximately 828x1792 logical pixels (tall mobile aspect ratio ~9:19.5). The 8x8 grid occupies roughly the top 60% of the screen. The piece tray sits in the lower 30%. HUD (score, best score, settings) is pinned to the very top.",
+  "art_style": {
+    "summary": "Casual mobile puzzle game with a warm chocolate/candy theme, soft cel-shaded tiles with embossed heart motifs, thick rounded forms, and saturated pink and cream color palette",
+    "rendering": "2D raster with soft cel-shading and subtle inner-bevel/emboss texture on each tile; not vector-flat",
+    "line_work": "No hard outlines on tiles; tiles are defined by soft inner shadow/bevel edges and slight drop shadows; UI text has thick white or dark stroke outlines",
+    "palette": "Warm saturated: deep chocolate brown background (#5C3A28), dusty rose/strawberry pink tiles (#D98FAA), warm cream/vanilla tiles (#E8C98A), golden yellow for score FX, bright magenta-purple for combo heart, vivid green for thumbs-up icons",
+    "shading": "Cel-shaded with soft gradient highlight on top-left of each tile and subtle inner shadow on bottom-right; embossed heart symbol pressed into tile surface",
+    "scale_feel": "Chunky, sticker-like tile proportions; slightly rounded square tiles; UI text is bold and slightly inflated; overall friendly and casual, not chibi characters",
+    "anti_styles": [
+      "pixel art",
+      "voxel",
+      "3D rendered",
+      "photorealistic",
+      "minimalist vector flat",
+      "hand-drawn sketch",
+      "painterly watercolor",
+      "neon cyberpunk",
+      "dark gritty"
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "bg_main",
+      "name": "Main Game Background",
+      "category": "background",
+      "visual_description": "Solid warm chocolate brown background (#5C3A28 approximately) filling the entire screen behind all UI elements. Uniform flat color with very subtle vignette darkening toward edges. No patterns or textures.",
+      "gameplay_role": "Full-screen background plate behind grid, HUD, and piece tray",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        0.2,
+        8.0,
+        15.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "crop full frame",
+        "color-sample dominant brown",
+        "generate solid or very subtle vignette plate"
+      ],
+      "animation_notes": "Static, no animation",
+      "background_plate_notes": "Cleanest at frame 4 when no VFX overlay. The brown is consistent throughout. Can be recreated as a solid color fill #5C3A28.",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "grid_board",
+      "name": "8x8 Game Grid Board",
+      "category": "background",
+      "visual_description": "Dark chocolate brown 8x8 grid panel with a thin rounded-rectangle border. Each empty cell is a slightly darker recessed square with faint grid lines visible. The overall panel has a subtle inner shadow giving it depth. Rounded corners on the outer border. Color is very dark brown #2A1A10.",
+      "gameplay_role": "The main play area where tiles are placed; defines the 8x8 cell layout",
+      "best_timestamp_s": 15.0,
+      "fallback_timestamps_s": [
+        4.0,
+        8.0
+      ],
+      "approx_box_2d": [
+        245,
+        45,
+        1005,
+        790
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "background_plate_cleanup",
+      "scenario_pipeline": [
+        "crop grid region",
+        "clean up any tile overlays",
+        "use as tileable grid background"
+      ],
+      "animation_notes": "Static panel; individual cells highlight when a piece hovers over valid placement",
+      "background_plate_notes": "Best captured at frame 15 when many cells are empty and the grid structure is clearly visible. The grid lines are subtle darker separators between cells.",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tile_pink",
+      "name": "Pink (Strawberry) Heart Tile",
+      "category": "other",
+      "visual_description": "Square tile in dusty rose/strawberry pink (#D98FAA). Slightly rounded corners. Surface has a soft cel-shaded highlight on the upper-left quadrant fading to a slightly darker pink on lower-right. Center features an embossed heart symbol pressed into the tile surface — the heart is the same pink color but slightly recessed/darker, giving a debossed look. Subtle drop shadow below tile.",
+      "gameplay_role": "Primary colored block tile placed on the grid; forms the pink piece shapes",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        2.0,
+        3.0
+      ],
+      "approx_box_2d": [
+        330,
+        50,
+        430,
+        155
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "direct_cutout_then_enhance",
+      "scenario_pipeline": [
+        "crop single tile",
+        "remove background",
+        "upscale 4x",
+        "clean edges",
+        "export as PNG sprite"
+      ],
+      "animation_notes": "Static tile. When part of a completing row/column, it briefly flashes white/bright before disappearing with particle effect.",
+      "background_plate_notes": "n/a",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "tile_cream",
+      "name": "Cream (White Chocolate) Heart Tile",
+      "category": "other",
+      "visual_description": "Square tile in warm cream/vanilla color (#E8C98A). Same shape and proportions as the pink tile. Soft cel-shaded highlight on upper-left. Center has an embossed heart symbol in slightly darker tan/caramel tone. Rounded corners, subtle drop shadow. Slightly warmer and lighter than the pink variant.",
+      "gameplay_role": "Secondary colored block tile; forms the cream/tan piece shapes",
+      "best_timestamp_s": 9.0,
+      "fallback_timestamps_s": [
+        7.0,
+        12.0
+      ],
+      "approx_box_2d": [
+        800,
+        140,
+        900,
+        245
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "direct_cutout_then_enhance",
+      "scenario_pipeline": [
+        "crop single tile",
+        "remove background",
+        "upscale 4x",
+        "clean edges",
+        "export as PNG sprite"
+      ],
+      "animation_notes": "Static tile. Same flash-and-clear animation as pink tile on line completion.",
+      "background_plate_notes": "n/a",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_2x2_pink",
+      "name": "2x2 Square Piece (Pink)",
+      "category": "other",
+      "visual_description": "A 2x2 arrangement of four pink heart tiles forming a compact square piece. Each tile has the same embossed heart and cel-shaded look. Tiles are flush against each other with minimal gap. The overall shape is a chunky square.",
+      "gameplay_role": "One of the draggable piece shapes offered to the player in the piece tray",
+      "best_timestamp_s": 2.0,
+      "fallback_timestamps_s": [
+        1.0,
+        3.0
+      ],
+      "approx_box_2d": [
+        1100,
+        95,
+        1290,
+        255
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray area",
+        "remove background",
+        "reconstruct from 4 individual tile sprites arranged 2x2"
+      ],
+      "animation_notes": "Static in tray. Scales up slightly when dragged. Snaps to grid on placement.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_2x2_cream",
+      "name": "2x2 Square Piece (Cream)",
+      "category": "other",
+      "visual_description": "A 2x2 arrangement of four cream/vanilla heart tiles forming a compact square piece. Same construction as the pink 2x2 but in the warm cream color.",
+      "gameplay_role": "Draggable piece shape in the piece tray",
+      "best_timestamp_s": 2.0,
+      "fallback_timestamps_s": [
+        1.0,
+        5.0
+      ],
+      "approx_box_2d": [
+        1100,
+        355,
+        1290,
+        490
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray area",
+        "remove background",
+        "reconstruct from 4 cream tile sprites arranged 2x2"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_3x3_pink",
+      "name": "3x3 Square Piece (Pink)",
+      "category": "other",
+      "visual_description": "A 3x3 arrangement of nine pink heart tiles forming a large square piece. All tiles share the same embossed heart motif and cel-shaded appearance. This is the largest standard piece shape.",
+      "gameplay_role": "Large draggable piece shape offered in the piece tray",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        2.0,
+        3.0
+      ],
+      "approx_box_2d": [
+        1100,
+        80,
+        1310,
+        280
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 9 pink tile sprites in 3x3 grid"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_l_shape_pink",
+      "name": "L-Shape Piece (Pink)",
+      "category": "other",
+      "visual_description": "An L-shaped tetromino-style piece made of pink heart tiles. Consists of a 2-tile vertical column with one tile extending right from the bottom, forming a reverse-L or J shape. Three tiles total.",
+      "gameplay_role": "Draggable L-shaped piece in the piece tray",
+      "best_timestamp_s": 7.0,
+      "fallback_timestamps_s": [
+        8.0
+      ],
+      "approx_box_2d": [
+        1130,
+        95,
+        1310,
+        270
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 3 pink tile sprites in L arrangement"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_t_shape_cream",
+      "name": "T-Shape Piece (Cream)",
+      "category": "other",
+      "visual_description": "A T-shaped tetromino piece made of cream/vanilla heart tiles. Two tiles on top row, one tile centered below forming a T or inverted-T shape. Three tiles total.",
+      "gameplay_role": "Draggable T-shaped piece in the piece tray",
+      "best_timestamp_s": 7.0,
+      "fallback_timestamps_s": [
+        8.0
+      ],
+      "approx_box_2d": [
+        1130,
+        340,
+        1290,
+        490
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 3 cream tile sprites in T arrangement"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_1x4_cream",
+      "name": "1x4 Horizontal Bar Piece (Cream)",
+      "category": "other",
+      "visual_description": "Four cream/vanilla heart tiles arranged in a single horizontal row, forming a long flat bar piece. Each tile has the standard embossed heart and cel-shaded look.",
+      "gameplay_role": "Draggable horizontal bar piece in the piece tray",
+      "best_timestamp_s": 12.0,
+      "fallback_timestamps_s": [
+        13.0,
+        15.0
+      ],
+      "approx_box_2d": [
+        1155,
+        560,
+        1250,
+        720
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 4 cream tile sprites in 1x4 row"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_1x4_pink",
+      "name": "1x4 Vertical Bar Piece (Pink)",
+      "category": "other",
+      "visual_description": "Four pink heart tiles arranged in a single vertical column, forming a tall bar piece. Standard embossed heart and cel-shaded appearance on each tile.",
+      "gameplay_role": "Draggable vertical bar piece in the piece tray",
+      "best_timestamp_s": 12.0,
+      "fallback_timestamps_s": [
+        13.0
+      ],
+      "approx_box_2d": [
+        1080,
+        130,
+        1310,
+        270
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 4 pink tile sprites in 1x4 column"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_l_shape_cream_variant",
+      "name": "L-Shape Piece Variant (Cream)",
+      "category": "other",
+      "visual_description": "An L-shaped piece made of cream/vanilla heart tiles. Two tiles in a row on top with one tile extending down from the right end, or similar L-variant orientation. Three tiles total.",
+      "gameplay_role": "Draggable L-shaped cream piece in the piece tray",
+      "best_timestamp_s": 12.0,
+      "fallback_timestamps_s": [
+        13.0
+      ],
+      "approx_box_2d": [
+        1130,
+        340,
+        1290,
+        490
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop piece from tray",
+        "remove background",
+        "reconstruct from 3 cream tile sprites in L arrangement"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "piece_single_cream",
+      "name": "Single Tile Piece (Cream)",
+      "category": "other",
+      "visual_description": "A single cream/vanilla heart tile as a standalone draggable piece. Identical appearance to the individual cream tile.",
+      "gameplay_role": "Smallest draggable piece — a single tile",
+      "best_timestamp_s": 7.0,
+      "fallback_timestamps_s": [
+        8.0
+      ],
+      "approx_box_2d": [
+        1200,
+        340,
+        1290,
+        430
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "direct_cutout_then_enhance",
+      "scenario_pipeline": [
+        "crop single tile from tray",
+        "remove background",
+        "upscale",
+        "export PNG"
+      ],
+      "animation_notes": "Static in tray.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_score_display",
+      "name": "Current Score Text Display",
+      "category": "ui",
+      "visual_description": "Large bold white numeral text (e.g. '262598') centered near the top of the screen below the HUD bar. Font is a rounded bold sans-serif with a subtle dark drop shadow. Numbers are large (~80-90pt equivalent). No background panel — text floats over the brown background.",
+      "gameplay_role": "Displays the player's current score, updates in real-time as lines are cleared",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        2.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        80,
+        120,
+        230,
+        720
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "identify font style",
+        "recreate as dynamic text field with bold rounded white font",
+        "add drop shadow"
+      ],
+      "animation_notes": "Score number increments rapidly when lines clear. Heart icon overlays the score during combo sequences.",
+      "background_plate_notes": "n/a",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_best_score_bar",
+      "name": "Best Score / High Score Bar",
+      "category": "ui",
+      "visual_description": "Top-left HUD element showing a golden crown icon followed by the best score number (e.g. '691482') in golden/yellow text. Small compact display pinned to top-left corner. Crown is a simple cartoon gold crown icon.",
+      "gameplay_role": "Displays the player's all-time best score for comparison",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        1.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        60,
+        380
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop top-left region",
+        "separate crown icon from text",
+        "vectorize crown",
+        "recreate as UI label"
+      ],
+      "animation_notes": "Static display",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_settings_gear",
+      "name": "Settings Gear Icon Button",
+      "category": "ui",
+      "visual_description": "A golden/yellow gear/cog icon in the top-right corner. Simple cartoon gear shape with 6-8 teeth, golden yellow color with slight shading. Circular center hole. Appears as a tappable button.",
+      "gameplay_role": "Opens the settings/options menu when tapped",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        1.0,
+        7.0
+      ],
+      "approx_box_2d": [
+        0,
+        720,
+        80,
+        830
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop top-right corner",
+        "isolate gear icon",
+        "vectorize as simple gear shape",
+        "fill golden yellow"
+      ],
+      "animation_notes": "Static icon; may rotate on tap",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_combo_heart",
+      "name": "Combo Heart Icon (Purple/Pink)",
+      "category": "ui",
+      "visual_description": "A large glowing magenta-purple heart icon that appears above the score display during combo sequences. The heart is a classic heart shape filled with bright purple-pink gradient (#CC44CC to #FF88FF), with a soft outer glow/bloom effect radiating outward. Slightly larger than the score text height.",
+      "gameplay_role": "Visual indicator that appears when the player achieves a combo (multiple line clears in sequence); pulses and glows",
+      "best_timestamp_s": 9.0,
+      "fallback_timestamps_s": [
+        8.0,
+        10.0,
+        13.0
+      ],
+      "approx_box_2d": [
+        40,
+        290,
+        200,
+        530
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop heart region",
+        "remove background",
+        "recreate as glowing heart sprite with bloom shader",
+        "add pulse animation"
+      ],
+      "animation_notes": "Pulses with a scale-up/scale-down loop (scale 1.0 to 1.15 and back) at ~1Hz. Glows brighter on each new combo increment. Fades out when combo ends.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": [
+        {
+          "part_id": "heart_glow_pulse",
+          "description": "Outer glow/bloom ring around the heart that pulses in opacity and size",
+          "motion": "scale pulse 1.0x to 1.3x and fade opacity 100% to 40%, looping",
+          "frames_recommended": 8,
+          "loop": true
+        }
+      ]
+    },
+    {
+      "asset_id": "fx_line_clear_gold",
+      "name": "Golden Line Clear Sweep Effect",
+      "category": "effect",
+      "visual_description": "A horizontal golden-yellow glowing band that sweeps across a cleared row. The band is a bright warm yellow (#FFD700) with soft feathered edges, inner white core, and radiating sparkle particles. The cleared row highlights with this golden glow before tiles disappear. Accompanied by small tumbling cube debris particles in tan/gold color.",
+      "gameplay_role": "Visual feedback when a horizontal row is completely filled and cleared",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        0.2
+      ],
+      "approx_box_2d": [
+        615,
+        45,
+        720,
+        790
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop row-clear region at frame 1",
+        "isolate glow band",
+        "recreate as horizontal gradient glow sprite",
+        "add particle system for debris"
+      ],
+      "animation_notes": "Plays over ~0.4 seconds: row flashes white, golden band sweeps left-to-right, tiles shatter into small cube debris that fly outward, then row is empty. Loop: one-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_line_clear_pink",
+      "name": "Pink/Purple Line Clear Sweep Effect",
+      "category": "effect",
+      "visual_description": "A horizontal magenta-pink glowing band similar to the golden version but in bright pink-purple (#FF44CC) color. Appears when multiple rows clear simultaneously (combo). Has the same feathered glow, inner white core, and sparkle particles but in pink/purple tones. Pink tile debris fragments fly off.",
+      "gameplay_role": "Visual feedback for multi-row or combo line clears; more dramatic than the gold version",
+      "best_timestamp_s": 13.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        340,
+        45,
+        600,
+        790
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop pink sweep region at frame 13",
+        "isolate glow band",
+        "recreate as horizontal gradient glow sprite in pink-purple",
+        "add pink particle debris"
+      ],
+      "animation_notes": "Same timing as gold sweep but in pink. Multiple rows clear simultaneously with staggered pink bands.",
+      "background_plate_notes": "n/a",
+      "priority": 1,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_debris_cube_gold",
+      "name": "Gold Debris Cube Particle",
+      "category": "effect",
+      "visual_description": "A small tumbling cube/block fragment in warm golden-tan color (#D4A855). Roughly 1/4 the size of a regular tile. Has a simple 3D-ish appearance with a lighter top face and darker side face. Tumbles and flies outward from cleared rows.",
+      "gameplay_role": "Particle debris that flies off when a row clears with the golden effect",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        0.2
+      ],
+      "approx_box_2d": [
+        630,
+        100,
+        700,
+        200
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop debris particle",
+        "remove background",
+        "recreate as small cube sprite with 3 rotation frames",
+        "use in particle emitter"
+      ],
+      "animation_notes": "Tumbles (rotates) as it flies outward. 4-frame rotation loop. Fades out over 0.5s.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_debris_cube_pink",
+      "name": "Pink Debris Cube Particle",
+      "category": "effect",
+      "visual_description": "Same small tumbling cube fragment as the gold version but in dusty pink/rose color (#D98FAA). Flies off when pink tiles in a cleared row shatter.",
+      "gameplay_role": "Particle debris for pink tile row clears",
+      "best_timestamp_s": 13.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        350,
+        50,
+        420,
+        200
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop pink debris particle",
+        "remove background",
+        "recreate as small pink cube sprite",
+        "use in particle emitter"
+      ],
+      "animation_notes": "Same tumble behavior as gold debris. 4-frame rotation loop.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_sparkle_star",
+      "name": "Sparkle/Star Particle",
+      "category": "effect",
+      "visual_description": "A small 4-pointed or 6-pointed star sparkle in bright white-yellow (#FFFAAA). Appears scattered around line-clear effects and score popups. Simple starburst shape, small (about 8-12px equivalent). Twinkles briefly.",
+      "gameplay_role": "Ambient sparkle particles that accompany line clears and score events",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        2.0,
+        14.0
+      ],
+      "approx_box_2d": [
+        620,
+        200,
+        680,
+        280
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop sparkle",
+        "recreate as 4-pointed star sprite",
+        "animate scale 0 to 1 to 0 over 0.3s"
+      ],
+      "animation_notes": "Scale-in then scale-out twinkle. 4-frame animation. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_glow_burst",
+      "name": "Golden Glow Burst (Line Clear Origin)",
+      "category": "effect",
+      "visual_description": "A large soft radial glow burst in warm golden yellow, appearing at the point where a line clear initiates. Circular bloom with bright white center fading to golden yellow then transparent. Approximately 2-3 tile widths in diameter.",
+      "gameplay_role": "Impact/origin flash effect at the start of a line clear animation",
+      "best_timestamp_s": 0.2,
+      "fallback_timestamps_s": [
+        1.0
+      ],
+      "approx_box_2d": [
+        380,
+        480,
+        620,
+        680
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop glow burst at frame 1",
+        "remove background",
+        "recreate as radial gradient sprite white-to-gold-to-transparent",
+        "animate scale 0.3 to 1.5 with fade-out"
+      ],
+      "animation_notes": "Expands rapidly from center point over 0.2s then fades. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_tile_place_highlight",
+      "name": "Tile Placement Highlight Overlay",
+      "category": "effect",
+      "visual_description": "A bright white semi-transparent overlay that flashes on tiles when a piece is placed on the grid. Covers the exact shape of the placed piece. Fades from white to transparent in ~0.15s.",
+      "gameplay_role": "Visual confirmation feedback when a piece is successfully placed on the grid",
+      "best_timestamp_s": 5.0,
+      "fallback_timestamps_s": [
+        10.0
+      ],
+      "approx_box_2d": [
+        330,
+        400,
+        530,
+        680
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "observe white flash on tiles at placement",
+        "recreate as white rectangle overlay matching tile size",
+        "animate opacity 0.8 to 0 over 0.15s"
+      ],
+      "animation_notes": "One-shot flash. Applied per-tile of the placed piece simultaneously.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_popup_good",
+      "name": "'Good!' Score Popup Text",
+      "category": "ui",
+      "visual_description": "Bold cartoon text reading 'Good!' in bright green (#44CC22) with a thick dark green or black outline stroke. The font is a rounded bold display font. Small star/sparkle decorations appear around the text. Text appears to slightly scale up on appearance.",
+      "gameplay_role": "Score feedback popup shown when a single line is cleared",
+      "best_timestamp_s": 2.0,
+      "fallback_timestamps_s": [
+        3.0
+      ],
+      "approx_box_2d": [
+        310,
+        250,
+        430,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop text popup",
+        "remove background",
+        "recreate as bold green text with dark outline",
+        "add scale-in animation"
+      ],
+      "animation_notes": "Scales from 0.5 to 1.1 to 1.0 over 0.3s (bounce-in), holds for 0.8s, then fades out upward.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_popup_great",
+      "name": "'Great!' Score Popup Text",
+      "category": "ui",
+      "visual_description": "Bold cartoon text reading 'Great!' in warm golden yellow (#FFB800) with a thick brown/dark outline stroke. Same rounded bold display font as 'Good!' but in yellow-gold color. Small star decorations around text. Slightly larger than 'Good!' text.",
+      "gameplay_role": "Score feedback popup shown when multiple lines are cleared simultaneously",
+      "best_timestamp_s": 14.0,
+      "fallback_timestamps_s": [
+        15.0
+      ],
+      "approx_box_2d": [
+        330,
+        250,
+        430,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop text popup",
+        "remove background",
+        "recreate as bold golden text with dark outline",
+        "add bounce-in animation"
+      ],
+      "animation_notes": "Same bounce-in animation as 'Good!' but slightly more dramatic scale. Holds 1.0s then fades.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_popup_combo",
+      "name": "'Combo' Score Popup Text",
+      "category": "ui",
+      "visual_description": "Bold cartoon text reading 'Combo' in warm tan/cream color (#E8C98A) with a thick dark brown outline. Same rounded bold display font. Appears in the middle of the grid during combo sequences. Has a slightly 3D-extruded look with a darker shadow offset.",
+      "gameplay_role": "Popup shown when the player achieves consecutive line clears (combo)",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        430,
+        170,
+        540,
+        560
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop combo text",
+        "remove background",
+        "recreate as bold cream text with dark brown outline and 3D offset shadow"
+      ],
+      "animation_notes": "Appears with a quick scale bounce. Combo counter number (e.g. '2') appears in red/pink nearby.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_combo_counter_number",
+      "name": "Combo Counter Number Badge",
+      "category": "ui",
+      "visual_description": "A small bold number (e.g. '2') in bright red/crimson color with white outline, appearing near the 'Combo' text. Indicates the current combo multiplier count. Small circular or badge-like appearance.",
+      "gameplay_role": "Shows the current combo count number during a combo sequence",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        490,
+        530,
+        560,
+        600
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop number badge",
+        "recreate as dynamic text field in red with white outline"
+      ],
+      "animation_notes": "Increments with each new combo line clear. Brief scale-pop on each increment.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_score_increment_popup",
+      "name": "Score Increment Popup (+XXXX)",
+      "category": "ui",
+      "visual_description": "Small pink text showing a score increment like '+1264' in pink/rose color (#FF88AA) with a thin white outline. Appears briefly above the grid near the cleared area. Smaller than the main score display.",
+      "gameplay_role": "Shows the exact points earned from a line clear event",
+      "best_timestamp_s": 14.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        255,
+        270,
+        310,
+        560
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop score popup",
+        "recreate as dynamic text field in pink with white outline",
+        "animate float upward and fade"
+      ],
+      "animation_notes": "Floats upward ~30px over 0.8s while fading out. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_thumbs_up_icon",
+      "name": "Green Thumbs-Up Icon",
+      "category": "effect",
+      "visual_description": "A cartoon green thumbs-up hand icon in bright green (#44BB22). Simple cartoon style with a rounded thumb shape and fist. Appears multiple times in a vertical stack during combo sequences, each one slightly offset. No outline or thin white outline.",
+      "gameplay_role": "Visual flair icons that appear during combo line clears to reinforce positive feedback",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        530,
+        490,
+        720,
+        620
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop thumbs-up icon",
+        "remove background",
+        "recreate as simple cartoon green thumb sprite",
+        "animate scale-in pop"
+      ],
+      "animation_notes": "Multiple instances appear stacked vertically, each popping in with a scale bounce, then fading out. Appears during combo column/row clear animation.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_column_clear_gold",
+      "name": "Golden Column Clear Sweep Effect",
+      "category": "effect",
+      "visual_description": "A vertical golden-yellow glowing band that sweeps down a cleared column. Same visual language as the horizontal row clear but oriented vertically. Bright golden glow with white core, feathered edges, sparkle particles, and tumbling cube debris flying sideways.",
+      "gameplay_role": "Visual feedback when a vertical column is completely filled and cleared",
+      "best_timestamp_s": 8.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        255,
+        580,
+        1005,
+        680
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop column clear region at frame 8",
+        "isolate vertical glow band",
+        "recreate as vertical gradient glow sprite",
+        "add particle system"
+      ],
+      "animation_notes": "Sweeps top-to-bottom over ~0.4s. Tiles shatter into debris. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_candy_swirl_particle",
+      "name": "Candy Swirl / Coin Particle",
+      "category": "effect",
+      "visual_description": "A small circular candy/coin-like particle in cream/gold color with a spiral swirl pattern on its face. Appears during line clear effects, tumbling and spinning. About the same size as the debris cubes but round/disc-shaped.",
+      "gameplay_role": "Secondary particle type in line clear effects, adds visual variety to the debris",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        8.0
+      ],
+      "approx_box_2d": [
+        680,
+        380,
+        740,
+        440
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop candy swirl particle",
+        "remove background",
+        "recreate as small disc sprite with swirl pattern",
+        "animate spin rotation"
+      ],
+      "animation_notes": "Spins continuously while flying outward. 6-frame rotation loop. Fades out over 0.5s.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_united_text_popup",
+      "name": "'United' Word Popup Text",
+      "category": "ui",
+      "visual_description": "Bold cartoon text reading 'United' in bright red (#EE2222) with a thick white outline/stroke. Same rounded bold display font as other popups. Appears in the center of the grid during a special multi-line clear event. Has a bright white glow/bloom behind it.",
+      "gameplay_role": "Special popup text that appears during a particularly large combo or special clear event",
+      "best_timestamp_s": 14.0,
+      "fallback_timestamps_s": [
+        13.0
+      ],
+      "approx_box_2d": [
+        540,
+        100,
+        680,
+        680
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop United text",
+        "remove background",
+        "recreate as bold red text with thick white outline and white glow bloom behind"
+      ],
+      "animation_notes": "Appears with scale bounce-in, holds briefly, then fades. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_finger_cursor",
+      "name": "Finger/Touch Cursor Indicator",
+      "category": "ui",
+      "visual_description": "A simple white or light gray filled circle representing a touch point/finger cursor. Appears as a small dot (~20px diameter) at the player's touch position when dragging pieces. Semi-transparent white circle with soft edge.",
+      "gameplay_role": "Visual indicator of the current touch/drag position during piece placement",
+      "best_timestamp_s": 6.0,
+      "fallback_timestamps_s": [
+        11.0,
+        16.0
+      ],
+      "approx_box_2d": [
+        1040,
+        590,
+        1100,
+        660
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop touch indicator circle",
+        "recreate as simple white circle sprite with soft edge",
+        "use as cursor overlay"
+      ],
+      "animation_notes": "Appears at touch-down, follows finger position, disappears at touch-up. May pulse slightly.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "ui_crown_icon",
+      "name": "Crown Icon (Best Score)",
+      "category": "ui",
+      "visual_description": "A small golden cartoon crown icon used next to the best score display. Simple crown shape with 3 points, golden yellow fill (#FFB800), slight shading on the body. No outline or thin dark outline. Compact and iconic.",
+      "gameplay_role": "Decorative icon indicating the best/high score value",
+      "best_timestamp_s": 4.0,
+      "fallback_timestamps_s": [
+        1.0
+      ],
+      "approx_box_2d": [
+        0,
+        0,
+        55,
+        80
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "ui_vector_or_sprite",
+      "scenario_pipeline": [
+        "crop crown icon from top-left",
+        "remove background",
+        "vectorize as simple 3-point crown shape",
+        "fill golden yellow"
+      ],
+      "animation_notes": "Static icon",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_piece_drag_ghost",
+      "name": "Piece Drag Ghost / Preview Overlay",
+      "category": "effect",
+      "visual_description": "A semi-transparent lighter version of the piece being dragged, shown on the grid cells where the piece would land if released. The ghost tiles are the same shape as the dragged piece but rendered at ~50% opacity with a white or light-colored tint, indicating valid placement.",
+      "gameplay_role": "Placement preview showing where the dragged piece will land on the grid",
+      "best_timestamp_s": 5.0,
+      "fallback_timestamps_s": [
+        6.0
+      ],
+      "approx_box_2d": [
+        330,
+        390,
+        530,
+        680
+      ],
+      "isolate_with_background_removal": false,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "observe ghost tiles at frame 5",
+        "recreate as semi-transparent tile overlay (50% opacity, white tint)",
+        "apply to grid cells under dragged piece"
+      ],
+      "animation_notes": "Updates in real-time as piece is dragged. No animation — static overlay that follows drag position.",
+      "background_plate_notes": "n/a",
+      "priority": 2,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_row_highlight_gold_border",
+      "name": "Row/Column Clear Gold Border Highlight",
+      "category": "effect",
+      "visual_description": "A thin golden-yellow rounded rectangle border that outlines a complete row or column just before it clears. The border glows with a warm golden color (#FFD700) and has a soft outer glow. Appears for ~0.1s before the sweep effect plays.",
+      "gameplay_role": "Brief highlight border indicating which row/column is about to be cleared",
+      "best_timestamp_s": 1.0,
+      "fallback_timestamps_s": [
+        8.0
+      ],
+      "approx_box_2d": [
+        615,
+        45,
+        720,
+        790
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop border highlight",
+        "recreate as thin rounded-rect stroke in golden yellow with glow",
+        "animate opacity flash"
+      ],
+      "animation_notes": "Flashes on for 0.1s then transitions to the sweep effect. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    },
+    {
+      "asset_id": "fx_row_highlight_pink_border",
+      "name": "Row/Column Clear Pink Border Highlight",
+      "category": "effect",
+      "visual_description": "Same as the gold border highlight but in bright magenta-pink (#FF44CC). Used for the pink/combo line clear variant. Outlines the rows being cleared with a pink glowing border.",
+      "gameplay_role": "Brief pink highlight border for combo/multi-row clears",
+      "best_timestamp_s": 13.0,
+      "fallback_timestamps_s": [],
+      "approx_box_2d": [
+        340,
+        45,
+        600,
+        790
+      ],
+      "isolate_with_background_removal": true,
+      "recreation_strategy": "reference_recreate_then_alpha",
+      "scenario_pipeline": [
+        "crop pink border highlight at frame 13",
+        "recreate as thin rounded-rect stroke in pink with glow"
+      ],
+      "animation_notes": "Same flash timing as gold border. One-shot.",
+      "background_plate_notes": "n/a",
+      "priority": 3,
+      "animated_parts": []
+    }
+  ],
+  "_via": "claude_openrouter_sonnet_4_6",
+  "_frames_used": 16
+}

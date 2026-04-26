@@ -1,0 +1,70 @@
+{
+  "plan": {
+    "asset_id": "cream_block_tile",
+    "route": "static_sprite",
+    "category": "other",
+    "output_dir": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites",
+    "primary_output": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites/cream_block_tile.png",
+    "manifest_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/manifests/factories/cream_block_tile.json",
+    "steps": [
+      "upload_crop",
+      "scenario_gemini_recreate",
+      "photoroom_alpha",
+      "padding_trim"
+    ],
+    "scenario_models": [
+      "model_google-gemini-3-1-flash",
+      "model_photoroom-background-removal",
+      "model_pixa-background-removal",
+      "model_scenario-padding-remover"
+    ],
+    "gemini_tasks": [
+      "candidate_qa"
+    ],
+    "outputs": {
+      "png": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites/cream_block_tile.png"
+    },
+    "prompts": {
+      "scenario": "Using the reference crop, recreate ONLY this asset as a clean 2D mobile game sprite.\n\nAsset: Cream Block Tile\nCategory: other\nDescription: A single square tile, colored cream or light yellow, with a raised heart shape in the center and beveled edges.\nGameplay role: A secondary puzzle piece used to fill the grid.\n\n=== STYLE LOCK (must match exactly across every asset in this game) ===\nOverall: Casual 2D puzzle game featuring soft, candy-like blocks with heart imprints on a warm brown background.\nRendering technique: 2D vector-style with soft shading to create a faux-3D beveled appearance.\nLine work: No outlines on game pieces; thick, contrasting outlines on UI text.\nPalette: Warm and sweet: dark chocolate browns, soft pinks, cream/light yellows, with bright UI accents.\nShading: Soft gradients and edge highlights for a tactile, rounded feel.\nScale / proportions: Chunky, stylized, and tactile, resembling physical candy or game pieces.\nDO NOT use any of these styles: pixel art, photorealistic, gritty, sci-fi, hand-drawn sketch, low-poly 3D, flat vector.\nMatch this style regardless of what the asset depicts — do not default to genre tropes (e.g. ninjas as pixel art, robots as voxel, fantasy as painterly) unless the lock above says so.\n\nPreserve the source asset's silhouette, color family, proportions, camera angle, and readable details.\nImprove video compression artifacts and make the asset crisp and production-quality.\nCenter the asset with comfortable transparent padding.\n\nRemove everything that is not the asset: no background, no wall, no character, no hand cursor, no UI, no smoke/trail/impact particles unless explicitly part of the target.\nUse a transparent background PNG when supported. If transparency is not preserved, use a plain simple background that can be removed cleanly.\nDo not add new objects or change the gameplay read."
+    },
+    "notes": [
+      "Video crop is reference evidence; Scenario recreation supplies final pixels."
+    ]
+  },
+  "result": {
+    "asset_id": "cream_block_tile",
+    "name": "Cream Block Tile",
+    "category": "other",
+    "route": "static_sprite",
+    "source_crop": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/extracted/crops/cream_block_tile.png",
+    "final_path": "/Users/ines/Anthropic-Voodoo-Hackathon/nico-sandbox/runs/block-blast-gameplay-blockblast-blockpuzzle-gaming-shorts-viral-2/final-assets/sprites/cream_block_tile.png",
+    "scenario_asset_id": "asset_MsYzgF3v1iHDeW6gChd66EQH",
+    "steps": [
+      {
+        "step": "upload_reference_crop",
+        "asset_id": "asset_iSaaD5qQ4kcWwP3uSjk3ZNnM"
+      },
+      {
+        "step": "reference_guided_sprite_recreation",
+        "model_id": "model_google-gemini-3-1-flash",
+        "job_id": "job_qicd4kN29bRA2JDjMg2W3usx",
+        "asset_ids": [
+          "asset_Two1Eq2U8VJx1NGKJpDhDMRr"
+        ],
+        "selected_asset_id": "asset_Two1Eq2U8VJx1NGKJpDhDMRr"
+      },
+      {
+        "step": "background_removal",
+        "model_id": "model_photoroom-background-removal",
+        "job_id": "job_ixpcvgC53JsfzTCLorc8RP4P",
+        "asset_id": "asset_po37i7UtJUN3wdvnT4fx925A"
+      },
+      {
+        "step": "transparent_padding_trim",
+        "model_id": "model_scenario-padding-remover",
+        "job_id": "job_BHiqRssEehLQmsLqpwWxr6yK",
+        "asset_id": "asset_MsYzgF3v1iHDeW6gChd66EQH"
+      }
+    ]
+  }
+}
