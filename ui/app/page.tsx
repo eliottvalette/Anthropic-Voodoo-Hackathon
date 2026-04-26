@@ -326,13 +326,17 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
+    const supabase = createClient()
+    if (!supabase) return
+
+    supabase.auth.getUser().then(({ data }) => {
       setUserEmail(data.user?.email ?? null)
     })
   }, [])
 
   const handleLogout = async () => {
-    await createClient().auth.signOut()
+    const supabase = createClient()
+    if (supabase) await supabase.auth.signOut()
     window.location.href = '/login'
   }
 

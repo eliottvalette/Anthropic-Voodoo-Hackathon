@@ -13,6 +13,10 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     const supabase = createClient()
+    if (!supabase) {
+      setLoading(false)
+      return
+    }
     await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },

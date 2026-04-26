@@ -1,12 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { getSupabaseEnv } from '@/utils/supabase/config'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request: { headers: request.headers } })
+  const env = getSupabaseEnv()
+
+  // Auth is currently optional for this app. If Supabase env vars are not
+  // configured on the deployment, skip session handling instead of failing
+  // every request in middleware.
+  if (!env) return supabaseResponse
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.url,
+    env.publishableKey,
     {
       cookies: {
         getAll() { return request.cookies.getAll() },

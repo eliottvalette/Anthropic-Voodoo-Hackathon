@@ -1,7 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { getSupabaseEnv } from './config'
 
-export const createClient = () =>
-  createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+export const createClient = () => {
+  const env = getSupabaseEnv()
+  if (!env) return null
+
+  return createBrowserClient(env.url, env.publishableKey)
+}

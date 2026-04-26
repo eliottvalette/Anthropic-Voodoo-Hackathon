@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
   if (code) {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
+    if (!supabase) return NextResponse.redirect(`${origin}/login?error=supabase_not_configured`)
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) return NextResponse.redirect(`${origin}/`)
   }
