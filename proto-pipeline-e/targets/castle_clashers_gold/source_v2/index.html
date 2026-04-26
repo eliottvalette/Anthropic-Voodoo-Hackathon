@@ -34,6 +34,30 @@
     <script src="../../../../utils/mechanics/audio.js"></script>
     <script src="../../../../utils/mechanics/haptics.js"></script>
     <script src="../../../../utils/mechanics/tutorial-hand.js"></script>
+    <script>
+      // Override the synth-bassline startMusic/stopMusic with an actual track.
+      (function () {
+        const MUSIC_SRC = "../../../../ressources/Castle Clashers/Assets/Music.ogg";
+        const el = new Audio(MUSIC_SRC);
+        el.loop = true;
+        el.volume = 0.35;
+        el.preload = "auto";
+        let started = false;
+        window.startMusic = function () {
+          if (started) return;
+          started = true;
+          const p = el.play();
+          if (p && typeof p.catch === "function") p.catch(() => { started = false; });
+        };
+        window.stopMusic = function () {
+          started = false;
+          try { el.pause(); el.currentTime = 0; } catch (e) {}
+        };
+        window.setMusicVolume = function (v) {
+          el.volume = Math.max(0, Math.min(1, v));
+        };
+      })();
+    </script>
     <script src="./game.js"></script>
   </body>
 </html>
