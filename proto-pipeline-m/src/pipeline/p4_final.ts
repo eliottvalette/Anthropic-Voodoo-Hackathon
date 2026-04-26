@@ -89,6 +89,18 @@ export function compose(
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   var state = ${stateLiteral};
+  if (state.phase === undefined) state.phase = "idle";
+  if (state.subPhase === undefined) state.subPhase = null;
+  if (state.turnIndex === undefined) state.turnIndex = 0;
+  if (state.isOver === undefined) state.isOver = false;
+  if (state.ctaVisible === undefined) state.ctaVisible = false;
+  window.__state = state;
+  window.__advancePhase = function(next){
+    var prev = state.phase;
+    if (prev === "aiming" && next === "acting") state.turnIndex = (state.turnIndex || 0) + 1;
+    state.phase = next;
+    if (next === "win" || next === "loss") state.isOver = true;
+  };
   var input = { lastX: null, lastY: null, dragging: false };
   var __sketches = {};
 ${sketchAssignments}

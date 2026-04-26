@@ -23,14 +23,12 @@ The `js` you return REPLACES `composed` wholesale. It must:
 - The string `${plan.mechanic_name}` (the actual mechanic name) must appear verbatim somewhere in the JS (a comment is fine).
 - The `game_spec.cta_url` must appear verbatim (the end_card sketch should already have it; if not, route it via `window.__cta`).
 - Forbidden: `setTimeout`, `setInterval`, `import`, `require`, `eval`.
-- Must not redefine `window.__cta`, `window.__A`, or `window.__engineState` — those are owned by the engine preamble. The `actors` sketch may patch `window.__engineState.snapshot`.
+- Must not redefine `window.__cta`, `window.__A`, or `window.__engineState` — those are owned by the engine preamble. The composer assigns `window.__state = state` and `window.__advancePhase(next)`; do not override those either.
 
 Address every error-severity finding in `integration_report.findings`. Address warnings only when a fix is obvious. Do NOT rewrite a sketch unless a finding is unfixable from the glue layer alone — and in that case explain why in `rationale`.
 
 Common repairs:
 - bg_ground missing fillRect: wrap its draw with a fallback fillStyle/fillRect to a gradient.
 - end_card not gating on isOver: wrap the call site with `if (!state.isOver) return;` before delegating.
-- actors not setting __engineState.snapshot: add a snapshot override in init that returns the monotonic counter fields from `state`.
-- Writer/reader mismatches: typically not fixable in glue; flag in rationale.
 
 Return ONLY the JSON object, no markdown fences.

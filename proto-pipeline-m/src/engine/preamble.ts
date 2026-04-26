@@ -26,12 +26,24 @@ body{display:flex;align-items:center;justify-content:center}
   window.__engineState={
     inputs:0,
     frames:0,
-    phase:"idle",
-    subPhase:null,
-    turnIndex:0,
-    isOver:false,
-    ctaVisible:false,
-    snapshot:function(){return {inputs:this.inputs,frames:this.frames,phase:this.phase,subPhase:this.subPhase,turnIndex:this.turnIndex,isOver:this.isOver,ctaVisible:this.ctaVisible};}
+    snapshot:function(){
+      var s=window.__state||{};
+      var hp=function(a,b){return s[a]!=null?s[a]:(s[b]!=null?s[b]:null);};
+      var projCount=Array.isArray(s.projectiles)?s.projectiles.length:(s.projectile?1:0);
+      return {
+        inputs:this.inputs,
+        frames:this.frames,
+        phase:s.phase||"idle",
+        subPhase:s.subPhase!=null?s.subPhase:null,
+        turnIndex:s.turnIndex||0,
+        isOver:!!s.isOver,
+        ctaVisible:!!s.ctaVisible,
+        playerHp:hp("playerHp","playerCastleHp"),
+        enemyHp:hp("enemyHp","enemyCastleHp"),
+        projectiles:projCount,
+        result:s.result||s.winner||null
+      };
+    }
   };
   function __bumpInput(){window.__engineState.inputs++;}
   window.addEventListener('pointerdown',__bumpInput,true);
