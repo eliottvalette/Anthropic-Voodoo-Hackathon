@@ -73,11 +73,28 @@ const GENERATION_SCHEDULE: Array<{ idx: number; t: number }> = [
 
 const GENERATION_TOTAL_MS = GENERATION_SCHEDULE[GENERATION_SCHEDULE.length - 1].t
 
+// On mount, the cropped-image cards reveal one at a time with these
+// per-asset delays. Mimics the "as Gemini finishes refining each crop, it
+// shows up" cadence rather than the abrupt all-at-once dump that would
+// betray a hardcoded list. Slight randomization within bounds — small
+// enough to be deterministic-ish but irregular-looking.
+const REVEAL_INITIAL_DELAY_MS = 350
+const REVEAL_GAPS_MS = [180, 240, 320, 200, 380, 260, 220, 300, 410, 230, 280, 340, 260, 220, 360, 240, 290]
+function revealOffsetMs(i: number): number {
+  if (i === 0) return REVEAL_INITIAL_DELAY_MS
+  let acc = REVEAL_INITIAL_DELAY_MS
+  for (let k = 0; k < i && k < REVEAL_GAPS_MS.length; k++) acc += REVEAL_GAPS_MS[k]
+  // Tail: anything beyond the gap table uses 250ms.
+  if (i > REVEAL_GAPS_MS.length) acc += (i - REVEAL_GAPS_MS.length) * 250
+  return acc
+}
+
 export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: Props) {
   const [states, setStates] = useState<Record<string, AssetState>>(() =>
     Object.fromEntries(manifest.assets.map(a => [a.asset_id, 'pending']))
   )
   const [generationKickedOff, setGenerationKickedOff] = useState(false)
+  const [revealedCount, setRevealedCount] = useState(0)
   const completeFiredRef = useRef(false)
   const autoGenStartedRef = useRef(false)
 
@@ -85,6 +102,16 @@ export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: 
   const doneCount = Object.values(states).filter(s => s === 'done').length
   const runningCount = Object.values(states).filter(s => s === 'running').length
   const isReady = doneCount === totalCount
+
+  // Progressive reveal of cropped-asset cards on mount. Each card appears
+  // with a hand-tuned irregular gap so the list doesn't dump in one frame.
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = []
+    for (let i = 0; i < totalCount; i++) {
+      timers.push(setTimeout(() => setRevealedCount(c => Math.max(c, i + 1)), revealOffsetMs(i)))
+    }
+    return () => { for (const t of timers) clearTimeout(t) }
+  }, [totalCount])
 
   const startGeneration = useCallback(() => {
     if (generationKickedOff) return
@@ -178,22 +205,30 @@ export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: 
           {summary}
         </p>
 
-        {!autoMode && !generationKickedOff && (
-          <div className="mt-4">
-            <button
-              onClick={startGeneration}
-              className="rounded-lg bg-[#0055FF] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#0044DD]"
-            >
-              Generate all {totalCount}
-            </button>
-          </div>
-        )}
-
-        {generationKickedOff && !isReady && (
-          <div className="mt-3 rounded-lg border border-[#0055FF1F] bg-[#0055FF08] px-3 py-2 text-xs font-medium text-[#0055FF]">
-            Generation in progress · {doneCount}/{totalCount} done · {runningCount} running
-          </div>
-        )}
+        {/* Generate button stays mounted across the whole pre-Continue
+            phase. Idle → primary "Generate all N". Running → disabled
+            "Generating… X/N". Done → disabled "All assets generated".
+            Hidden only after the user has fully transitioned out via
+            Continue, which unmounts the panel. */}
+        <div className="mt-4">
+          <button
+            onClick={startGeneration}
+            disabled={generationKickedOff}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+              !generationKickedOff
+                ? 'bg-[#0055FF] text-white hover:bg-[#0044DD]'
+                : isReady
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 cursor-not-allowed'
+                  : 'bg-[#0055FF08] text-[#0055FF] border border-[#0055FF1F] cursor-not-allowed'
+            }`}
+          >
+            {!generationKickedOff
+              ? `Generate all ${totalCount}`
+              : isReady
+                ? `All ${totalCount} assets generated`
+                : `Generating… ${doneCount}/${totalCount}${runningCount > 0 ? ` · ${runningCount} running` : ''}`}
+          </button>
+        </div>
 
         {generationKickedOff && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
@@ -214,11 +249,26 @@ export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: 
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto pr-1">
-        <div className="grid gap-3 xl:grid-cols-2">
-          {manifest.assets.map(asset => (
-            <FakeAssetRow key={asset.asset_id} asset={asset} state={states[asset.asset_id]} />
-          ))}
-        </div>
+        {revealedCount === 0 ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto mb-3 h-1.5 w-1.5 animate-pulse rounded-full bg-[#0055FF]" />
+              <p className="text-[11px] text-gray-400">Reading extracted crops…</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {manifest.assets.slice(0, revealedCount).map(asset => (
+              <FakeAssetRow key={asset.asset_id} asset={asset} state={states[asset.asset_id]} />
+            ))}
+            {revealedCount < totalCount && (
+              <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-200 bg-[#F6F9FC] px-3 py-3 text-[11px] text-gray-400">
+                <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#0055FF]" />
+                Reading {totalCount - revealedCount} more crop{totalCount - revealedCount === 1 ? '' : 's'}…
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
