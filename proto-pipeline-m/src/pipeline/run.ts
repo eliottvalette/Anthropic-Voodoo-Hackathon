@@ -7,8 +7,11 @@ import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
 import { writeP3 } from "./p3_aggregator.ts";
 import { runP4 } from "./p4_codegen.ts";
-import { verify, buildRetryAddendum } from "./verify.ts";
+import { verify, buildRetryAddendum, type VerifyTempo } from "./verify.ts";
 import { GameSpecSchema } from "../schemas/gameSpec.ts";
+import { MergedVideoSchema } from "../schemas/video/merged.ts";
+import { ProbeReportSchema } from "../schemas/probe.ts";
+import { buildFilenameResolver } from "./assemble.ts";
 import type { VerifyReport } from "../schemas/verifyReport.ts";
 import {
   SCENE_ELEMENT_NAMES,
@@ -151,9 +154,59 @@ export async function runPipeline(
   const p3 = await writeP3(runId, variant, referenceDir);
   stages.push(...p3.output.meta.subCalls);
 
-  const gameSpec = GameSpecSchema.parse(
+  let gameSpec = GameSpecSchema.parse(
     JSON.parse(await readFile(join(outDir, "03_game_spec.json"), "utf8")),
   );
+
+  try {
+    const probe = ProbeReportSchema.parse(
+      JSON.parse(await readFile(join(outDir, "00_probe.json"), "utf8")),
+    );
+    const resolver = buildFilenameResolver(probe);
+    const before = { ...gameSpec.asset_role_map };
+    const dropped: string[] = [];
+    const cleanedRoleMap: Record<string, string | null> = {};
+    for (const [role, filename] of Object.entries(before)) {
+      if (filename === null) {
+        cleanedRoleMap[role] = null;
+        continue;
+      }
+      const relpath = resolver(filename);
+      if (relpath) {
+        cleanedRoleMap[role] = filename;
+      } else {
+        cleanedRoleMap[role] = null;
+        dropped.push(`${role}=${filename}`);
+      }
+    }
+    if (dropped.length > 0) {
+      console.warn(
+        `[run] sanitized asset_role_map: ${dropped.length} role(s) had filenames not on disk → set to null:\n  - ${dropped.join("\n  - ")}`,
+      );
+      gameSpec = { ...gameSpec, asset_role_map: cleanedRoleMap };
+      await writeFile(
+        join(outDir, "03_game_spec.json"),
+        JSON.stringify(gameSpec, null, 2),
+        "utf8",
+      );
+    }
+  } catch (e) {
+    console.warn(
+      `[run] could not sanitize asset_role_map against probe: ${(e as Error).message.slice(0, 200)}`,
+    );
+  }
+
+  let verifyTempo: VerifyTempo = "real_time";
+  try {
+    const merged = MergedVideoSchema.parse(
+      JSON.parse(await readFile(join(outDir, "01_video.json"), "utf8")),
+    );
+    if (merged.tempo === "turn_based" || merged.tempo === "async") {
+      verifyTempo = merged.tempo;
+    }
+  } catch {
+    /* default to real_time */
+  }
 
   const elementFailCounts: Record<SceneElementName, number> = {
     bg_ground: 0,
@@ -169,7 +222,7 @@ export async function runPipeline(
   let repaired = p4.meta.repaired;
 
   console.log(`[run] verifying...`);
-  let report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+  let report = await verify(p4.htmlPath, gameSpec.mechanic_name, verifyTempo);
   let retries = 0;
 
   const writeFailureSummary = async (r: typeof report, attempt: number) => {
@@ -228,7 +281,7 @@ export async function runPipeline(
     }
     stages.push(...p4.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
     repaired = repaired || p4.meta.repaired;
-    report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+    report = await verify(p4.htmlPath, gameSpec.mechanic_name, verifyTempo);
     await writeFailureSummary(report, retries);
   }
 
