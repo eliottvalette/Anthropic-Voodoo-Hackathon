@@ -1,0 +1,5 @@
+node_modules/
+outputs/
+.env
+*.log
+bun.lock
