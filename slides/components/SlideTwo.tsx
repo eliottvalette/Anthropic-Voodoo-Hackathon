@@ -38,7 +38,7 @@ export function SlideTwo({ active, index, total }: { active: boolean; index: num
     <SlideChrome index={index} total={total} eyebrow="02 — Pipeline">
       <div className="flex h-full flex-col">
         <div className="max-w-[60%]">
-          <h1 className="font-display text-[72px] font-semibold leading-[0.95] tracking-tightest text-ink">
+          <h1 className="font-display text-[60px] font-semibold leading-[1.02] tracking-tightest text-ink">
             One pipeline,
             <br />
             <span className="brand-underline">any gameplay video.</span>

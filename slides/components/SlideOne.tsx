@@ -19,13 +19,13 @@ export function SlideOne({ index, total }: { index: number; total: number }) {
             Track 2 · Playable Ad
           </div>
 
-          <h1 className="mt-6 font-display text-[68px] font-semibold leading-[1.02] tracking-tightest text-ink">
+          <h1 className="mt-6 font-display text-[60px] font-semibold leading-[1.02] tracking-tightest text-ink">
             Castle Clashers,
             <br />
             <span className="brand-underline">generated from a video.</span>
           </h1>
 
-          <p className="mt-6 max-w-[36ch] text-[20px] font-light leading-[1.45] tracking-tight text-ink/70">
+          <p className="mt-6 max-w-[40ch] text-[18px] font-light leading-[1.45] tracking-tight text-ink/70">
             Drop in a 30-second gameplay clip. Out comes a self-contained,
             interactive HTML playable — ready for AppLovin, in minutes.
           </p>
