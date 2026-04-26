@@ -1,3 +1,4 @@
+import { PhoneFrame } from './PhoneFrame'
 import { SlideChrome } from './SlideChrome'
 
 type Metric = { label: string; value: string; sub?: string }
@@ -12,7 +13,7 @@ export function SlideOne({ index, total }: { index: number; total: number }) {
   return (
     <SlideChrome index={index} total={total} eyebrow="01 — Demo · Castle Clashers">
       <div className="grid h-full grid-cols-12 items-center gap-10">
-        <div className="col-span-7 flex flex-col">
+        <div className="col-span-6 flex flex-col">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.24em] text-muted">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand" />
             Track 2 · Playable Ad
@@ -50,7 +51,7 @@ export function SlideOne({ index, total }: { index: number; total: number }) {
           </div>
         </div>
 
-        <div className="col-span-5 flex h-full items-center justify-center">
+        <div className="col-span-6 flex h-full items-center justify-center">
           <PlayablePreview />
         </div>
       </div>
@@ -60,33 +61,13 @@ export function SlideOne({ index, total }: { index: number; total: number }) {
 
 function PlayablePreview() {
   return (
-    <div className="relative">
-      <div className="absolute -inset-3 rounded-[28px] bg-gradient-to-br from-brand/25 via-amber/15 to-transparent blur-xl" aria-hidden />
-
+    <div className="relative flex h-full w-full items-start justify-center pt-[5%] pb-[8%]">
       <div
-        data-slot="playable-frame"
-        className="relative aspect-[9/16] h-[68vh] max-h-[640px] overflow-hidden rounded-[24px] border border-line bg-black shadow-[0_30px_70px_-20px_rgba(0,0,0,0.45)]"
-      >
-        <div className="absolute left-3 top-3 z-10 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-white backdrop-blur">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand opacity-75" />
-            <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-brand" />
-          </span>
-          Live · interactive
-        </div>
-
-        <iframe
-          src="/castle-clashers.html"
-          title="Castle Clashers playable"
-          className="absolute inset-0 h-full w-full border-0"
-          allow="autoplay; fullscreen"
-          loading="eager"
-        />
-      </div>
-
-      <div className="mt-3 flex items-center justify-between px-1 text-[10px] uppercase tracking-[0.24em] text-muted">
-        <span className="font-mono">playable.html</span>
-        <span>Tap to play →</span>
+        className="pointer-events-none absolute left-1/2 top-[44%] -z-10 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-[60px] bg-gradient-to-br from-brand/30 via-amber/15 to-transparent blur-3xl"
+        aria-hidden
+      />
+      <div className="h-[94%] w-[94%] translate-x-[1cm]">
+        <PhoneFrame src="/castle-clashers.html" title="Castle Clashers playable" />
       </div>
     </div>
   )
