@@ -117,6 +117,7 @@
     tutorialHandle: null,
     tutorialDismissed: false,
     castles: { player: null, enemy: null },   // Castle instances (v2)
+    revealRadius: 0,                          // X-ray circle around active unit
   };
 
   const HAND_CURSOR_SRC = "../../../../nico-sandbox/runs/B11/final-assets-v1/ui/ui_hand_cursor.png";
@@ -496,7 +497,18 @@
     }
 
     draw(ctx) {
-      ctx.drawImage(this.renderCanvas, this.box.x, this.box.y, this.box.w, this.box.h);
+      const tilt = this.tiltRad || 0;
+      if (!tilt) {
+        ctx.drawImage(this.renderCanvas, this.box.x, this.box.y, this.box.w, this.box.h);
+        return;
+      }
+      const cx = this.box.x + this.box.w * 0.5;
+      const cy = this.box.y + this.box.h * 0.5;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(tilt);
+      ctx.drawImage(this.renderCanvas, -this.box.w * 0.5, -this.box.h * 0.5, this.box.w, this.box.h);
+      ctx.restore();
     }
   }
 
@@ -771,10 +783,11 @@
     try {
       const manifest = await getManifest();
       // Only load the keys we actually need (skip the now-unused destruction PNGs).
+      // Pre-rendered destruction PNGs are obsolete (live destructible system).
+      // castleInside is loaded — it powers the X-ray reveal circle.
       const skip = new Set([
         "castlePlayer_impact","castlePlayer_break","castlePlayer_destroyed",
         "castleEnemy_impact","castleEnemy_break","castleEnemy_destroyed",
-        "castleInside",
       ]);
       await Promise.all(
         Object.entries(manifest)
@@ -792,6 +805,16 @@
       const rngP = makeRng(12), rngE = makeRng(231);
       state.castles.player = new Castle(images.castlePlayer, "player", castleBoxes.player, rngP);
       state.castles.enemy  = new Castle(images.castleEnemy,  "enemy",  castleBoxes.enemy,  rngE);
+      // Visual tilt applied at draw-time. Both castles lean LEFT (negative).
+      // Live-tunable via the on-canvas sliders (top-right overlay).
+      state.tuning = {
+        tiltBlueDeg: -11,           // player castle, leaning left
+        tiltRedDeg:  -9,            // enemy castle, leaning left
+        insideScale: 1.00,          // inside PNG width relative to outside box
+        insideTopRel: 0.0,          // inside PNG top offset (×box.h, +down/-up)
+      };
+      state.castles.player.tiltRad = (state.tuning.tiltBlueDeg * Math.PI) / 180;
+      state.castles.enemy.tiltRad  = (state.tuning.tiltRedDeg  * Math.PI) / 180;
 
       state.phase = "aiming";
       showTutorialHandIfNeeded();
@@ -1015,7 +1038,25 @@
     }
 
     if (state.endEffect) state.endEffect.update(dtMs);
+    updateReveal(dtMs);
     makeSnapshot();
+  }
+
+  // Reveal circle around the active unit during aiming/enemy_wait.
+  // Smoothly grows to a target radius; we use it to mask in `castleInside`
+  // so the player can see who's hiding inside the active unit's tower.
+  function updateReveal(dtMs) {
+    const active = !state.ctaVisible && (state.phase === "aiming" || state.phase === "enemy_wait");
+    const target = active ? 110 : 0;
+    const t = Math.min(1, dtMs / 280);
+    state.revealRadius += (target - state.revealRadius) * t;
+  }
+  function revealForSide(side) {
+    if (state.revealRadius < 1 || state.ctaVisible) return null;
+    if (state.phase !== "aiming" && state.phase !== "enemy_wait") return null;
+    if (state.currentSide !== side) return null;
+    const slot = activeSlot();
+    return { cx: slot.x, cy: slot.y - 30, r: state.revealRadius };
   }
 
   function updateCamera(dt) {
@@ -1237,7 +1278,57 @@
     const c = castleBoxes[side];
     const hp = side === "player" ? state.playerHp : state.enemyHp;
     if (hp > 0) drawShadow(c.x + 20, c.y + c.h - 35, c.w - 40, 32);
-    if (castle) castle.draw(ctx);
+    if (!castle) return;
+
+    const reveal = revealForSide(side);
+    const inside = images.castleInside;
+
+    if (reveal && hp > 0 && inside) {
+      // The inside PNG is the cropped TOP portion of a castle. Glue it at
+      // the same width and same TOP as the outside, so the towers line up.
+      // Then mirror the outside's tilt around the same center so the X-ray
+      // hole through the outside reveals the matching inside region.
+      const tilt = castle.tiltRad || 0;
+      const cx = c.x + c.w * 0.5;
+      const cy = c.y + c.h * 0.5;
+      const insideW = c.w;
+      const insideH = insideW * (inside.naturalHeight / inside.naturalWidth);
+      // Anchor inside top with the outside top (relative coords inside the
+      // tilt frame so the rotation pivots on the same center).
+      const insideRelX = -c.w * 0.5;
+      const insideRelY = -c.h * 0.5;
+
+      // 1) Draw the inside layer behind, clipped to the reveal circle.
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, TAU);
+      ctx.clip();
+      ctx.translate(cx, cy);
+      ctx.rotate(tilt);
+      ctx.drawImage(inside, insideRelX, insideRelY, insideW, insideH);
+      ctx.restore();
+
+      // 2) Draw the outside (tilted internally by Castle.draw) with the
+      //    reveal circle punched out via even-odd clip on the world plane.
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(c.x - 40, c.y - 40, c.w + 80, c.h + 80);
+      ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, TAU);
+      ctx.clip("evenodd");
+      castle.draw(ctx);
+      ctx.restore();
+
+      // 3) Subtle outline so the X-ray reads as deliberate.
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.45)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      castle.draw(ctx);
+    }
   }
   function drawDebrisV2() {
     for (const d of state.debris) d.draw(ctx);
@@ -1248,13 +1339,10 @@
   function drawUnits(side) {
     const hp = side === "player" ? state.playerHp : state.enemyHp;
     if (hp <= 0) return;
-    // Show all 3 units while HP > 0 (units fall as castle crumbles via destructible).
-    const visibleSlots = Math.max(1, Math.ceil((hp / 100) * 3));
-    for (let i = 0; i < visibleSlots; i += 1) {
-      const pos = unitSlots[side][i];
-      drawPlank(pos.x, pos.y);
-    }
-    for (let i = 0; i < visibleSlots; i += 1) drawUnit(side, i);
+    // All 3 slots are always playable (turn cycles through them); draw them all.
+    const slots = unitSlots[side];
+    for (let i = 0; i < slots.length; i += 1) drawPlank(slots[i].x, slots[i].y);
+    for (let i = 0; i < slots.length; i += 1) drawUnit(side, i);
   }
   function drawPlank(x, y) {
     ctx.save();
@@ -1325,11 +1413,71 @@
     }
   }
   function drawTopHud() {
-    drawVsBarTop(ctx, {
-      playerHpPct: Math.round(state.playerHp),
-      enemyHpPct:  Math.round(state.enemyHp),
-      playerColor: "#08aeea", enemyColor: "#e80e16",
-    });
+    const Wt = 360;
+    const playerHpPct = Math.round(state.playerHp);
+    const enemyHpPct  = Math.round(state.enemyHp);
+    const playerColor = "#08aeea";
+    const enemyColor  = "#e80e16";
+    ctx.save();
+    drawHudTrapezoid(8,   8, 132, 28, playerColor, true);
+    drawHudTrapezoid(220, 8, 132, 28, enemyColor,  false);
+    ctx.font = "900 53px Arial";
+    ctx.textAlign = "center";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "#111";
+    ctx.strokeText("Vs", Wt / 2, 55);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Vs", Wt / 2, 52);
+    const iconW = 84, iconH = 84, iconY = 48;
+    const leftIconX = 10, rightIconX = Wt - 10 - iconW;
+    const tiltBlue = -11 * Math.PI / 180;
+    const tiltRed  =  -9 * Math.PI / 180;
+    drawHudIcon(images.iconCastleBlue, leftIconX  + iconW / 2, iconY + iconH / 2, iconW, iconH, tiltBlue);
+    drawHudIcon(images.iconCastleRed,  rightIconX + iconW / 2, iconY + iconH / 2, iconW, iconH, tiltRed);
+    drawHudPct(playerHpPct + "%", leftIconX  + iconW / 2, iconY + iconH + 22, 26);
+    drawHudPct(enemyHpPct  + "%", rightIconX + iconW / 2, iconY + iconH + 22, 26);
+    ctx.restore();
+  }
+  function drawHudTrapezoid(x, y, w, h, color, leftFacing) {
+    ctx.save();
+    ctx.fillStyle = "#111";
+    ctx.beginPath();
+    ctx.moveTo(x - 1, y - 1);
+    ctx.lineTo(x + w + 1, y - 1);
+    ctx.lineTo(x + w - (leftFacing ? 5 : 0), y + h + 5);
+    ctx.lineTo(x + (leftFacing ? 0 : 5), y + h + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w - (leftFacing ? 8 : 0), y + h);
+    ctx.lineTo(x + (leftFacing ? 0 : 8), y + h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawHudIcon(img, cx, cy, w, h, angleRad) {
+    if (!img) return;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angleRad);
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+  function drawHudPct(text, x, y, size) {
+    ctx.save();
+    ctx.font = "900 " + size + "px 'Lilita One', 'Arial Black', Arial";
+    ctx.textAlign = "center";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(4, size * 0.22);
+    ctx.strokeStyle = "#111";
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(text, x, y);
+    ctx.restore();
   }
   function drawComboHud() {
     if (state.combo < 2 || state.ctaVisible) return;
