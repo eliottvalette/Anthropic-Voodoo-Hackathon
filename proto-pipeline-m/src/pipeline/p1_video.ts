@@ -30,6 +30,10 @@ import {
   P1dCritiqueSchema,
   type P1dCritique,
 } from "../schemas/video/merged.ts";
+import {
+  VideoDescriptionSchema,
+  type VideoDescription,
+} from "../schemas/video/description.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import { buildContactSheet } from "./p1_contact_sheet.ts";
 
@@ -149,6 +153,7 @@ async function readAssetFilenames(outDir: string): Promise<string[] | null> {
 
 export type P1Output = {
   merged: MergedVideo;
+  description: VideoDescription;
   contactSheet: ContactSheetAnalysis | null;
   critique: P1dCritique | null;
   alternate: AlternateInterpretation | null;
@@ -162,6 +167,7 @@ export type P1Output = {
     timeline: Timeline;
     mechanics: Mechanics;
     visualUi: VisualUi;
+    description: VideoDescription;
   };
 };
 
@@ -171,7 +177,7 @@ export async function runP1(
   outDir?: string,
 ): Promise<P1Output> {
   const t0 = Date.now();
-  const [p1a, p1b, p1c, p1d, p1e, p1dCritic, p1dRewriter, p1f] = await Promise.all([
+  const [p1a, p1b, p1c, p1d, p1e, p1dCritic, p1dRewriter, p1f, p1g] = await Promise.all([
     loadPrompt(variant, "1a_timeline.md"),
     loadPrompt(variant, "1b_mechanics.md"),
     loadPrompt(variant, "1c_visual_ui.md"),
@@ -180,6 +186,7 @@ export async function runP1(
     loadPrompt(variant, "1d_critic.md"),
     loadPrompt(variant, "1d_rewriter.md"),
     loadPrompt(variant, "1f_alternate.md"),
+    loadPrompt(variant, "1g_description.md"),
   ]);
 
   const assetFilenames = outDir ? await readAssetFilenames(outDir) : null;
@@ -210,7 +217,7 @@ export async function runP1(
     { text: "Analyze the video per the system instruction." },
   ];
 
-  console.log(`[p1] running 1a/1b/1c/1e in parallel...`);
+  console.log(`[p1] running 1a/1b/1c/1e/1g in parallel...`);
   const sheetClaudeParts: AnthropicContent[] | null = sheet
     ? [
         await imagePartFromPath(sheet.pngPath),
@@ -219,7 +226,7 @@ export async function runP1(
     : null;
 
   const videoOpts: GenerateOptions = { mediaResolution: "high" };
-  const [a, b, c, e] = await Promise.all([
+  const [a, b, c, e, g] = await Promise.all([
     runGeminiVideoWithRetry("1a_timeline", TimelineSchema, p1a, userParts, videoOpts),
     runGeminiVideoWithRetry("1b_mechanics", MechanicsSchema, p1b, userParts, videoOpts),
     runGeminiVideoWithRetry("1c_visual_ui", VisualUiSchema, p1c, userParts, videoOpts),
@@ -231,11 +238,13 @@ export async function runP1(
           sheetClaudeParts,
         )
       : Promise.resolve(null),
+    runGeminiVideoWithRetry("1g_description", VideoDescriptionSchema, p1g, userParts, videoOpts),
   ]);
 
   console.log(`[p1] sub-calls done. Merging on Claude...`);
 
   const mergeInput: Record<string, unknown> = {
+    description: g.data,
     timeline: a.data,
     mechanics: b.data,
     visual_ui: c.data,
@@ -295,7 +304,7 @@ export async function runP1(
     { temperature: 0.4 },
   );
 
-  const subCalls: SubMeta[] = [a.meta, b.meta, c.meta];
+  const subCalls: SubMeta[] = [a.meta, b.meta, c.meta, g.meta];
   if (e) subCalls.push(e.meta);
   subCalls.push(m.meta, critique.meta);
   if (rewriteMeta) subCalls.push(rewriteMeta);
@@ -303,6 +312,7 @@ export async function runP1(
 
   return {
     merged: finalMerged,
+    description: g.data,
     contactSheet: e ? e.data : null,
     critique: critique.data,
     alternate: alt.data,
@@ -316,6 +326,7 @@ export async function runP1(
       timeline: a.data as Timeline,
       mechanics: b.data as Mechanics,
       visualUi: c.data as VisualUi,
+      description: g.data as VideoDescription,
     },
   };
 }
@@ -341,6 +352,11 @@ export async function writeP1(
   await writeFile(
     join(outDir, "01_video_subs.json"),
     JSON.stringify(output.rawSubResults, null, 2),
+    "utf8",
+  );
+  await writeFile(
+    join(outDir, "01_description.json"),
+    JSON.stringify(output.description, null, 2),
     "utf8",
   );
   if (output.contactSheet) {
