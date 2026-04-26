@@ -2,10 +2,12 @@ import { mkdir, writeFile, readFile, stat } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { runPipeline, type RunMeta } from "../pipeline/run.ts";
 import { writeBatchReadme } from "./report.ts";
+import { scoreSpecFromPaths } from "./discrepancy_spec.ts";
+import { scoreRuntime, loadExpected } from "./discrepancy_runtime.ts";
 
 const VIDEO_ALIASES: Record<string, string> = {
-  b01: "../ressources/Video Example/B01.mp4",
-  b11: "../ressources/Video Example/B11.mp4",
+  b01: "../ressources/Castle Clashers/Video Example/B01.mp4",
+  b11: "../ressources/Castle Clashers/Video Example/B11_fixed.mp4",
 };
 
 type CsvRow = {
@@ -18,7 +20,12 @@ type CsvRow = {
   mraid_ok: number;
   mechanic_string_match: number;
   interaction_state_change: number;
+  turn_loop_observed: number;
+  hp_decreases_on_hit: number;
+  cta_reachable: number;
   runs: number;
+  spec_score: number;
+  runtime_score: number;
   user_note: string;
   total_latency_ms: number;
   retries: number;
@@ -29,7 +36,8 @@ const CSV_COLS: (keyof CsvRow)[] = [
   "batch_timestamp", "variant", "video_id",
   "size_bytes", "console_errors", "canvas_nonblank", "mraid_ok",
   "mechanic_string_match", "interaction_state_change",
-  "runs", "user_note",
+  "turn_loop_observed", "hp_decreases_on_hit", "cta_reachable",
+  "runs", "spec_score", "runtime_score", "user_note",
   "total_latency_ms", "retries",
   "comment",
 ];
@@ -65,6 +73,8 @@ function buildRow(
   meta: RunMeta,
   reviewNote: string,
   reviewComment: string,
+  specScore: number,
+  runtimeScore: number,
 ): CsvRow {
   const v = meta.verify;
   return {
@@ -77,7 +87,12 @@ function buildRow(
     mraid_ok: v.mraidOk ? 1 : 0,
     mechanic_string_match: v.mechanicStringMatch ? 1 : 0,
     interaction_state_change: v.interactionStateChange ? 1 : 0,
+    turn_loop_observed: v.turnLoopObserved ? 1 : 0,
+    hp_decreases_on_hit: v.hpDecreasesOnHit ? 1 : 0,
+    cta_reachable: v.ctaReachable ? 1 : 0,
     runs: v.runs ? 1 : 0,
+    spec_score: specScore,
+    runtime_score: runtimeScore,
     user_note: reviewNote,
     total_latency_ms: meta.totalLatencyMs,
     retries: meta.retries,
@@ -139,7 +154,12 @@ function coerceRow(o: Record<string, string>): CsvRow {
     mraid_ok: num("mraid_ok"),
     mechanic_string_match: num("mechanic_string_match"),
     interaction_state_change: num("interaction_state_change"),
+    turn_loop_observed: num("turn_loop_observed"),
+    hp_decreases_on_hit: num("hp_decreases_on_hit"),
+    cta_reachable: num("cta_reachable"),
     runs: num("runs"),
+    spec_score: num("spec_score"),
+    runtime_score: num("runtime_score"),
     user_note: o.user_note ?? "",
     total_latency_ms: num("total_latency_ms"),
     retries: num("retries"),
@@ -178,6 +198,7 @@ export async function runBench(
   videos: string[],
   assetsDir: string,
   retries: number,
+  goldDir: string | null = null,
 ): Promise<string> {
   const batch = batchTimestamp();
   const batchDir = resolve("outputs", batch);
@@ -190,18 +211,50 @@ export async function runBench(
       const runId = `${batch}/${variant}/${videoId}`;
       console.log(`[bench] ▶ variant=${variant} video=${videoId}`);
       try {
-        const meta = await runPipeline(runId, videoPath, assetsDir, variant, retries);
+        const meta = await runPipeline(runId, videoPath, assetsDir, variant, retries, goldDir);
         const runDir = resolve("outputs", runId);
         const reviewPath = join(runDir, "review.json");
         await writePlaceholderReview(reviewPath);
         const review = await readReview(reviewPath);
-        rows.push(buildRow(batch, variant, videoId, meta, review.user_note, review.comment));
+        let specScore = 0;
+        let runtimeScore = 0;
+        if (goldDir) {
+          try {
+            const specPath = join(runDir, "03_game_spec.json");
+            if (await exists(specPath)) {
+              const r = await scoreSpecFromPaths(specPath, goldDir);
+              specScore = r.scorePct;
+              await writeFile(
+                join(runDir, "discrepancy_spec.json"),
+                JSON.stringify(r, null, 2),
+                "utf8",
+              );
+            }
+          } catch (e) {
+            console.warn(`[bench] spec-score failed for ${runId}: ${(e as Error).message}`);
+          }
+          try {
+            const expected = await loadExpected(goldDir);
+            const r = scoreRuntime(meta.verify, expected);
+            runtimeScore = r.scorePct;
+            await writeFile(
+              join(runDir, "discrepancy_runtime.json"),
+              JSON.stringify(r, null, 2),
+              "utf8",
+            );
+          } catch (e) {
+            console.warn(`[bench] runtime-score failed for ${runId}: ${(e as Error).message}`);
+          }
+        }
+        rows.push(buildRow(batch, variant, videoId, meta, review.user_note, review.comment, specScore, runtimeScore));
       } catch (err) {
         console.error(`[bench] ✗ ${variant}/${videoId} failed:`, err);
         rows.push({
           batch_timestamp: batch, variant, video_id: videoId,
           size_bytes: 0, console_errors: 0, canvas_nonblank: 0, mraid_ok: 0,
-          mechanic_string_match: 0, interaction_state_change: 0, runs: 0, user_note: "",
+          mechanic_string_match: 0, interaction_state_change: 0,
+          turn_loop_observed: 0, hp_decreases_on_hit: 0, cta_reachable: 0,
+          runs: 0, spec_score: 0, runtime_score: 0, user_note: "",
           total_latency_ms: 0, retries: 0,
           comment: `pipeline error: ${(err as Error).message}`.slice(0, 500),
         });
