@@ -53,6 +53,36 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
+  // ── DOM overlays (Supercell-style hint + permanent download CTA) ──────
+  const elPullHint = document.getElementById("pull-hint");
+  const elDownloadCta = document.getElementById("download-cta");
+  if (elDownloadCta) {
+    const triggerCta = () => {
+      try { playSfx("ui"); } catch (e) {}
+      try { haptic("ui"); } catch (e) {}
+      openStore(STORE_URL);
+    };
+    elDownloadCta.addEventListener("click", triggerCta);
+    elDownloadCta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); triggerCta(); }
+    });
+  }
+  function syncOverlays() {
+    if (!elPullHint || !elDownloadCta) return;
+    // PULL BACK hint visible while the player has not yet thrown a shot:
+    // mirrors the tutorial-hand lifecycle.
+    const showPull =
+      !state.tutorialDismissed &&
+      !state.ctaVisible &&
+      state.phase === "aiming" &&
+      state.currentSide === "player";
+    elPullHint.classList.toggle("show",   showPull);
+    elPullHint.classList.toggle("hidden", !showPull);
+    // Download CTA: always visible during gameplay, hidden when end-screen
+    // takes over (the end-screen has its own CTA).
+    elDownloadCta.classList.toggle("hidden", state.ctaVisible);
+  }
+
   const state = {
     phase: "loading",
     turnIndex: 0,
@@ -1083,6 +1113,8 @@
     } else if (state.ctaVisible) {
       drawStaticEndScreen();
     }
+
+    syncOverlays();
   }
   function drawStaticEndScreen() {
     if (state.result === "victory") {
@@ -1239,13 +1271,16 @@
     ctx.restore();
   }
   function drawInstruction() {
-    const text = activeTurn().side === "player" ? "PULL BACK TO SHOOT" : "ENEMY AIMING";
+    // Player "PULL BACK TO SHOOT" is rendered by the DOM #pull-hint overlay
+    // (centered, big Lilita One pulse). On enemy turn we still draw a small
+    // "ENEMY AIMING" caption near the canvas top so the player knows to wait.
+    if (activeTurn().side === "player") return;
     ctx.save();
-    ctx.font = "900 18px Arial";
+    ctx.font = "900 16px Arial";
     ctx.textAlign = "center"; ctx.lineJoin = "round";
-    ctx.lineWidth = Math.max(4, 18 * 0.18);
-    ctx.strokeStyle = "#111"; ctx.strokeText(text, 180, 594);
-    ctx.fillStyle = "#fff"; ctx.fillText(text, 180, 594);
+    ctx.lineWidth = Math.max(3, 16 * 0.18);
+    ctx.strokeStyle = "#111"; ctx.strokeText("ENEMY AIMING", 180, 102);
+    ctx.fillStyle = "#fff"; ctx.fillText("ENEMY AIMING", 180, 102);
     ctx.restore();
   }
   function drawError() {

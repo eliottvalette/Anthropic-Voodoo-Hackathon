@@ -27,3 +27,99 @@ body {
   touch-action: none;
   user-select: none;
 }
+
+/* ── PULL BACK TO SHOOT — big Supercell-style centered hint ────────────── */
+#pull-hint {
+  position: fixed;
+  left: 50%;
+  top: 30%;
+  font-family: 'Lilita One', 'Arial Black', Arial;
+  font-weight: 900;
+  font-size: clamp(30px, 7.5vw, 58px);
+  color: #fffdf3;
+  text-align: center;
+  letter-spacing: 0.045em;
+  line-height: 0.92;
+  -webkit-text-stroke: 4px #1a0d05;
+  text-shadow:
+    0 5px 0 #b14a1a,
+    0 8px 0 #6e2a0a,
+    0 12px 18px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 60;
+  user-select: none;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.25s ease;
+}
+#pull-hint.show {
+  opacity: 1;
+  animation: pull-pulse 1.05s ease-in-out infinite;
+}
+@keyframes pull-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1.00) rotate(-0.6deg); }
+  50%      { transform: translate(-50%, -50%) scale(1.14) rotate( 0.6deg); }
+}
+
+/* ── DOWNLOAD CASTLE BUSTERS — bottom warm CTA, blinking ───────────────── */
+#download-cta {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(16px, 3vh, 30px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 9px 26px 11px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ff9526 0%, #ff3a25 100%);
+  border: 3px solid #ffd28b;
+  color: #fffdf3;
+  font-family: 'Lilita One', 'Arial Black', Arial;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  z-index: 60;
+  transform: translateX(-50%) scale(1);
+  box-shadow:
+    0 10px 26px rgba(255, 90, 30, 0.55),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.22);
+  animation: dl-blink 0.95s ease-in-out infinite;
+}
+#download-cta .top {
+  font-size: clamp(11px, 2.7vw, 15px);
+  letter-spacing: 0.20em;
+  line-height: 1;
+  opacity: 0.95;
+  text-shadow: 0 2px 0 rgba(74, 26, 5, 0.6);
+}
+#download-cta .bot {
+  font-size: clamp(18px, 5.0vw, 27px);
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  margin-top: 3px;
+  -webkit-text-stroke: 2px #4a1a05;
+  text-shadow:
+    0 3px 0 #4a1a05,
+    0 6px 0 rgba(0, 0, 0, 0.20);
+}
+@keyframes dl-blink {
+  0%, 100% {
+    transform: translateX(-50%) scale(1.00);
+    box-shadow: 0 10px 26px rgba(255, 90, 30, 0.55), inset 0 -4px 0 rgba(0, 0, 0, 0.22);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.06);
+    box-shadow: 0 14px 36px rgba(255, 210, 80, 0.92), inset 0 -4px 0 rgba(0, 0, 0, 0.22);
+    filter: brightness(1.1);
+  }
+}
+#download-cta:active {
+  transform: translateX(-50%) scale(0.97);
+}
+#download-cta.hidden {
+  display: none;
+}
+#pull-hint.hidden {
+  display: none;
+}
