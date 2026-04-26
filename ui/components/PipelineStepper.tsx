@@ -120,26 +120,30 @@ export default function PipelineStepper({ steps }: { steps: Step[] }) {
             </div>
 
             {/* Label + output */}
-            <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-6'}`}>
-              <div className="flex items-center justify-between" style={{ minHeight: 24 }}>
-                <span className={`text-sm font-semibold transition-colors duration-200 ${
+            <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-6'}`}>
+              <div className="flex items-start justify-between gap-2" style={{ minHeight: 24 }}>
+                <span
+                  className={`text-sm font-semibold transition-colors duration-200 min-w-0 flex-1 break-words ${
                   step.status === 'idle' ? 'text-gray-300'
                   : step.status === 'active' || step.status === 'awaiting' ? 'text-[#0055FF]'
                   : 'text-[#0F141C]'
-                }`}>
+                }`}
+                >
                   {step.label}
                 </span>
-                <ElapsedTimer
-                  startedAt={step.startedAt}
-                  doneAt={step.doneAt}
-                  estimate={step.estimate}
-                  status={step.status}
-                />
+                <div className="shrink-0 self-start pt-0.5">
+                  <ElapsedTimer
+                    startedAt={step.startedAt}
+                    doneAt={step.doneAt}
+                    estimate={step.estimate}
+                    status={step.status}
+                  />
+                </div>
               </div>
 
               {step.output && (
-                <div className="mt-3 fade-slide-in">
-                  <div className="rounded-lg border border-gray-100 bg-[#F6F9FC] px-4 py-3 text-xs text-gray-500 leading-relaxed">
+                <div className="mt-3 fade-slide-in min-w-0">
+                  <div className="rounded-lg border border-gray-100 bg-[#F6F9FC] px-4 py-3 text-xs text-gray-500 leading-relaxed min-w-0 break-words">
                     {step.output}
                   </div>
                 </div>

@@ -1,0 +1,97 @@
+{
+  "parsed": {
+    "render_mode": "3d",
+    "is_evolution_loop": true,
+    "evolution_loop": {
+      "object_being_evolved": "cardboard airplane",
+      "iteration_count_observed": 4,
+      "what_changes_between_attempts": "After each failed launch, a new essential aircraft part is added. The process starts with a bare fuselage, then adds a left wing, then a right wing, and finally a tail assembly.",
+      "parts_taxonomy": [
+        {
+          "role": "Fuselage",
+          "examples_seen": [
+            "main body tube"
+          ]
+        },
+        {
+          "role": "Lifting Surface",
+          "examples_seen": [
+            "left wing",
+            "right wing"
+          ]
+        },
+        {
+          "role": "Stabilizer",
+          "examples_seen": [
+            "tail assembly"
+          ]
+        },
+        {
+          "role": "Landing Gear",
+          "examples_seen": [
+            "small wheels under wings"
+          ]
+        }
+      ],
+      "trigger_to_launch": "auto",
+      "fail_signal": "Crashing into the ground and losing all forward momentum. The object often tumbles or breaks.",
+      "success_signal": "Flying a farther distance than the previous attempt, indicated by a distance marker and a vertical progress bar on the UI."
+    },
+    "alternate_classification_if_not_evolution": null,
+    "core_mechanic_one_sentence": "The player launches a rudimentary aircraft, observes its failure, and adds a new part after each attempt to evolve it into a stable, flyable plane.",
+    "would_three_js_template_fit": true,
+    "three_js_template_recommendation": {
+      "id": "3d-airplane-evolution",
+      "scene_setup": "A third-person chase camera follows the airplane from behind. Use simple directional lighting for a bright, daytime feel. The environment consists of a flat ground plane with low-poly assets like trees and rocks.",
+      "physics_summary": "The plane is launched with an initial velocity from a slingshot mechanism. Apply constant gravity. Simulate basic lift proportional to wing surface area and forward velocity. Simulate drag that opposes motion. There is no player-controlled throttle or steering.",
+      "minimal_parts_set": [
+        "fuselage",
+        "left_wing",
+        "right_wing",
+        "tail_stabilizer"
+      ],
+      "configurable_params": [
+        "initial_launch_force",
+        "gravity_strength",
+        "lift_coefficient",
+        "drag_coefficient",
+        "mass_per_part"
+      ]
+    },
+    "risks_for_codegen": [
+      "Balancing the physics (lift, drag, mass, gravity) is critical to ensure that adding parts feels like a meaningful and rewarding improvement.",
+      "Creating a robust system for procedurally attaching new parts to the main body at the correct anchor points and orientations.",
+      "Implementing a smooth chase camera that effectively tracks the plane without jittering or clipping through the ground."
+    ],
+    "minimum_assets_needed": [
+      "3D model for the fuselage",
+      "3D models for attachable parts (wings, tail)",
+      "3D model for the launch ramp/slingshot",
+      "Low-poly environment assets (e.g., trees, rocks)",
+      "Ground texture (e.g., grass)",
+      "Skybox or background gradient",
+      "Particle effects for crashes and part attachment"
+    ]
+  },
+  "latencyMs": 21318,
+  "usage": {
+    "promptTokenCount": 9334,
+    "candidatesTokenCount": 822,
+    "totalTokenCount": 11763,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 484
+      },
+      {
+        "modality": "VIDEO",
+        "tokenCount": 7890
+      },
+      {
+        "modality": "AUDIO",
+        "tokenCount": 960
+      }
+    ],
+    "thoughtsTokenCount": 1607
+  }
+}

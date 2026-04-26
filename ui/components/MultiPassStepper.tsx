@@ -23,9 +23,9 @@ export default function MultiPassStepper({ calls }: { calls: SubCall[] }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-w-0">
       {grouped.map((g, i) => (
-        <div key={i} className={g.items.length > 1 ? 'rounded-xl border border-gray-100 bg-white p-2 space-y-1' : ''}>
+        <div key={i} className={g.items.length > 1 ? 'rounded-xl border border-gray-100 bg-white p-2 space-y-1 min-w-0' : 'min-w-0'}>
           {g.items.length > 1 && (
             <div className="text-[9.5px] font-semibold text-gray-400 uppercase tracking-widest pl-2">
               parallel · {g.group}
@@ -40,10 +40,12 @@ export default function MultiPassStepper({ calls }: { calls: SubCall[] }) {
 
 function SubRow({ call }: { call: SubCall }) {
   return (
-    <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg">
-      <div className="flex items-center gap-2 min-w-0">
+    <div className="flex items-start justify-between gap-2 px-2 py-1.5 rounded-lg min-w-0">
+      <div className="flex items-start gap-2 min-w-0 flex-1">
         <Dot status={call.status} />
-        <span className={`text-[12px] font-medium truncate ${call.status === 'idle' ? 'text-gray-400' : 'text-[#0F141C]'}`}>
+        <span
+          className={`text-[12px] font-medium min-w-0 break-words ${call.status === 'idle' ? 'text-gray-400' : 'text-[#0F141C]'}`}
+        >
           {call.label}
         </span>
       </div>
