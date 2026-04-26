@@ -252,8 +252,10 @@ def main() -> None:
     parser.add_argument(
         "--max-workers",
         type=int,
-        default=16,
-        help="Maximum concurrent Scenario jobs. Defaults to 16 (proven 5.94x speedup at 8; higher untested).",
+        default=32,
+        help="Maximum concurrent Scenario jobs. Defaults to 32 so a typical "
+        "20–30-asset run fires entirely in parallel (proven 5.94x speedup at "
+        "8 workers; >8 untested but expected to scale similarly).",
     )
     args = parser.parse_args()
 
