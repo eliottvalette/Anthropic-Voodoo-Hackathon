@@ -103,12 +103,12 @@ export default function UtilsView() {
 
 function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () => void }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all overflow-hidden flex flex-col">
-      <div className="bg-[#F6F9FC] aspect-[3/4] relative overflow-hidden border-b border-gray-100">
+    <div className="group flex flex-col self-start">
+      <div className="relative bg-[#F6F9FC] aspect-[3/4] rounded-3xl overflow-hidden ring-1 ring-gray-100/70 transition-shadow">
         {item.demo ? (
           <iframe
             src={'/utils/' + item.demo}
-            className="w-full h-full border-0 block"
+            className="absolute inset-0 w-full h-full border-0 block"
             scrolling="no"
             sandbox="allow-scripts allow-same-origin"
             loading="lazy"
@@ -116,32 +116,33 @@ function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () 
         ) : null}
       </div>
 
-      <div className="p-3.5 flex flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-[#0F141C] text-sm leading-tight">{item.name}</h3>
+      <div className="px-1 mt-2 flex flex-col items-center gap-0.5 text-center">
+        <h3 className="font-semibold text-[#0F141C] text-base leading-tight tracking-tight">{item.name}</h3>
+        <p className="text-sm text-gray-400 leading-snug truncate w-full">{item.description}</p>
+
+        <div className="max-h-0 group-hover:max-h-40 overflow-hidden transition-all duration-200 w-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 group-hover:pt-2">
+          <code className="text-xs text-gray-500 font-mono leading-snug break-all max-w-[40ch]">
+            {item.signature}
+          </code>
+          {item.tags && item.tags.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1">
+              {item.tags.map(t => (
+                <span
+                  key={t}
+                  className="px-1.5 py-0.5 rounded-md bg-gray-100 text-[10px] font-medium text-gray-500"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
           <button
             onClick={onViewSource}
-            className="text-[10px] font-semibold text-[#0055FF] hover:underline shrink-0"
+            className="text-xs font-semibold text-[#0055FF] hover:underline"
           >
             View source
           </button>
         </div>
-        <code className="text-[10.5px] text-gray-500 font-mono leading-snug break-all">
-          {item.signature}
-        </code>
-        <p className="text-[11px] text-gray-500 leading-snug">{item.description}</p>
-        {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-0.5">
-            {item.tags.map(t => (
-              <span
-                key={t}
-                className="px-1.5 py-0.5 rounded bg-[#F6F9FC] border border-gray-100 text-[9.5px] font-medium text-gray-500"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
