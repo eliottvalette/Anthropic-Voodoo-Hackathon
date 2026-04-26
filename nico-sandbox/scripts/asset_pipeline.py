@@ -77,9 +77,24 @@ Fill these fields:
   downstream generators from defaulting to common tropes.
 
 ============================================================
-STEP 2 — ASSET INVENTORY (be exhaustive, especially for VFX)
+STEP 2 — ASSET INVENTORY (be exhaustive — under-listing is the #1 failure mode)
 ============================================================
 Return every reusable visual/gameplay asset needed to recreate the playable prototype.
+
+THOROUGHNESS TARGET — typical mobile-game playable ads contain 20–40 distinct visual
+assets. If your inventory is shorter than ~15 entries you have almost certainly missed
+several. Common things models forget:
+  - the second/third character variant or color (each enemy variant is its own asset)
+  - the destroyed / damaged version of structures
+  - separate states of the same prop (open/closed door, lit/unlit lantern)
+  - secondary UI elements (timer, score, coin counter, badges, chevrons)
+  - small VFX (muzzle flash, hit flash, dust puff, screen-edge flash)
+  - end-card layers (logo, title text, CTA button, app store badge, character pose)
+  - tutorial overlays (hand cursor, arrow, finger-tap indicator, pulse ring)
+
+Walk the video chronologically, then walk it again. Each pass usually adds 3–8 assets the
+first pass missed. Do NOT stop at "the obvious 8". There is no penalty for listing too
+many — the user can deselect. There IS a penalty for listing too few — assets get missed.
 
 PRIMARY CATEGORIES:
 - backgrounds and scene plates
@@ -667,8 +682,107 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
 
     payload["_gemini_model"] = model
     payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
+
+    # Rescue pass: if the first inventory looks sparse, ask Gemini to look
+    # again with a focused "what did you miss?" prompt and merge the
+    # additions. Models often satisfice at 8-12 assets even though typical
+    # mobile games have 20-40.
+    LOW_COUNT_THRESHOLD = 15
+    initial_count = len(payload.get("assets", []))
+    if initial_count < LOW_COUNT_THRESHOLD:
+        try:
+            extra = _rescue_inventory_pass(
+                client=client,
+                part=part,
+                existing=payload,
+                attempts_left=2,
+            )
+            if extra:
+                added = _merge_rescue_assets(payload, extra)
+                if added:
+                    print(
+                        f"[asset_pipeline] Rescue pass added {added} asset(s) "
+                        f"({initial_count} -> {len(payload['assets'])})"
+                    )
+        except Exception as exc:
+            print(f"[asset_pipeline] Rescue pass failed (keeping initial inventory): {exc}")
+
     write_json(manifests_dir / "01_gemini_video_manifest.json", payload)
     return payload
+
+
+_RESCUE_PROMPT_TEMPLATE = """
+You analyzed this video earlier and produced an asset inventory, but it looks SPARSE — only
+{count} entries. Typical mobile-game playable ads have 20-40 distinct visual assets and you
+almost certainly missed several.
+
+ASSETS YOU ALREADY LISTED (do NOT return these again):
+{known_lines}
+
+Walk the video again and find every additional distinct asset that is NOT in the list above.
+Pay extra attention to:
+- secondary character variants (each enemy color/skin is its own asset)
+- destroyed / damaged / opened states of structures
+- secondary props you skipped (decorative items, pickups, debris piles)
+- UI you skipped (timer, score, coin badge, level chevrons, tutorial arrows)
+- VFX you skipped (muzzle flash, hit flash, dust puff, screen flash, smoke aftermath)
+- end-card layers (logo, title text, CTA button, app-store badge)
+
+Return ONLY the new entries in the same JSON schema as the original inventory. If you truly
+cannot find more, return an empty assets array — do not pad with hallucinations.
+""".strip()
+
+
+def _rescue_inventory_pass(
+    *,
+    client: genai.Client,
+    part: types.Part,
+    existing: dict[str, Any],
+    attempts_left: int,
+) -> dict[str, Any]:
+    known = existing.get("assets", []) or []
+    known_lines = "\n".join(
+        f"- {a.get('asset_id', '?')} | {a.get('name', '?')} | {a.get('category', '?')}"
+        for a in known
+    ) or "(none)"
+    prompt = _RESCUE_PROMPT_TEMPLATE.format(count=len(known), known_lines=known_lines)
+    config = types.GenerateContentConfig(
+        responseMimeType="application/json",
+        responseJsonSchema=MANIFEST_SCHEMA,
+        mediaResolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+        temperature=0.3,  # slightly higher to encourage divergence from prior pass
+        maxOutputTokens=32000,
+    )
+    last_err: Exception | None = None
+    for attempt in range(max(1, attempts_left)):
+        _model, response = call_model_with_fallback(
+            client, VIDEO_MODELS, contents=[part, prompt], config=config,
+        )
+        parsed = getattr(response, "parsed", None)
+        if isinstance(parsed, dict):
+            return parsed
+        try:
+            return json.loads(extract_json_payload(response.text or "{}"))
+        except json.JSONDecodeError as exc:
+            last_err = exc
+    if last_err:
+        raise RuntimeError(f"Rescue pass returned malformed JSON: {last_err}")
+    return {}
+
+
+def _merge_rescue_assets(base: dict[str, Any], extra: dict[str, Any]) -> int:
+    base_assets = list(base.get("assets") or [])
+    known_ids = {str(a.get("asset_id")) for a in base_assets if a.get("asset_id")}
+    added = 0
+    for asset in extra.get("assets", []) or []:
+        asset_id = str(asset.get("asset_id", "")).strip()
+        if not asset_id or asset_id in known_ids:
+            continue
+        base_assets.append(asset)
+        known_ids.add(asset_id)
+        added += 1
+    base["assets"] = base_assets
+    return added
 
 
 def ffmpeg_path() -> str:
