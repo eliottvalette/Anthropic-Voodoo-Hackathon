@@ -8,9 +8,9 @@
   "castleEnemy_impact":      "./assets/destruction/Red_Castle_01_impact.png",
   "castleEnemy_break":       "./assets/destruction/Red_Castle_02_break.png",
   "castleEnemy_destroyed":   "./assets/destruction/Red_Castle_03_destroyed.png",
-  "unitFire": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_cyclops_red.png",
-  "unitMissile": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_ninja.png",
-  "unitPoison": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_goblin_green.png",
+  "unitFire":    "../../../../nico-sandbox/runs/B11/final-assets-v1/characters/char_cyclops_red/full.png",
+  "unitPoison":  "../../../../nico-sandbox/runs/B11/final-assets-v1/characters/char_goblin_green/full.png",
+  "unitMissile": "../../../../nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
   "projFire": "./assets/destruction/fireball.png",
   "projMissile": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_missile.png",
   "projPoison": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png"

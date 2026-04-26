@@ -40,8 +40,8 @@
     airDamping:     0.992,           // applied per-frame as Math.pow(damping, dt*60)
     groundBounce:   0.34,
     groundFriction: 0.72,
-    impactPower:    1100,            // explosion force / radius driver
-    critPowerMul:   1.65,
+    impactPower:    1650,            // explosion force / radius driver
+    critPowerMul:   1.85,
   };
   const COMBO_TIERS = [
     { min: 1, color: "#ffffff", scale: 1.0 },
@@ -176,6 +176,39 @@
     return c;
   }
 
+  // Mutate a {x,y,w,h} world-space box so that mapping the image's opaque
+  // pixel AABB through it lands on the same world rect after trimming away
+  // transparent borders. Threshold is tuned so anti-aliased halos don't pad
+  // the rect.
+  function tightenBoxToOpaque(box, image, alphaThresh) {
+    if (!image || !box) return box;
+    const t = (alphaThresh == null) ? 24 : alphaThresh;
+    const w = image.naturalWidth, h = image.naturalHeight;
+    const c = makeOffscreen(w, h);
+    c.getContext("2d").drawImage(image, 0, 0);
+    const data = c.getContext("2d").getImageData(0, 0, w, h).data;
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (data[(y * w + x) * 4 + 3] >= t) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return box; // fully transparent, leave alone
+    // Convert opaque pixel bounds back to the original world rect.
+    const sx = box.w / w, sy = box.h / h;
+    const newX = box.x + minX * sx;
+    const newY = box.y + minY * sy;
+    const newW = (maxX - minX + 1) * sx;
+    const newH = (maxY - minY + 1) * sy;
+    box.x = newX; box.y = newY; box.w = newW; box.h = newH;
+    return box;
+  }
+
   // ── Castle: live destructible sprite ──────────────────────────────────────
   // Keeps the source PNG, plus 4 mask canvases (removed, charred, edge, crack)
   // and a composed renderCanvas. Each hit calls applyExplosion(worldPoint, power)
@@ -207,8 +240,27 @@
       this.edgeCanvas    = makeOffscreen(this.naturalW, this.naturalH);
       this.crackCanvas   = makeOffscreen(this.naturalW, this.naturalH);
       this.renderCanvas  = makeOffscreen(this.naturalW, this.naturalH);
+      // Cached alpha of the live renderCanvas, refreshed on each rebuild().
+      // Used for per-pixel projectile collision so hits only register on the
+      // visible silhouette, not the transparent areas of the bounding box.
+      this.renderAlpha   = null;
+      this.alphaThreshold = 32;   // out of 255
 
       this.rebuild();
+    }
+
+    // Sample current visible alpha (post-destruction) at a world-space point.
+    // Returns 0..255 (0 = transparent / no hit, 255 = solid).
+    alphaAt(worldPoint) {
+      if (!this.renderAlpha) return 0;
+      const local = this.worldToLocal(worldPoint);
+      const x = Math.floor(local.x);
+      const y = Math.floor(local.y);
+      if (x < 0 || y < 0 || x >= this.naturalW || y >= this.naturalH) return 0;
+      return this.renderAlpha[y * this.naturalW + x];
+    }
+    contains(worldPoint) {
+      return this.alphaAt(worldPoint) >= this.alphaThreshold;
     }
 
     // World coord (inside the box rect) → local pixel inside the source image
@@ -234,8 +286,8 @@
       const local = this.worldToLocal(worldPoint);
       // Damage shapes are sized in source-pixel space.
       const px2local = 1 / Math.max(this.scaleX, this.scaleY);
-      const damageR = Math.max(20, power * 0.06 * px2local);
-      const holeR   = Math.max(14, power * 0.038 * px2local);
+      const damageR = Math.max(28, power * 0.082 * px2local);
+      const holeR   = Math.max(22, power * 0.058 * px2local);
 
       const damageBlob = jaggedBlob(local.x, local.y, damageR, 28, 0.42, this.rng);
       const holeBlob   = jaggedBlob(local.x, local.y, holeR,    22, 0.50, this.rng);
@@ -258,7 +310,7 @@
       drawPolygon(maskCtx, holeBlob);
 
       // Spawn fragments — they live in WORLD space (state.debris).
-      const fragmentCount = Math.floor(clamp(power / 16, 24, 80));
+      const fragmentCount = Math.floor(clamp(power / 5.5, 90, 280));
       const fragments = this._spawnDebris(local, worldPoint, power, fragmentCount);
 
       this.rebuild();
@@ -431,6 +483,16 @@
       r.globalCompositeOperation = "destination-out";
       r.drawImage(this.removedMask, 0, 0);
       r.globalCompositeOperation = "source-over";
+
+      // Refresh cached alpha for per-pixel collision.
+      const data = r.getImageData(0, 0, this.naturalW, this.naturalH).data;
+      const total = this.naturalW * this.naturalH;
+      if (!this.renderAlpha || this.renderAlpha.length !== total) {
+        this.renderAlpha = new Uint8ClampedArray(total);
+      }
+      for (let i = 0, j = 3; i < total; i++, j += 4) {
+        this.renderAlpha[i] = data[j];
+      }
     }
 
     draw(ctx) {
@@ -446,7 +508,7 @@
       this.age = 0;
       this.duration = 0.78;        // seconds
       this.forceDuration = 0.32;
-      this.maxRadius = power * 0.46;
+      this.maxRadius = power * 0.26;
       this.rays = [];
       const rayCount = 38;
       for (let i = 0; i < rayCount; i++) {
@@ -721,6 +783,11 @@
       );
       try { if (document.fonts) await document.fonts.load("32px 'Lilita One'"); } catch (e) {}
 
+      // Tighten castleBoxes to the opaque silhouette of each PNG so the visible
+      // sprite IS the hitbox (no more dead-zone hits in transparent corners).
+      tightenBoxToOpaque(castleBoxes.player, images.castlePlayer);
+      tightenBoxToOpaque(castleBoxes.enemy,  images.castleEnemy);
+
       // Build live destructible Castles
       const rngP = makeRng(12), rngE = makeRng(231);
       state.castles.player = new Castle(images.castlePlayer, "player", castleBoxes.player, rngP);
@@ -911,7 +978,13 @@
       spawnTrail(state.particles, p.x - Math.sign(p.vx) * 6, p.y, trailColor, trailCount, p.isCrit ? 7 : 5);
       const targetSide = p.side === "player" ? "enemy" : "player";
       const box = hitbox(targetSide);
-      const didHit = p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h;
+      const inAabb = p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h;
+      const targetCastle = state.castles[targetSide];
+      // Per-pixel: hit only registers if the projectile is inside the visible
+      // (non-destroyed) silhouette. Falls back to AABB if alpha cache missing.
+      const didHit = inAabb && (targetCastle && targetCastle.renderAlpha
+        ? targetCastle.contains({ x: p.x, y: p.y })
+        : true);
       if (didHit) {
         applyHit(targetSide, p);
         state.projectiles.splice(i, 1);
@@ -1079,9 +1152,10 @@
     const hp = side === "player" ? state.playerHp : state.enemyHp;
     if (hp <= 0) return { x: 0, y: 0, w: 0, h: 0 };
     const c = castleBoxes[side];
-    // Hitbox shrinks slightly with HP so projectiles don't keep hitting "air".
-    const visibleH = c.h * Math.max(0.45, hp / 100);
-    return { x: c.x + 12, y: c.y + (c.h - visibleH) + 24, w: c.w - 24, h: Math.max(30, visibleH - 48) };
+    // Broad-phase AABB == the trimmed opaque rect of the castle PNG. Final
+    // collision is per-pixel against Castle.renderAlpha so transparent gaps
+    // and destroyed sections don't register hits.
+    return { x: c.x, y: c.y, w: c.w, h: c.h };
   }
 
   // ── Draw ───────────────────────────────────────────────────────────────
