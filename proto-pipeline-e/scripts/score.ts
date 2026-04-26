@@ -88,9 +88,31 @@ const KNOWN_ASSET_FINGERPRINTS = [
 
 async function snapshot(page: Page): Promise<Record<string, unknown> | null> {
   return page.evaluate(() => {
-    const w = window as unknown as { __engineState?: Record<string, unknown>; __sketches?: unknown };
-    if (!w.__engineState) return null;
-    return JSON.parse(JSON.stringify(w.__engineState));
+    const w = window as unknown as { __engineState?: { snapshot?: () => unknown } & Record<string, unknown> };
+    const s = w.__engineState;
+    if (!s) return null;
+    try {
+      if (typeof s.snapshot === "function") {
+        const snap = s.snapshot();
+        if (snap && typeof snap === "object") return JSON.parse(JSON.stringify(snap));
+      }
+    } catch {}
+    const out: Record<string, unknown> = {};
+    for (const k of [
+      "phase",
+      "turnIndex",
+      "playerHp",
+      "enemyHp",
+      "projectiles",
+      "inputs",
+      "ctaVisible",
+      "result",
+    ]) {
+      try {
+        out[k] = (s as Record<string, unknown>)[k];
+      } catch {}
+    }
+    return out;
   });
 }
 

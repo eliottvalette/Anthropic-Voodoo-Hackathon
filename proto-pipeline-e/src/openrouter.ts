@@ -61,11 +61,25 @@ async function callOnce<T>(
   };
   const text = j.choices?.[0]?.message?.content ?? "";
   if (!text) throw new Error(`empty response from ${model}: ${JSON.stringify(j).slice(0, 300)}`);
+  const stripped = text
+    .replace(/^\s*```(?:json)?\s*\n?/i, "")
+    .replace(/\n?```\s*$/i, "")
+    .trim();
   let data: T;
   try {
-    data = JSON.parse(text) as T;
+    data = JSON.parse(stripped) as T;
   } catch (e) {
-    throw new Error(`non-JSON from ${model}: ${(e as Error).message}\nraw: ${text.slice(0, 500)}`);
+    const start = stripped.indexOf("{");
+    const end = stripped.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      try {
+        data = JSON.parse(stripped.slice(start, end + 1)) as T;
+      } catch {
+        throw new Error(`non-JSON from ${model}: ${(e as Error).message}\nraw: ${stripped.slice(0, 500)}`);
+      }
+    } else {
+      throw new Error(`non-JSON from ${model}: ${(e as Error).message}\nraw: ${stripped.slice(0, 500)}`);
+    }
   }
   return {
     data,

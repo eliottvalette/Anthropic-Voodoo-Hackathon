@@ -62,7 +62,7 @@ async function runGemini(): Promise<Result> {
   try {
     const userParts: ContentPart[] = [{ text: userPayload }];
     const r = await gemGen<{ html: string; rationale: string }>(
-      GEMINI_MODELS.pro,
+      GEMINI_MODELS.flash,
       sys,
       userParts,
       { temperature: 0.2 },
