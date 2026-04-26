@@ -293,6 +293,13 @@ def main() -> None:
         inventory: dict[str, Any] = {}
     else:
         inventory = load_or_generate_inventory(args, run_dir)
+    # If the inventory came from the Claude fallback (Gemini Files API was
+    # down/degraded), force --skip-refine. Refinement uses Gemini per-asset
+    # and would hang indefinitely against a broken backend.
+    if isinstance(inventory.get("_via"), str) and inventory["_via"].startswith("claude"):
+        if not args.skip_refine:
+            print("[pipeline] Inventory came from Claude fallback — auto-enabling --skip-refine")
+            args.skip_refine = True
     items = load_or_extract_assets(args, run_dir, inventory)
     items = selected_items(items, args.asset_id, args.limit)
     print(f"[pipeline] Selected {len(items)} assets")

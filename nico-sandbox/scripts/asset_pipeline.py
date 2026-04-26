@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import concurrent.futures
 import json
 import os
 import re
 import subprocess
 import time
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -694,12 +697,121 @@ def upload_video_resilient(client: genai.Client, video_path: Path, max_attempts:
     raise RuntimeError(f"Video upload failed after {max_attempts} attempts: {last_err}")
 
 
-def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> dict[str, Any]:
-    client = gemini_client()
-    manifests_dir = output_dir / "manifests"
-    manifests_dir.mkdir(parents=True, exist_ok=True)
+UPLOAD_HARD_TIMEOUT_S = 90  # cap each Gemini upload attempt; raise instead of hanging on a degraded backend
 
-    uploaded = upload_video_resilient(client, video_path)
+
+def _video_duration_seconds(video_path: Path) -> float:
+    """Probe duration with ffprobe (shipped alongside imageio_ffmpeg)."""
+    try:
+        ffprobe = imageio_ffmpeg.get_ffmpeg_exe().replace("ffmpeg", "ffprobe")
+        out = subprocess.check_output(
+            [ffprobe, "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
+            timeout=15,
+        )
+        return float(out.decode().strip() or "0") or 30.0
+    except Exception:
+        return 30.0  # safe default if ffprobe unavailable; gives 30s window for sampling
+
+
+def _sample_frames_jpeg(video_path: Path, count: int, max_width: int = 1280) -> list[bytes]:
+    duration = _video_duration_seconds(video_path)
+    out_bytes: list[bytes] = []
+    tmp_dir = video_path.parent / ".claude_frames_tmp"
+    tmp_dir.mkdir(exist_ok=True)
+    try:
+        for i in range(count):
+            t = (duration * (i + 0.5)) / max(1, count)
+            tmp = tmp_dir / f"frame_{i:03d}.jpg"
+            cmd = [
+                ffmpeg_path(), "-hide_banner", "-loglevel", "error", "-y",
+                "-ss", f"{max(0.0, t):.3f}", "-i", str(video_path),
+                "-frames:v", "1",
+                "-vf", f"scale='min({max_width},iw)':-2",
+                "-q:v", "4",
+                str(tmp),
+            ]
+            subprocess.run(cmd, check=True, timeout=30)
+            out_bytes.append(tmp.read_bytes())
+    finally:
+        for f in tmp_dir.glob("frame_*.jpg"):
+            try:
+                f.unlink()
+            except Exception:
+                pass
+        try:
+            tmp_dir.rmdir()
+        except Exception:
+            pass
+    return out_bytes
+
+
+def _claude_inventory_via_openrouter(frame_jpegs: list[bytes], fps_hint: float) -> dict[str, Any]:
+    """Fallback video-inventory call via OpenRouter (Anthropic Sonnet 4.6).
+    Uses sampled frames + the same prompt schema as Gemini.
+    Returns the same payload shape (assets array + art_style)."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY missing — cannot run Claude fallback")
+
+    schema_text = json.dumps(MANIFEST_SCHEMA, indent=2)
+    system = (
+        VIDEO_INVENTORY_PROMPT
+        + "\n\n# OUTPUT SCHEMA\nReturn JSON matching this schema EXACTLY:\n"
+        + schema_text
+        + "\n\nReturn ONLY a single JSON object. No markdown fences, no prose, no commentary."
+    )
+
+    content: list[dict[str, Any]] = [
+        {"type": "text", "text": f"Here are {len(frame_jpegs)} frames sampled chronologically from the gameplay video (sampling rate ~{fps_hint:.1f} fps reference)."},
+    ]
+    for i, jpeg_bytes in enumerate(frame_jpegs):
+        b64 = base64.b64encode(jpeg_bytes).decode("ascii")
+        content.append({"type": "text", "text": f"Frame {i + 1}/{len(frame_jpegs)}:"})
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{b64}"},
+        })
+
+    body = json.dumps({
+        "model": "anthropic/claude-sonnet-4-6",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 16000,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://openrouter.ai/api/v1/chat/completions",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=180) as resp:
+        raw = resp.read().decode("utf-8")
+    parsed = json.loads(raw)
+    text = parsed.get("choices", [{}])[0].get("message", {}).get("content", "")
+    if not text:
+        raise RuntimeError(f"Claude returned empty content: {raw[:300]}")
+    payload_text = extract_json_payload(text)
+    return json.loads(payload_text)
+
+
+def _try_gemini_manifest(client: Any, video_path: Path, fps: float) -> dict[str, Any]:
+    """The original Gemini path: upload + analyze. Wrapped with a wall-clock
+    timeout so a hung upload doesn't deadlock the whole pipeline."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        upload_future = pool.submit(upload_video_resilient, client, video_path)
+        try:
+            uploaded = upload_future.result(timeout=UPLOAD_HARD_TIMEOUT_S)
+        except concurrent.futures.TimeoutError:
+            upload_future.cancel()
+            raise RuntimeError(f"Gemini Files API upload exceeded {UPLOAD_HARD_TIMEOUT_S}s wall clock")
     uploaded = wait_for_file(client, uploaded.name)
 
     part = types.Part(
@@ -711,14 +823,8 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
         responseJsonSchema=MANIFEST_SCHEMA,
         mediaResolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
         temperature=0.1,
-        # Each asset entry is ~500 tokens with the new schema (animated_parts,
-        # rich descriptions, fallback timestamps). 32k gives headroom for
-        # 50+ assets without truncation killing the JSON mid-stream.
         maxOutputTokens=32000,
     )
-    # Gemini occasionally returns a "successful" response whose `.parsed` is
-    # None and whose `.text` is malformed JSON (truncated mid-stream). Retry
-    # the call instead of letting the whole pipeline crash on one flake.
     last_err: Exception | None = None
     for attempt in range(3):
         model, response = call_model_with_fallback(
@@ -727,30 +833,68 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
         parsed = getattr(response, "parsed", None)
         if isinstance(parsed, dict):
             payload = parsed
-            break
+            payload["_gemini_model"] = model
+            payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
+            return payload
         try:
             payload = json.loads(extract_json_payload(response.text or "{}"))
-            break
+            payload["_gemini_model"] = model
+            payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
+            return payload
         except json.JSONDecodeError as exc:
             last_err = exc
             print(f"[asset_pipeline] Gemini returned malformed JSON (attempt {attempt + 1}/3): {exc}")
-    else:
-        raise RuntimeError(f"All Gemini attempts returned malformed manifest JSON: {last_err}")
+    raise RuntimeError(f"All Gemini attempts returned malformed manifest JSON: {last_err}")
 
-    payload["_gemini_model"] = model
-    payload["_gemini_file"] = {"name": uploaded.name, "uri": uploaded.uri}
+
+def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> dict[str, Any]:
+    client = gemini_client()
+    manifests_dir = output_dir / "manifests"
+    manifests_dir.mkdir(parents=True, exist_ok=True)
+
+    payload: dict[str, Any] | None = None
+    try:
+        print("[asset_pipeline] Trying Gemini video inventory (90s upload cap)…")
+        payload = _try_gemini_manifest(client, video_path, fps)
+    except Exception as gemini_err:
+        print(f"[asset_pipeline] Gemini inventory failed: {gemini_err}")
+        print("[asset_pipeline] Falling back to Claude (Sonnet 4.6) with sampled frames…")
+        try:
+            frames = _sample_frames_jpeg(video_path, count=16, max_width=1280)
+            payload = _claude_inventory_via_openrouter(frames, fps_hint=fps)
+            payload["_via"] = "claude_openrouter_sonnet_4_6"
+            payload["_frames_used"] = len(frames)
+        except Exception as claude_err:
+            raise RuntimeError(
+                f"Both Gemini and Claude inventory paths failed.\n"
+                f"  Gemini: {gemini_err}\n"
+                f"  Claude: {claude_err}"
+            ) from claude_err
+
+    if payload is None:
+        raise RuntimeError("Inventory payload is None — both Gemini and Claude paths failed silently")
 
     # Rescue pass: if the first inventory looks sparse, ask Gemini to look
     # again with a focused "what did you miss?" prompt and merge the
-    # additions. Models often satisfice at 8-12 assets even though typical
-    # mobile games have 20-40.
+    # additions. Skipped on the Claude fallback path (no Gemini Part with
+    # fileData URI to send), and skipped if Gemini is presumed degraded —
+    # better to ship 14 assets than crash trying to expand them.
     LOW_COUNT_THRESHOLD = 15
     initial_count = len(payload.get("assets", []))
-    if initial_count < LOW_COUNT_THRESHOLD:
+    came_from_gemini = "_gemini_model" in payload and "_gemini_file" in payload
+    if came_from_gemini and initial_count < LOW_COUNT_THRESHOLD:
         try:
+            gemini_file = payload.get("_gemini_file") or {}
+            rescue_part = types.Part(
+                fileData=types.FileData(
+                    fileUri=str(gemini_file.get("uri", "")),
+                    mimeType="video/mp4",
+                ),
+                videoMetadata=types.VideoMetadata(fps=fps),
+            )
             extra = _rescue_inventory_pass(
                 client=client,
-                part=part,
+                part=rescue_part,
                 existing=payload,
                 attempts_left=2,
             )
