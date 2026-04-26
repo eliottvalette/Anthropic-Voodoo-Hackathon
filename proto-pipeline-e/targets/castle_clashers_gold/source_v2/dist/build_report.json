@@ -1,0 +1,111 @@
+{
+  "output": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/playable.html",
+  "bytes": 1006954,
+  "decimalMB": 1.006954,
+  "mebibytes": 0.9603061676025391,
+  "assetBytesBefore": 7656999,
+  "assetBytesAfter": 627044,
+  "assets": [
+    {
+      "key": "background",
+      "source": "ressources/Castle Clashers/Assets/Background.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/background.webp",
+      "sourceBytes": 1125710,
+      "bundledBytes": 78332
+    },
+    {
+      "key": "castlePlayer",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/props/castle_player.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castlePlayer.webp",
+      "sourceBytes": 629592,
+      "bundledBytes": 36672
+    },
+    {
+      "key": "castleEnemy",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/props/castle_enemy.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleEnemy.webp",
+      "sourceBytes": 535625,
+      "bundledBytes": 32632
+    },
+    {
+      "key": "castleInside",
+      "source": "ressources/Castle Clashers/Assets/inside.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleInside.webp",
+      "sourceBytes": 1130966,
+      "bundledBytes": 44554
+    },
+    {
+      "key": "castleInsideBottom",
+      "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/best_assets/tiltedbottom.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleInsideBottom.webp",
+      "sourceBytes": 68106,
+      "bundledBytes": 7920
+    },
+    {
+      "key": "iconCastleBlue",
+      "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/best_assets/castle_blue_tilted_right.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/iconCastleBlue.webp",
+      "sourceBytes": 619417,
+      "bundledBytes": 35328
+    },
+    {
+      "key": "iconCastleRed",
+      "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/best_assets/castle_red_tilted_right.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/iconCastleRed.webp",
+      "sourceBytes": 567683,
+      "bundledBytes": 31122
+    },
+    {
+      "key": "unitFire",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/characters/char_cyclops_red/full.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitFire.webp",
+      "sourceBytes": 555581,
+      "bundledBytes": 24264
+    },
+    {
+      "key": "unitPoison",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/characters/char_goblin_green/full.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitPoison.webp",
+      "sourceBytes": 462884,
+      "bundledBytes": 28142
+    },
+    {
+      "key": "unitMissile",
+      "source": "nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitMissile.webp",
+      "sourceBytes": 449608,
+      "bundledBytes": 27900
+    },
+    {
+      "key": "projFire",
+      "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/assets/destruction/fireball.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projFire.webp",
+      "sourceBytes": 285963,
+      "bundledBytes": 13614
+    },
+    {
+      "key": "projMissile",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_missile.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projMissile.webp",
+      "sourceBytes": 254236,
+      "bundledBytes": 14572
+    },
+    {
+      "key": "projPoison",
+      "source": "nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projPoison.webp",
+      "sourceBytes": 313356,
+      "bundledBytes": 16436
+    }
+  ],
+  "music": {
+    "source": "ressources/Castle Clashers/Assets/Music.ogg",
+    "bytes": 216016
+  },
+  "hand": {
+    "source": "nico-sandbox/runs/B11/final-assets-v1/ui/ui_hand_cursor.png",
+    "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/tutorialHand.webp",
+    "sourceBytes": 442256,
+    "bundledBytes": 19540
+  }
+}
