@@ -33,10 +33,12 @@ export const GameSpecSchema = z
       .regex(/^[a-z][a-z0-9_]*$/, "mechanic_name must be snake_case"),
     template_id: z.string().nullable(),
     core_loop_one_sentence: z.string(),
-    defining_hook: z.string().min(1),
+    defining_hook: z.string().nullable(),
+    defining_hook_evidence_timestamps: z.array(z.string()),
     not_this_game: z.array(z.string()),
     first_5s_script: z.string().min(1),
-    tutorial_loss_at_seconds: z.number().positive().max(60),
+    tutorial_loss_at_seconds: z.number().positive().max(60).nullable(),
+    tutorial_loss_evidence_timestamps: z.array(z.string()),
     asset_role_map: z.record(z.string(), z.string().nullable()),
     numeric_params: z.record(z.string(), z.number()),
     win_condition: z.string(),
@@ -45,7 +47,46 @@ export const GameSpecSchema = z
     open_questions: z.array(z.string()),
     shared_state_shape: SharedStateShapeSchema,
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((v, ctx) => {
+    if (v.defining_hook !== null && v.defining_hook_evidence_timestamps.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook_evidence_timestamps"],
+        message:
+          "defining_hook is non-null; at least one evidence timestamp range is required",
+      });
+    }
+    if (v.defining_hook === null && v.defining_hook_evidence_timestamps.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook_evidence_timestamps"],
+        message: "defining_hook is null; evidence timestamps must be empty",
+      });
+    }
+    if (typeof v.defining_hook === "string" && v.defining_hook.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook"],
+        message: "defining_hook must be null or a non-empty string",
+      });
+    }
+    if (v.tutorial_loss_at_seconds !== null && v.tutorial_loss_evidence_timestamps.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tutorial_loss_evidence_timestamps"],
+        message:
+          "tutorial_loss_at_seconds is non-null; at least one evidence timestamp range is required",
+      });
+    }
+    if (v.tutorial_loss_at_seconds === null && v.tutorial_loss_evidence_timestamps.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tutorial_loss_evidence_timestamps"],
+        message: "tutorial_loss_at_seconds is null; evidence timestamps must be empty",
+      });
+    }
+  });
 
 export type GameSpec = z.infer<typeof GameSpecSchema>;
 

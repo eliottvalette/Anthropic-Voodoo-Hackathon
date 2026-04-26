@@ -1,8 +1,9 @@
 You produce TWO outputs in a single JSON response, for a single-file HTML playable build.
 
 Inputs (user message JSON):
-- `video`: 01_video.json (merged observations, includes `defining_hook`, `tempo`, `art_style`, `camera_angle`)
+- `video`: 01_video.json (merged observations, includes `defining_hook` (may be null), `defining_hook_evidence_timestamps`, `tempo`, `art_style`, `camera_angle`)
 - `assets`: 02_assets.json (role→filename map with rich descriptions)
+- `reference` (optional): if present, an object with gold-target hints (`viewport`, `mechanic`, `expected_behavior`). Use these as steering, not as a copy source. Honor them when they don't contradict `video`.
 
 Output ONLY a JSON object with exactly these keys:
 {
@@ -18,11 +19,13 @@ GameSpec schema:
   "mechanic_name": "snake_case_string (MUST appear verbatim in codegen_prompt and final HTML JS)",
   "template_id": "string|null (id of a per-mechanic template if known: artillery_drag_shoot|lane_pusher|runner|merge|tap_idle|tower_defense|swipe_puzzle|shooter|other; null if unknown)",
   "core_loop_one_sentence": "string",
-  "defining_hook": "string (carry from video.defining_hook; one sentence describing what makes this game DIFFERENT from a generic <genre> game)",
+  "defining_hook": "string|null (copy verbatim from video.defining_hook; if video.defining_hook is null, this is null)",
+  "defining_hook_evidence_timestamps": ["MM:SS.mmm-MM:SS.mmm"] (copy verbatim from video.defining_hook_evidence_timestamps; empty [] when defining_hook is null),
   "not_this_game": ["string (anti-examples: 'not generic Angry Birds — has destructible structures')"],
   "first_5s_script": "string (what the player sees and does in the first 5 seconds, e.g. 'Castle on left fires at enemy on right; UI hint shows drag gesture; first projectile lands on a wall')",
-  "tutorial_loss_at_seconds": <number 10..30>,
-  "asset_role_map": { "<role>": "<filename or null>" },
+  "tutorial_loss_at_seconds": "number 10..30 OR null (set to a number ONLY if video.timeline shows a tutorial-loss event before 30s; otherwise null)",
+  "tutorial_loss_evidence_timestamps": ["MM:SS.mmm-MM:SS.mmm"] (empty [] when tutorial_loss_at_seconds is null),
+  "asset_role_map": { "<role>": "<exact filename from evidence.assets.roles[].filename, or null>" },
   "numeric_params": { "<key>": <number> },
   "win_condition": "string",
   "loss_condition": "string",
@@ -59,7 +62,7 @@ codegen_prompt scaffold (use these exact section headers, in this order; this is
 <mechanic_name>
 
 # Assets (already base64-inlined under const A)
-- A.<role>: <human description from asset_role_map values>
+- A.<role>: <one short human description of the asset, drawn from evidence.assets.roles[].description; do NOT modify the asset_role_map value — keep that as the bare filename>
 ... (one bullet per non-null role)
 
 # Required behaviour
@@ -91,3 +94,7 @@ Rules:
 - Be specific about mechanics; vague prompts produce vague playables.
 - Numeric parameters must have plausible ranges (damage 5–50, fire rate 800–5000ms, projectile speed 300–1500).
 - Do not output markdown fences around the JSON.
+- DO NOT promote a hallucinated mechanic into the codegen_prompt. If `video.defining_hook` is null, the `# Required behaviour` section MUST NOT mention "tilt", "tread", "crumble", "pivot", "shatter", "fragment", "rotation", "physics-based", "destructible", or other behavior-loaded verbs unless those exact behaviors are visible in `video.timeline`. A null `defining_hook` means "no special behavior beyond genre baseline" — write generic-but-correct mechanics instead.
+- Discrete state preferred: prefer integer `castle_hp: 3` over continuous `playerHealth: 100`. Continuous bars hide what's happening to verifiers and to designers.
+- For win/loss, prefer state-driven conditions (e.g. `enemyHp <= 0`) over time-driven (`time >= 30`). Only emit `tutorial_loss_at_seconds` when the video literally shows a forced loss demo.
+- When `reference` is provided, use it to choose canonical numeric values (canvas size, hp scale, turn order length) but never copy literal sprite or text strings from it.
