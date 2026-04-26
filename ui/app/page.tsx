@@ -17,6 +17,7 @@ import AssetReviewPanel from '@/components/AssetReviewPanel'
 import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { runP1Video } from '@/lib/pipeline/p1-video'
+import { runP1VideoClaude } from '@/lib/pipeline/p1-video-claude'
 import { saveRun } from '@/lib/runs/store'
 import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, RunMeta, StageId, GeneratedAssetMetadata } from '@/lib/pipeline/types'
 import type { ImportedAssetFile } from '@/utils/assetCoverage'
@@ -837,11 +838,23 @@ export default function Home() {
             setSubCallsByStage(prev => ({ ...prev, video: subs }))
           })
             .then(r => r.analysis)
-            .catch(err => {
-              // Non-fatal here — the pipeline can still run P1 itself when
-              // we don't supply precomputedVideoAnalysis.
-              console.warn('[parallel P1] failed, will fall back to in-pipeline P1:', err)
-              return undefined
+            .catch(async err => {
+              // Gemini Files API failed (outage, 503 storm, timeout). Fall
+              // back to Claude (Sonnet 4.6) with sampled video frames. If
+              // that ALSO fails, return undefined and the orchestrator
+              // will run its own P1, which will likely fail too — runReal
+              // then falls through to the demo-cache replay.
+              console.warn('[parallel P1] Gemini failed, trying Claude vision fallback:', err)
+              try {
+                const r = await runP1VideoClaude(videoFile, subs => {
+                  setSubCallsByStage(prev => ({ ...prev, video: subs }))
+                })
+                console.info('[parallel P1] Claude fallback succeeded')
+                return r.analysis
+              } catch (claudeErr) {
+                console.warn('[parallel P1] Claude fallback also failed:', claudeErr)
+                return undefined
+              }
             })
 
       // Mount AssetReviewPanel and wait for the user (or auto-mode) to confirm.
