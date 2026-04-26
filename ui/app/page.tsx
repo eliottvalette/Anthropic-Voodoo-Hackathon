@@ -832,27 +832,31 @@ export default function Home() {
       // generation + user review. By the time the user clicks Continue we
       // hand the cached result to runPipeline via precomputedVideoAnalysis,
       // and the orchestrator skips the actual P1 call.
+      //
+      // PRIMARY: Claude (Sonnet 4.6) with 8 frames sampled in-browser. Faster
+      // (~15s) and not subject to Gemini's Files API hangs.
+      // FALLBACK: Gemini multi-pass (slower, can hang on Files API). Only
+      // tried if Claude fails — which would mean the OpenRouter side is also
+      // down, in which case the run is unrecoverable anyway.
       const videoAnalysisPromise: Promise<VideoAnalysis | undefined> = mockModeRef.current
         ? Promise.resolve(undefined)
-        : runP1Video(videoFile, '_default', subs => {
+        : runP1VideoClaude(videoFile, subs => {
             setSubCallsByStage(prev => ({ ...prev, video: subs }))
           })
-            .then(r => r.analysis)
+            .then(r => {
+              console.info('[parallel P1] Claude (primary) succeeded')
+              return r.analysis
+            })
             .catch(async err => {
-              // Gemini Files API failed (outage, 503 storm, timeout). Fall
-              // back to Claude (Sonnet 4.6) with sampled video frames. If
-              // that ALSO fails, return undefined and the orchestrator
-              // will run its own P1, which will likely fail too — runReal
-              // then falls through to the demo-cache replay.
-              console.warn('[parallel P1] Gemini failed, trying Claude vision fallback:', err)
+              console.warn('[parallel P1] Claude (primary) failed, trying Gemini fallback:', err)
               try {
-                const r = await runP1VideoClaude(videoFile, subs => {
+                const r = await runP1Video(videoFile, '_default', subs => {
                   setSubCallsByStage(prev => ({ ...prev, video: subs }))
                 })
-                console.info('[parallel P1] Claude fallback succeeded')
+                console.info('[parallel P1] Gemini (fallback) succeeded')
                 return r.analysis
-              } catch (claudeErr) {
-                console.warn('[parallel P1] Claude fallback also failed:', claudeErr)
+              } catch (geminiErr) {
+                console.warn('[parallel P1] Gemini (fallback) also failed:', geminiErr)
                 return undefined
               }
             })

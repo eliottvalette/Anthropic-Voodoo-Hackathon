@@ -59,6 +59,12 @@ async function proxy(req: NextRequest): Promise<Response> {
   const init: RequestInit & { duplex?: 'half' } = {
     method: req.method,
     headers,
+    // Propagate client cancellation to the upstream fetch. Without this,
+    // when the client aborts (e.g. our 180s timeout in fetchWithRetry),
+    // the upstream POST keeps running, succeeds server-side, and the
+    // client never sees the response — leading to retry storms that
+    // re-upload the same chunk against an upload Gemini already accepted.
+    signal: req.signal,
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     init.body = req.body as ReadableStream<Uint8Array> | null

@@ -43,12 +43,21 @@ function proxyUrl(path: string, query: Record<string, string> = {}): string {
 // Useful when Gemini is degraded — we've seen Files API responses go
 // 50s+ then return 503 on the very next chunk during outage windows.
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
-// Hard ceiling per individual fetch attempt. During Gemini outages we've
-// observed single requests hanging 80+ seconds before returning a 5xx —
-// 6 retries × 80s = 8 minutes of demo-killing wait. Aborting at 30s lets
-// the retry loop move on and total time becomes bounded.
-const PER_ATTEMPT_TIMEOUT_MS = 30_000
-async function fetchWithRetry(input: string, init: RequestInit, attempts = 6): Promise<Response> {
+
+// Per-attempt timeout. The previous 30s ceiling was actively counter-
+// productive: during Gemini outages individual chunk POSTs legitimately
+// take ~30s, the AbortController fired at exactly 30s, the upstream
+// request kept running and succeeded server-side (proxy doesn't
+// propagate the abort), but the client never saw the 200 — it just
+// retried the same chunk over and over. Result: log spam of "200 in
+// 29951ms" with no progress.
+//
+// 180s gives Gemini enough headroom to actually deliver the response
+// to the proxy and back to the client. If the upstream is truly hung
+// past 3 min, the retry loop will give up — but slowness != hung.
+const PER_ATTEMPT_TIMEOUT_MS = 180_000
+
+async function fetchWithRetry(input: string, init: RequestInit, attempts = 4): Promise<Response> {
   let backoff = 1000
   let lastErr: unknown
   for (let i = 0; i < attempts; i++) {
@@ -66,6 +75,12 @@ async function fetchWithRetry(input: string, init: RequestInit, attempts = 6): P
     } catch (err) {
       clearTimeout(timer)
       lastErr = err
+      // Don't retry on our own AbortError — it means we hit the per-
+      // attempt timeout; retrying with the same body just re-issues a
+      // request that's likely to time out the same way and the upstream
+      // may have already accepted the previous attempt (resumable
+      // uploads are idempotent at the same offset).
+      if (err instanceof Error && err.name === 'AbortError') throw err
       if (i === attempts - 1) throw err
       await new Promise(r => setTimeout(r, Math.min(backoff, 30_000)))
       backoff *= 2
