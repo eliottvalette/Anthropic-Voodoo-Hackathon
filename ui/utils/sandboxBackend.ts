@@ -21,6 +21,25 @@ const SANDBOX_ROOT = path.resolve(process.env.SANDBOX_PIPELINE_ROOT ?? path.join
 const RUNS_ROOT = path.join(SANDBOX_ROOT, 'runs')
 const PYTHON_PATH = process.env.SANDBOX_PYTHON ?? path.join(REPO_ROOT, '.venv', 'bin', 'python')
 
+function probePython(pythonPath: string): { ok: boolean; reason?: string } {
+  try {
+    if (!existsSync(pythonPath)) {
+      return { ok: false, reason: `Python binary not found: ${pythonPath}` }
+    }
+    const { execFileSync } = require('node:child_process') as typeof import('node:child_process')
+    execFileSync(pythonPath, ['-c', 'import imageio_ffmpeg, google.genai, PIL'], { stdio: 'pipe', timeout: 5000 })
+    return { ok: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { ok: false, reason: `Python module probe failed: ${message.slice(0, 300)}` }
+  }
+}
+
+const PYTHON_PROBE = probePython(PYTHON_PATH)
+if (!PYTHON_PROBE.ok) {
+  console.warn(`[sandboxBackend] Python health check FAILED — pipeline jobs will likely fail.\n  PYTHON_PATH=${PYTHON_PATH}\n  Reason: ${PYTHON_PROBE.reason}\n  Fix: ensure ${PYTHON_PATH} exists and has imageio_ffmpeg, google-genai, pillow installed, OR set SANDBOX_PYTHON env var to a working interpreter.`)
+}
+
 function jobStore(): RegenerateJobStore {
   if (!globalForSandbox.__sandboxRegenerateJobs) {
     globalForSandbox.__sandboxRegenerateJobs = { jobs: new Map() }
@@ -33,7 +52,14 @@ function readJson(filePath: string): JsonObject {
 }
 
 function safeRunId(runId: string | null | undefined): string {
-  return (runId || 'B11').replace(/[^a-zA-Z0-9._-]/g, '')
+  if (!runId || !runId.trim()) {
+    throw new Error('runId is required (received null/empty)')
+  }
+  const cleaned = runId.replace(/[^a-zA-Z0-9._-]/g, '')
+  if (!cleaned) {
+    throw new Error(`runId contains no valid characters: ${runId}`)
+  }
+  return cleaned
 }
 
 function isInside(parent: string, candidate: string): boolean {
@@ -282,7 +308,8 @@ function spawnPipelineJob(input: SpawnPipelineJobInput): SandboxJob {
   child.on('error', error => {
     job.status = 'error'
     job.finished_at = Date.now() / 1000
-    job.error = error.message
+    const baseMsg = error instanceof Error ? error.message : String(error)
+    job.error = PYTHON_PROBE.ok ? baseMsg : `${baseMsg}\n[hint] ${PYTHON_PROBE.reason}`
   })
   child.on('close', code => {
     job.finished_at = Date.now() / 1000
