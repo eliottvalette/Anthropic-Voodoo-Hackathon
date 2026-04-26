@@ -3,7 +3,8 @@
 // For each asset image: describe (small Gemini call) → role mapping aggregator.
 // Loose port: we batch image descriptions in a single call when possible.
 
-import { generateContent, inlineDataPart } from './gemini-client'
+import { fileDataPart, generateContent, uploadFile, waitUntilActive } from './gemini-client'
+import type { ContentPart } from './gemini-client'
 import { loadPrompt } from './prompts'
 import type { AssetMapping, SubCallEvent, VideoAnalysis } from './types'
 
@@ -28,20 +29,25 @@ export async function runP2Assets(
 
   startCall('2_describe')
   const sysDescribe = await loadPrompt(variant, '2_asset_describe.md')
-  // Inline images as base64 for description in a single multi-part call.
+  // Upload assets through the Files API instead of inlining as base64. The
+  // /api/gemini proxy sits behind a ~10 MB Route Handler body cap, and a
+  // single describe call with 20+ asset images blew past it — the body got
+  // truncated mid base64 string, and Gemini returned
+  //   HTTP 400 "Invalid JSON payload received. Closing quote expected in string"
+  // Files API uploads each asset in its own (chunked) request, so the size
+  // ceiling is per-file, not per-batch. The describe call then references
+  // the uploads by URI and stays small.
   const tD = performance.now()
-  const parts = [
-    { text: 'Describe each provided asset. Return JSON keyed by filename.' },
-    ...await Promise.all(assets.map(async a => ({
-      ...await inlineDataPart(a),
-      // Prepend filename so the model can key its response
-    } as const))),
-  ]
-  // Mix in filename labels as text parts (one per asset) so the model knows the names
-  const interleaved = []
+  const uploaded = await Promise.all(
+    assets.map(async asset => {
+      const file = await uploadFile(asset, asset.name)
+      return waitUntilActive(file)
+    }),
+  )
+  const interleaved: ContentPart[] = []
   for (let i = 0; i < assets.length; i++) {
     interleaved.push({ text: `--- ${assets[i].name} ---` })
-    interleaved.push(await inlineDataPart(assets[i]))
+    interleaved.push(fileDataPart(uploaded[i].uri, uploaded[i].mimeType))
   }
   const describeRes = await generateContent<{ descriptions: Record<string, string> }>(
     [{ text: 'Describe each asset image. Use filenames as keys.' }, ...interleaved],
