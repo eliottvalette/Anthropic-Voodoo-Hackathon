@@ -6,9 +6,8 @@
 // monolithic fallback; this V1 keeps it simple and treats P4 as one call,
 // surfaces the same VerifyReport shape so the UI is identical.
 
+import { ANTHROPIC_MODELS, anthropicGenerate } from './anthropic-client'
 import { buildAssetsBlock, injectAssets } from './assemble'
-import { fileDataPart, generateContent, uploadFile, waitUntilActive } from './gemini-client'
-import type { ContentPart } from './gemini-client'
 import { loadPrompt } from './prompts'
 import { verifyInIframe } from './verify-iframe'
 import type { CodegenResult, GameSpec, SubCallEvent } from './types'
@@ -37,24 +36,12 @@ export async function runP4Codegen(
 
   const sysCodegen = await loadPrompt(variant, '4_codegen_legacy.md').catch(() => loadPrompt(variant, '4_render.md'))
 
-  // Reference assets via Files API URIs instead of inlining base64. With the
-  // hydrated generated-asset set the inlined body blew past the /api/gemini
-  // proxy's ~10 MB Route Handler cap and Gemini returned
-  //   HTTP 400 "Invalid JSON payload received. Closing quote expected in string"
-  // Same fix as p2-assets.ts: each upload is its own (chunked) request, the
-  // codegen call only sends URIs.
-  const sliced = assets.slice(0, 16)
-  const uploaded = await Promise.all(
-    sliced.map(async a => {
-      const f = await uploadFile(a, a.name)
-      return waitUntilActive(f)
-    }),
-  )
-  const assetParts: ContentPart[] = []
-  for (let i = 0; i < sliced.length; i++) {
-    assetParts.push({ text: `--- asset: ${sliced[i].name} ---` })
-    assetParts.push(fileDataPart(uploaded[i].uri, uploaded[i].mimeType))
-  }
+  // Codegen is text-only here. Anthropic-via-OpenRouter goes through the
+  // /api/anthropic proxy, which has the same ~10 MB Route Handler body cap
+  // that originally broke Gemini codegen with inline base64. The codegen
+  // prompt explicitly references assets only as `A.<role>` symbols and the
+  // runtime swaps `/* ASSETS_BASE64 */` for the real bytes — the model never
+  // needs to see pixels, so we drop the asset uploads on this stage.
 
   let html = ''
   let report: Awaited<ReturnType<typeof verifyInIframe>> = {
@@ -91,9 +78,14 @@ export async function runP4Codegen(
         }`
       : ''
     const userPayload = baseUserMessage + retryAddendum
-    const r = await generateContent<unknown>(
-      [{ text: userPayload }, ...assetParts],
-      { systemInstruction: sysCodegen, responseMimeType: 'text/plain' }
+    const r = await anthropicGenerate<unknown>(
+      userPayload,
+      {
+        systemInstruction: sysCodegen,
+        responseMimeType: 'text/plain',
+        model: ANTHROPIC_MODELS.opus,
+        maxTokens: 16384,
+      }
     )
     finishCall('4_codegen', performance.now() - tC, r.tokensIn, r.tokensOut)
 
@@ -127,10 +119,18 @@ export async function runP4Codegen(
 }
 
 function extractHtml(raw: string): string {
-  // Strip code fences if the model wrapped output
-  const fence = raw.match(/```html\s*([\s\S]*?)```/i) || raw.match(/```\s*([\s\S]*?)```/i)
-  if (fence) return fence[1].trim()
-  return raw.trim()
+  let s = raw.trim()
+  // Strip code fences first
+  const fence = s.match(/```html\s*([\s\S]*?)```/i) || s.match(/```\s*([\s\S]*?)```/i)
+  if (fence) s = fence[1].trim()
+  // If the model emitted prose before the document, strip it
+  const docIdx = Math.min(
+    ...['<!doctype', '<!DOCTYPE', '<html', '<HTML']
+      .map(tok => s.indexOf(tok))
+      .filter(i => i >= 0)
+  )
+  if (Number.isFinite(docIdx) && docIdx > 0) s = s.slice(docIdx)
+  return s.trim()
 }
 
 function buildFailureContext(r: { sizeOk: boolean; consoleErrors: string[]; canvasNonBlank: boolean; mraidOk: boolean; mechanicStringMatch: boolean; interactionStateChange: boolean }): Record<string, string> {

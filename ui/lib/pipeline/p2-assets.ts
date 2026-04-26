@@ -3,6 +3,7 @@
 // For each asset image: describe (small Gemini call) → role mapping aggregator.
 // Loose port: we batch image descriptions in a single call when possible.
 
+import { anthropicGenerate } from './anthropic-client'
 import { fileDataPart, generateContent, uploadFile, waitUntilActive } from './gemini-client'
 import type { ContentPart } from './gemini-client'
 import { loadPrompt } from './prompts'
@@ -58,8 +59,8 @@ export async function runP2Assets(
   startCall('2_aggregate')
   const sysAssets = await loadPrompt(variant, '2_assets.md')
   const tA = performance.now()
-  const aggRes = await generateContent<AssetMapping>(
-    [{ text: JSON.stringify({ video: videoAnalysis.merged, descriptions: describeRes.data }) }],
+  const aggRes = await anthropicGenerate<AssetMapping>(
+    JSON.stringify({ video: videoAnalysis.merged, descriptions: describeRes.data }),
     { systemInstruction: sysAssets, responseMimeType: 'application/json' }
   )
   finishCall('2_aggregate', performance.now() - tA, aggRes.tokensIn, aggRes.tokensOut)

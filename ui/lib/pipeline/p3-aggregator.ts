@@ -1,6 +1,6 @@
 // P3 — Aggregator: combines video analysis + asset mapping into a typed GameSpec.
 
-import { generateContent } from './gemini-client'
+import { anthropicGenerate } from './anthropic-client'
 import { loadPrompt } from './prompts'
 import type { AssetMapping, GameSpec, SubCallEvent, VideoAnalysis } from './types'
 
@@ -45,8 +45,8 @@ export async function runP3Aggregator(
     assets: assetMapping,
   }
   if (userBrief && userBrief.trim()) payload.user_brief = userBrief.trim()
-  const res = await generateContent<AggregatorResponse>(
-    [{ text: JSON.stringify(payload) }],
+  const res = await anthropicGenerate<AggregatorResponse>(
+    JSON.stringify(payload),
     { systemInstruction: sys, responseMimeType: 'application/json' }
   )
   done(performance.now() - t, res.tokensIn, res.tokensOut)
