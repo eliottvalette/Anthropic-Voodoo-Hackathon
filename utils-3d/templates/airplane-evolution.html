@@ -19,20 +19,35 @@
   #dist-hud{text-align:right;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}
   #dist-hud .v{font-variant-numeric:tabular-nums;font-weight:800;font-size:22px;line-height:1}
   #dist-hud .b{font-size:10px;font-weight:600;letter-spacing:.14em;margin-top:3px;opacity:.75}
+  #coins-hud{display:inline-flex;align-items:center;gap:6px;background:rgba(15,20,28,.65);backdrop-filter:blur(8px);border-radius:18px;padding:6px 12px 6px 8px;color:#fff;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;border:1px solid rgba(255,206,86,.4);margin-top:6px;justify-content:flex-end}
+  #coins-hud .coin{display:inline-flex;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7c0,#f5c43c 70%,#a07c00);box-shadow:inset -1px -1px 1px rgba(0,0,0,.25);align-items:center;justify-content:center;font-size:9px;color:#7a5800;font-weight:900}
+  /* Big juicy coin gain popup — pops out near the counter, floats up, fades. */
+  #coin-popup{position:absolute;right:14px;top:90px;display:inline-flex;align-items:center;gap:8px;background:rgba(15,20,28,.88);backdrop-filter:blur(8px);border:2px solid #ffce56;border-radius:22px;padding:10px 16px 10px 12px;color:#fff;font-weight:900;font-size:24px;font-variant-numeric:tabular-nums;text-shadow:0 2px 4px rgba(0,0,0,.5);box-shadow:0 0 0 1px rgba(255,206,86,.3),0 6px 24px rgba(245,196,60,.45);opacity:0;pointer-events:none;transform:translateY(0) scale(.6);transition:opacity .25s ease,transform .8s cubic-bezier(.2,1.5,.4,1);will-change:transform,opacity;z-index:50}
+  #coin-popup .coin{display:inline-flex;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7c0,#f5c43c 60%,#a07c00);box-shadow:inset -2px -2px 2px rgba(0,0,0,.25),0 0 14px rgba(255,206,86,.6);align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#7a5800;text-shadow:none}
+  #coin-popup.show{opacity:1;transform:translateY(-46px) scale(1.0)}
 
   /* BOTTOM — parts dock + hint */
   .bottom{display:flex;flex-direction:column;gap:10px}
   #parts{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;transition:opacity .25s ease}
   #parts.hidden{opacity:0;pointer-events:none}
-  .part{position:relative;background:rgba(15,20,28,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 10px;min-width:60px;text-align:center;cursor:pointer;transition:all .15s ease;user-select:none}
+  .part{position:relative;background:rgba(15,20,28,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 10px;min-width:64px;text-align:center;cursor:pointer;transition:all .15s ease;user-select:none}
   .part:active{transform:scale(.96)}
   .part .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700}
-  .part .val{font-size:11px;font-weight:700;color:rgba(255,255,255,.78);margin-top:1px}
-  .part.on{background:rgba(255,255,255,.92);border-color:#fff}
-  .part.on .lbl{color:#0F141C}
-  .part.on .val{color:#0F141C}
+  .part .val{font-size:11px;font-weight:700;color:rgba(255,255,255,.78);margin-top:1px;display:inline-flex;align-items:center;gap:3px;justify-content:center}
+  .part .val .coin{display:inline-flex;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7c0,#f5c43c 70%,#a07c00)}
+  .part.affordable{border-color:rgba(255,206,86,.55);box-shadow:0 0 0 1px rgba(255,206,86,.15) inset}
+  .part.cantafford{opacity:.55;cursor:not-allowed}
+  .part.owned{background:rgba(255,255,255,.92);border-color:#fff}
+  .part.owned .lbl{color:#0F141C}
+  .part.owned .val{color:#0F141C}
   .part.locked{cursor:default;opacity:.85}
   .part.locked .tag{position:absolute;top:-5px;right:-5px;background:#0F141C;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:5px;letter-spacing:.04em}
+  /* CTA replaces parts dock when fully evolved */
+  #cta-play{display:none;width:100%;max-width:340px;margin:0 auto;padding:14px 18px;border-radius:14px;background:linear-gradient(135deg,#22c55e,#0a8a3a);color:#fff;font-weight:900;font-size:15px;letter-spacing:.06em;text-transform:uppercase;border:0;cursor:pointer;box-shadow:0 8px 28px rgba(34,197,94,.45);transition:transform .12s ease}
+  #cta-play:active{transform:scale(.98)}
+  #cta-play.show{display:flex;align-items:center;justify-content:center;gap:8px;animation:ctapulse 1.6s ease-in-out infinite}
+  #cta-play svg{width:18px;height:18px;flex-shrink:0}
+  @keyframes ctapulse{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
 
   #hint{text-align:center;font-size:11px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.78;transition:opacity .25s ease}
   #hint.hidden{opacity:0}
@@ -62,16 +77,22 @@
 <div id="ui">
   <div class="top">
     <div id="title"><b>Airplane</b> Evolution</div>
-    <div id="dist-hud"><div class="v" id="distance">0 m</div><div class="b" id="best">BEST 0 M</div></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0">
+      <div id="dist-hud"><div class="v" id="distance">0 m</div><div class="b" id="best">BEST 0 M</div></div>
+      <div id="coins-hud" class="pointer"><span class="coin">$</span><span id="coins-val">0</span></div>
+    </div>
   </div>
+
+  <div id="coin-popup"><span class="coin">$</span><span id="coin-popup-num">+0</span></div>
 
   <div class="bottom">
     <div id="parts" class="pointer">
-      <div class="part on locked" data-id="fuselage"><span class="tag">CORE</span><div class="lbl">Body</div><div class="val">paper</div></div>
-      <div class="part" data-id="wing_l"><div class="lbl">Wing L</div><div class="val">+lift</div></div>
-      <div class="part" data-id="wing_r"><div class="lbl">Wing R</div><div class="val">+lift</div></div>
-      <div class="part" data-id="tail"><div class="lbl">Tail</div><div class="val">+stab</div></div>
+      <div class="part owned locked" data-id="fuselage"><span class="tag">CORE</span><div class="lbl">Body</div><div class="val">paper</div></div>
+      <div class="part" data-id="wing_l"><div class="lbl">Wing L</div><div class="val cost"><span class="coin"></span><span class="num">50</span></div></div>
+      <div class="part" data-id="wing_r"><div class="lbl">Wing R</div><div class="val cost"><span class="coin"></span><span class="num">50</span></div></div>
+      <div class="part" data-id="upgrade"><div class="lbl">Upgrade</div><div class="val cost"><span class="coin"></span><span class="num">150</span></div></div>
     </div>
+    <button id="cta-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l16.5 9-16.5 9V3z"/></svg>PLAY ON GOOGLE PLAY</button>
     <div id="hint">drag back &amp; release to throw</div>
   </div>
 </div>
@@ -173,23 +194,33 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
   const checkerTex=buildCheckerTexture();
   function addDistanceMarker(d){
-    const stripeTex=buildCanvasTexture(8,128,c=>{for(let i=0;i<16;i++){c.fillStyle=i%2?'#ff3b3b':'#fff';c.fillRect(0,i*8,8,8)}});
-    stripeTex.wrapS=stripeTex.wrapT=THREE.RepeatWrapping;
-    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,9,8),new THREE.MeshLambertMaterial({map:stripeTex}));
-    pole.position.set(d,4.5,0);pole.castShadow=true;scene.add(pole);
-    const flag=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5),new THREE.MeshBasicMaterial({map:checkerTex,side:THREE.DoubleSide}));
-    flag.position.set(d+1.1,8.4,0);scene.add(flag);
-    const lbl=new THREE.Mesh(new THREE.PlaneGeometry(3.6,1.6),new THREE.MeshBasicMaterial({
-      map:buildCanvasTexture(256,128,c=>{c.fillStyle='rgba(15,20,28,.78)';c.beginPath();const r=18;if(c.roundRect){c.roundRect(0,0,256,128,r);c.fill()}else c.fillRect(0,0,256,128);c.fillStyle='#fff';c.font='bold 70px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(d+'m',128,64)}),
+    // Transversal line of vertical poles spanning across the flight corridor,
+    // with a horizontal cross-beam at the top and a floating banner above.
+    const woodMat=new THREE.MeshLambertMaterial({color:0x6b5238,flatShading:true});
+    const flagMat=new THREE.MeshLambertMaterial({color:0xc23b2a,flatShading:true});
+    const POLE_ZS=[-5,-3.3,-1.7,0,1.7,3.3,5];
+    for(const z of POLE_ZS){
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,3.6,6),woodMat);
+      post.position.set(d,1.8,z);post.castShadow=true;scene.add(post);
+      // small flag tip per pole
+      const tip=new THREE.Mesh(new THREE.ConeGeometry(0.10,0.18,6),flagMat);
+      tip.position.set(d,3.7,z);scene.add(tip);
+    }
+    // horizontal cross-beam connecting all poles
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.12,POLE_ZS[POLE_ZS.length-1]-POLE_ZS[0]+0.2),woodMat);
+    beam.position.set(d,3.55,0);beam.castShadow=true;scene.add(beam);
+    // floating banner with distance label
+    const lbl=new THREE.Mesh(new THREE.PlaneGeometry(2.8,1.2),new THREE.MeshBasicMaterial({
+      map:buildCanvasTexture(256,128,c=>{c.fillStyle='rgba(15,20,28,.78)';c.beginPath();const r=18;if(c.roundRect){c.roundRect(0,0,256,128,r);c.fill()}else c.fillRect(0,0,256,128);c.fillStyle='#fff';c.font='bold 68px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(d+'m',128,64)}),
       transparent:true,depthWrite:false,side:THREE.DoubleSide
     }));
-    lbl.position.set(d,3.5,0);scene.add(lbl);
+    lbl.position.set(d,5.0,0);scene.add(lbl);
   }
   for(const d of [25,50,100,200,400,800]) addDistanceMarker(d);
 
   // ── Trees: bushy/blob ──────────────────────────────────────────────
   function scatterTrees(){
-    const COUNT=260;
+    const COUNT=1400;
     const trunkGeo=new THREE.CylinderGeometry(0.18,0.28,1.4,6);trunkGeo.translate(0,0.7,0);
     const trunkInst=new THREE.InstancedMesh(trunkGeo,new THREE.MeshLambertMaterial({color:0x6b3f22,flatShading:true}),COUNT);
     trunkInst.castShadow=true;
@@ -207,9 +238,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     while(placed<COUNT && attempts<COUNT*5){
       attempts++;
       const x=(rng()-0.15)*TERRAIN_SIZE*0.85;
-      const z=(rng()-0.5)*TERRAIN_SIZE*0.7;
-      if(Math.abs(z)<6 && x<400) continue;
-      if(Math.hypot(x,z)>TERRAIN_SIZE*0.45) continue;
+      const z=(rng()-0.5)*TERRAIN_SIZE*0.75;
+      // narrower no-tree corridor: 4m wide × 80m long (not 12m × 400m)
+      if(Math.abs(z)<2.5 && x<80 && x>-5) continue;
+      // also keep the immediate spawn area clearer
+      if(Math.abs(z)<8 && Math.abs(x)<10) continue;
+      if(Math.hypot(x,z)>TERRAIN_SIZE*0.48) continue;
       const h=Math.sin(x*0.04)*Math.cos(z*0.04)*1.2 + Math.sin(x*0.11+z*0.08)*0.5;
       const s=0.85+rng()*1.0;
       pos.set(x,h-0.05,z);
@@ -237,7 +271,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   scatterTrees();
 
   function scatterGrass(){
-    const COUNT=900;
+    const COUNT=8000;
     const geo=new THREE.PlaneGeometry(0.7,1.0);geo.translate(0,0.5,0);
     const tex=buildCanvasTexture(64,90,c=>{
       c.lineCap='round';c.lineWidth=2.2;
@@ -255,13 +289,21 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const m=new THREE.Matrix4(),q=new THREE.Quaternion(),pos=new THREE.Vector3(),scl=new THREE.Vector3();
     const rng=mulberry32(91);
     let placed=0;
+    // Cover the whole terrain area: spread across [-700, 700] in X and Z, denser near corridor.
     for(let i=0;i<COUNT*2 && placed<COUNT;i++){
-      const z=(rng()-0.5)*180;
-      const x=(rng()-0.05)*900;
-      if(Math.abs(z)<2 && x<200) continue;
+      // 70% along the flight corridor (X-biased forward), 30% across whole terrain
+      let x,z;
+      if(rng()<0.7){
+        x=(rng()-0.05)*1200;
+        z=(rng()-0.5)*320;
+      }else{
+        x=(rng()-0.5)*1400;
+        z=(rng()-0.5)*1200;
+      }
+      // No exclusion — grass everywhere, even at spawn (it's just grass)
       const h=Math.sin(x*0.04)*Math.cos(z*0.04)*1.2 + Math.sin(x*0.11+z*0.08)*0.5;
       pos.set(x,h-0.05,z);
-      const s=0.8+rng()*1.4;scl.set(s,s,s);
+      const s=0.7+rng()*1.5;scl.set(s,s,s);
       q.setFromAxisAngle(new THREE.Vector3(0,1,0),rng()*Math.PI*2);
       m.compose(pos,q,scl);
       inst.setMatrixAt(placed++,m);
@@ -411,16 +453,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const geo=makeWingShape(1.5,0.95,0.07,0.25,0.65);
       const wing=new THREE.Mesh(geo,this._mat('wing'));
       wing.castShadow=true;
-      // Position root at the side of the fuselage, lift slightly
-      wing.position.set(-0.05, 0.05, side*0.30);
-      // Mirror the geometry for the left wing (we built for +Z, so flip Z scale)
+      // Root tight against the fuselage
+      wing.position.set(-0.05, 0.05, side*0.18);
       if(side<0) wing.scale.z=-1;
       // Slight dihedral: tips a bit higher than root
       wing.rotation.x=side<0 ? -0.06 : 0.06;
-      // Wing tip strake (small endplate) for low-poly detail
-      const strake=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.10,0.05),this._mat('wing'));
-      strake.position.set(-0.10,0.02,side*1.78);
-      strake.castShadow=true;g.add(strake);
       g.add(wing);
       return g;
     }
@@ -478,83 +515,290 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     floatLabelMat.needsUpdate=true;
   }
 
-  // ── Debris ───────────────────────────────────────────────────────────
-  const FRAGMENT_COUNT=24;
+  // ── Crash VFX + physically-simulated debris ─────────────────────────
+  // Debris use a balanced physics profile (port of LowPolyWar destruction.ts):
+  //   per step: gravity, linear damping (×0.996), quaternion rotation integration,
+  //   ground collision via 8-corner projection + restitution + friction + ang damping.
+  // Each fragment is a small box with random half-extents & color from the
+  // airplane palette so the wreck feels like real plane parts.
+  const PHYS_GROUND={
+    gravity:9.8,
+    linearDamp:0.996,
+    angDamp:0.94,
+    groundRestitution:0.32,
+    groundFriction:0.78,
+  };
+  const FRAGMENT_COUNT=36;
   const debris=[];
+  const FRAG_COLORS=[0xd9633a,0xc25530,0xeae0cf,0x33363f,0x1c2a3a];
   for(let i=0;i<FRAGMENT_COUNT;i++){
-    const s=0.18+Math.random()*0.22;
-    const m=new THREE.Mesh(new THREE.BoxGeometry(s,s*0.4,s*0.7),new THREE.MeshLambertMaterial({color:0xd9633a,flatShading:true}));
-    m.castShadow=true;m.visible=false;m.userData={vel:new THREE.Vector3(),angVel:new THREE.Vector3(),alive:0};
+    const hx=0.10+Math.random()*0.18;
+    const hy=0.04+Math.random()*0.10;
+    const hz=0.10+Math.random()*0.20;
+    const m=new THREE.Mesh(
+      new THREE.BoxGeometry(hx*2,hy*2,hz*2),
+      new THREE.MeshLambertMaterial({color:FRAG_COLORS[i%FRAG_COLORS.length],flatShading:true})
+    );
+    m.castShadow=true;m.visible=false;
+    m.userData={
+      vel:new THREE.Vector3(),
+      angVel:new THREE.Vector3(),
+      halfExt:new THREE.Vector3(hx,hy,hz),
+      alive:0,
+      // 8 box corners precomputed in local space for ground projection
+      corners:[
+        new THREE.Vector3( hx, hy, hz),new THREE.Vector3(-hx, hy, hz),
+        new THREE.Vector3( hx,-hy, hz),new THREE.Vector3(-hx,-hy, hz),
+        new THREE.Vector3( hx, hy,-hz),new THREE.Vector3(-hx, hy,-hz),
+        new THREE.Vector3( hx,-hy,-hz),new THREE.Vector3(-hx,-hy,-hz),
+      ],
+      _v:new THREE.Vector3(),  // scratch
+    };
     scene.add(m);debris.push(m);
   }
-  function spawnDebris(origin){
-    for(const d of debris){
-      d.position.copy(origin).add(new THREE.Vector3((Math.random()-.5)*0.6,(Math.random())*0.4,(Math.random()-.5)*0.6));
-      d.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
-      const sp=4+Math.random()*4;
-      d.userData.vel.set((Math.random()-.5)*sp,Math.random()*sp*0.8+1,(Math.random()-.5)*sp);
-      d.userData.angVel.set((Math.random()-.5)*8,(Math.random()-.5)*8,(Math.random()-.5)*8);
-      d.userData.alive=2.0;d.visible=true;
+
+  const vfx={t:0,duration:0,origin:new THREE.Vector3(),active:false};
+  // Flash (bright icosahedron, fades fast)
+  const flash=new THREE.Mesh(new THREE.IcosahedronGeometry(1,0),new THREE.MeshBasicMaterial({color:0xfff6d6,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+  flash.visible=false;scene.add(flash);
+  // Fire core
+  const fireCore=new THREE.Mesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshBasicMaterial({color:0xff7a2e,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+  fireCore.visible=false;scene.add(fireCore);
+  // Inner core (yellow)
+  const innerCore=new THREE.Mesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+  innerCore.visible=false;scene.add(innerCore);
+  // Ring shockwave
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.85,1.0,40),new THREE.MeshBasicMaterial({color:0xffdca8,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));
+  ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
+  // Scorch (dark patch on ground, slow fade)
+  const scorch=new THREE.Mesh(new THREE.CircleGeometry(1,32),new THREE.MeshBasicMaterial({color:0x1a1410,transparent:true,opacity:0,depthWrite:false}));
+  scorch.rotation.x=-Math.PI/2;scorch.visible=false;scene.add(scorch);
+  // Point light
+  const blastLight=new THREE.PointLight(0xffb347,0,18,2);scene.add(blastLight);
+  // Dust puffs
+  const PUFF_COUNT=10;
+  const puffs=[];
+  const puffGeo=new THREE.IcosahedronGeometry(1,1);
+  for(let i=0;i<PUFF_COUNT;i++){
+    const m=new THREE.Mesh(puffGeo,new THREE.MeshLambertMaterial({color:0xb0a08a,transparent:true,opacity:0,depthWrite:false}));
+    m.visible=false;
+    m.userData={drift:new THREE.Vector3(),scaleBase:1,delay:0,duration:1};
+    scene.add(m);puffs.push(m);
+  }
+
+  function spawnCrashVfx(origin){
+    vfx.active=true;vfx.t=0;vfx.duration=1.4;vfx.origin.copy(origin);
+    flash.visible=true;fireCore.visible=true;innerCore.visible=true;ring.visible=true;scorch.visible=true;
+    flash.position.copy(origin);
+    fireCore.position.copy(origin);
+    innerCore.position.copy(origin);
+    ring.position.set(origin.x,0.05,origin.z);
+    scorch.position.set(origin.x,0.04,origin.z);
+    blastLight.position.set(origin.x,origin.y+0.65,origin.z);
+    blastLight.intensity=28;blastLight.distance=12;
+    // randomize puffs
+    for(let i=0;i<PUFF_COUNT;i++){
+      const p=puffs[i];
+      const a=(i/PUFF_COUNT)*Math.PI*2+Math.random()*0.4;
+      p.userData.drift.set(Math.cos(a)*(2+Math.random()*1.6),0.5+Math.random()*0.8,Math.sin(a)*(2+Math.random()*1.6));
+      p.userData.scaleBase=0.5+Math.random()*0.7;
+      p.userData.delay=Math.random()*0.05;
+      p.userData.duration=0.7+Math.random()*0.5;
+      p.position.copy(origin);p.position.y=Math.max(0.1,origin.y-0.3);
+      p.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+      p.material.opacity=0.5;p.scale.setScalar(p.userData.scaleBase*0.5);
+      p.visible=true;
+    }
+    // camera rumble
+    state.shake.intensity=1.6;state.shake.t=0;
+  }
+
+  function stepCrashVfx(dt){
+    if(!vfx.active)return;
+    vfx.t+=dt;
+    const t=vfx.t,T=vfx.duration;
+    if(t>=T){
+      vfx.active=false;
+      flash.visible=fireCore.visible=innerCore.visible=ring.visible=scorch.visible=false;
+      blastLight.intensity=0;
+      for(const p of puffs)p.visible=false;
+      return;
+    }
+    const easeOut=x=>1-Math.pow(1-x,3);
+    const easeOutExpo=x=>x>=1?1:1-Math.pow(2,-10*x);
+
+    // Flash: 0..0.18s, expand & fade
+    const fp=clamp(t/0.18,0,1);
+    flash.material.opacity=Math.pow(1-fp,1.6);
+    flash.scale.setScalar(0.4+easeOutExpo(fp)*3.0);
+    // Fire core: 0..0.32s
+    const cp=clamp(t/0.32,0,1);
+    fireCore.material.opacity=Math.pow(1-cp,1.5)*0.92;
+    fireCore.scale.setScalar(0.4+easeOut(cp)*2.6);
+    fireCore.rotation.y=t*4;
+    // Inner core: 0..0.22s
+    const ip=clamp(t/0.22,0,1);
+    innerCore.material.opacity=Math.pow(1-ip,1.4);
+    innerCore.scale.setScalar(0.25+easeOutExpo(ip)*1.6);
+    innerCore.rotation.x=t*5;
+    // Ring shockwave: 0.03..0.5s
+    const rp=clamp((t-0.03)/0.47,0,1);
+    ring.material.opacity=Math.pow(1-rp,1.8)*0.78;
+    ring.scale.setScalar(0.9+easeOutExpo(rp)*9);
+    // Scorch: 0.04..1.4s (long fade)
+    const sp=clamp((t-0.04)/1.36,0,1);
+    scorch.material.opacity=Math.pow(1-sp,1.5)*0.4;
+    scorch.scale.setScalar(2.0+easeOut(sp)*2.4);
+    // Light: fades fast
+    const lp=clamp(t/0.18,0,1);
+    blastLight.intensity=Math.pow(1-lp,2)*28;
+    // Puffs
+    for(const p of puffs){
+      const local=t-p.userData.delay;
+      if(local<=0||local>=p.userData.duration){p.visible=false;continue}
+      const pp=clamp(local/p.userData.duration,0,1);
+      const travel=easeOut(pp);
+      p.position.x=vfx.origin.x+p.userData.drift.x*travel;
+      p.position.y=Math.max(0.1,vfx.origin.y+p.userData.drift.y*travel-0.3);
+      p.position.z=vfx.origin.z+p.userData.drift.z*travel;
+      p.scale.setScalar(p.userData.scaleBase*(0.5+easeOut(Math.min(pp,0.92))*1.6));
+      p.material.opacity=Math.pow(1-pp,1.4)*0.5;
     }
   }
+
+  function spawnDebris(origin){
+    for(const d of debris){
+      d.position.copy(origin).add(new THREE.Vector3((Math.random()-.5)*0.5,(Math.random())*0.4,(Math.random()-.5)*0.5));
+      d.quaternion.setFromEuler(new THREE.Euler(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI));
+      const sp=6+Math.random()*7;
+      d.userData.vel.set((Math.random()-.5)*sp,Math.random()*sp*0.9+2.5,(Math.random()-.5)*sp);
+      // angVel as Euler-rate vector (axis-aligned per component)
+      d.userData.angVel.set((Math.random()-.5)*9,(Math.random()-.5)*9,(Math.random()-.5)*9);
+      d.userData.alive=4.0;d.visible=true;
+    }
+  }
+
+  // Per-frame physics step (port of stepSimulatedFragment + resolveGroundCollision).
+  const _qDelta=new THREE.Quaternion();
+  const _axisVec=new THREE.Vector3();
   function stepDebris(dt){
     for(const d of debris){
       if(!d.visible)continue;
-      d.userData.alive-=dt;
-      if(d.userData.alive<=0){d.visible=false;continue}
-      d.userData.vel.y-=22*dt;
-      d.position.addScaledVector(d.userData.vel,dt);
-      if(d.position.y<0.05){d.position.y=0.05;d.userData.vel.y*=-0.3;d.userData.vel.x*=0.7;d.userData.vel.z*=0.7}
-      d.rotation.x+=d.userData.angVel.x*dt;d.rotation.y+=d.userData.angVel.y*dt;d.rotation.z+=d.userData.angVel.z*dt;
+      const u=d.userData;
+      u.alive-=dt;
+      if(u.alive<=0){d.visible=false;continue}
+
+      // Linear: gravity + global damping + integrate
+      u.vel.y-=PHYS_GROUND.gravity*dt;
+      u.vel.multiplyScalar(PHYS_GROUND.linearDamp);
+      d.position.addScaledVector(u.vel,dt);
+
+      // Rotation: angVel as a 3-vector (axis from direction, speed from magnitude).
+      const angSpeed=u.angVel.length();
+      if(angSpeed>1e-4){
+        _axisVec.copy(u.angVel).multiplyScalar(1/angSpeed);
+        _qDelta.setFromAxisAngle(_axisVec,angSpeed*dt);
+        d.quaternion.premultiply(_qDelta).normalize();
+      }
+
+      // Ground collision: project 8 box corners to world Y, find lowest.
+      let minY=Infinity;
+      for(const c of u.corners){
+        u._v.copy(c).applyQuaternion(d.quaternion);
+        const y=u._v.y+d.position.y;
+        if(y<minY)minY=y;
+      }
+      if(minY<0){
+        d.position.y-=minY;                          // push back to ground
+        if(u.vel.y<0){
+          u.vel.y*=-PHYS_GROUND.groundRestitution;   // bounce
+          u.vel.x*=PHYS_GROUND.groundFriction;       // friction
+          u.vel.z*=PHYS_GROUND.groundFriction;
+          u.angVel.multiplyScalar(PHYS_GROUND.angDamp);
+        }
+      }
     }
   }
 
   // ── Physics: lift capped, sink-rate floored ─────────────────────────
-  // Goal: real glide. Plane should descend slowly with wings, never accelerate up
-  // beyond gravity recovery. Sink-rate floor prevents rock-fall when slow.
   const PHYS={
     gravity:9.8,
-    drag_coef:0.0055,                     // higher → speed bleeds quicker
-    lift_coef_per_wing:0.0090,            // raw coef before cap
-    lift_cap_factor:0.78,                 // max lift = 0.78 × gravity per wing-pair, prevents climb
+    drag_coef:0.0055,
+    lift_coef_per_wing:0.0090,
+    lift_cap_factor:0.78,
     asymmetric_roll:1.6,
     pitch_align_with_tail:5.0,
     pitch_align_no_tail:0.7,
     nose_dive_no_tail:1.4,
-    sink_rate_2_wings:6.5,                // m/s max descent with 2 wings
+    sink_rate_2_wings:6.5,
     sink_rate_1_wing:11.0,
     max_throw_speed:30,
     min_throw_speed:9,
+    // Pitch input (↑/↓): rotates fuselage nose up/down (offset from natural trim).
+    // The angle-of-attack (fuselage pitch − velocity pitch) is used as a lift multiplier,
+    // so lifting the nose climbs the plane via lift, not via raw vy.
+    pitch_offset_max:0.45,                // max ±26° nose offset
+    aoa_lift_gain:1.6,                    // AoA = +0.4 rad gives ×1.64 lift
+    aoa_clamp:0.40,
+    yaw_input_force:5.5,
+    roll_visual:0.55,
+    z_drag:0.7,
   };
 
+  // Keyboard input
+  const keys={ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false,KeyW:false,KeyS:false,KeyA:false,KeyD:false};
+  window.addEventListener('keydown',e=>{if(e.code in keys){keys[e.code]=true;e.preventDefault()}});
+  window.addEventListener('keyup',e=>{if(e.code in keys)keys[e.code]=false});
+  function up()    { return keys.ArrowUp    || keys.KeyW }
+  function down()  { return keys.ArrowDown  || keys.KeyS }
+  function left()  { return keys.ArrowLeft  || keys.KeyA }
+  function right() { return keys.ArrowRight || keys.KeyD }
+
   const state={
+    owned:{fuselage:true,wing_l:false,wing_r:false,upgrade:false},
     parts:{fuselage:true,wing_l:false,wing_r:false,tail:false},
+    coins:0,
     attempt:1,best:0,distance:0,
     phase:'aiming',
     vel:new THREE.Vector3(),
     rotVel:new THREE.Vector3(),
+    smoothedPitch:0,
+    smoothedYaw:0,
+    shake:{intensity:0,t:0},
   };
 
-  // HUD selectors (declared early so resetPlane below can use them)
+  function syncParts(){
+    // parts.tail (which gates stability/control) is true once both wings are owned.
+    state.parts.wing_l=state.owned.wing_l;
+    state.parts.wing_r=state.owned.wing_r;
+    state.parts.tail=state.owned.wing_l && state.owned.wing_r;
+    applyPartsVisuals(state.parts);
+  }
+
+  // HUD selectors
   const $=(s)=>document.querySelector(s);
-  const elDist=$('#distance'),elBest=$('#best'),elToast=$('#toast'),elTH=$('#toast-h'),elTS=$('#toast-s'),elHint=$('#hint'),elKmh=$('#kmh'),elArc=$('#speedo-arc'),elParts=$('#parts');
+  const elDist=$('#distance'),elBest=$('#best'),elToast=$('#toast'),elTH=$('#toast-h'),elTS=$('#toast-s'),elHint=$('#hint'),elKmh=$('#kmh'),elArc=$('#speedo-arc'),elParts=$('#parts'),elCoins=$('#coins-val'),elCoinPop=$('#coin-popup'),elCoinPopNum=$('#coin-popup-num'),elCta=$('#cta-play');
+
+  const PLAY_STORE_URL='https://play.google.com/store/apps/details?id=com.voodoo.airplaneevolution';
+  const COSTS={wing_l:50,wing_r:50,upgrade:150};
 
   function resetPlane(){
     planeGroup.position.set(0,3.5,0);
     planeGroup.rotation.set(0,0,0);
     state.vel.set(0,0,0);state.rotVel.set(0,0,0);
-    applyPartsVisuals(state.parts);
+    state.smoothedPitch=0;state.smoothedYaw=0;
+    syncParts();
     floatLabel.visible=false;
-    elParts.classList.remove('hidden');
+    if(!state.owned.upgrade) elParts.classList.remove('hidden');
   }
   resetPlane();
 
-  function launch(speedX,speedY){
+  function launch(speedX,speedY,speedZ=0){
     state.phase='flying';
     state.distance=0;
-    state.vel.set(speedX,speedY,0);
+    state.vel.set(speedX,speedY,speedZ);
     state.rotVel.set(0,0,0);
-    planeGroup.rotation.set(0,0,Math.atan2(speedY,speedX));
+    planeGroup.rotation.set(0,-Math.atan2(speedZ,Math.max(speedX,0.01)),Math.atan2(speedY,Math.max(speedX,0.01)));
     hideToast();hideHint();
     setFloatLabel('0M');floatLabel.visible=true;
     elParts.classList.add('hidden');
@@ -563,9 +807,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function crash(){
     state.phase='crashed';
     spawnDebris(planeGroup.position);
+    spawnCrashVfx(planeGroup.position);
     planeGroup.visible=false;
     floatLabel.visible=false;
     if(state.distance>state.best)state.best=state.distance;
+    // Award coins: 1 per meter travelled
+    const earned=Math.round(state.distance);
+    awardCoins(earned);
     showToast(verdict());
     state.attempt++;
     setTimeout(()=>{
@@ -575,67 +823,90 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       state.distance=0;
       updateHud();
       showHint();
-    },1400);
+    },2200);
   }
 
   function verdict(){
     const p=state.parts;
-    if(!p.wing_l && !p.wing_r) return {h:'No lift!',s:'Add at least one wing.'};
-    if(p.wing_l !== p.wing_r) return {h:'Asymmetric!',s:'Add the matching wing.'};
-    if(!p.tail) return {h:'Unstable',s:'Add a tail to stabilize pitch.'};
+    if(!p.wing_l && !p.wing_r) return {h:'No lift!',s:'Buy a wing.'};
+    if(p.wing_l !== p.wing_r) return {h:'Asymmetric!',s:'Buy the matching wing.'};
     if(state.distance>=state.best && state.best>0) return {h:'New record!',s:`${Math.round(state.distance)} m`};
-    return {h:'Crashed',s:`${Math.round(state.distance)} m. Try again.`};
+    return {h:'Crashed',s:`${Math.round(state.distance)} m`};
   }
 
   function step(dt){
     if(state.phase!=='flying') return;
     const p=state.parts;
     const wings=(p.wing_l?1:0)+(p.wing_r?1:0);
-    const vx=state.vel.x,vy=state.vel.y;
-    const speed=Math.hypot(vx,vy);
 
+    // ── Smoothed keyboard input ──────────────────────────────────────────
+    let pitchTarget=0, yawTarget=0;
+    if(p.tail){
+      if(up())    pitchTarget+=1;
+      if(down())  pitchTarget-=1;
+      if(left())  yawTarget-=1;
+      if(right()) yawTarget+=1;
+    }
+    const inputLerp=1-Math.exp(-dt*3.5);
+    state.smoothedPitch=lerp(state.smoothedPitch,pitchTarget,inputLerp);
+    state.smoothedYaw  =lerp(state.smoothedYaw,  yawTarget,  inputLerp);
+    // Yaw → lateral push (gentle drift)
+    state.vel.z+=state.smoothedYaw*PHYS.yaw_input_force*dt;
+
+    // Compute target fuselage pitch: natural trim (nose follows velocity) PLUS pilot offset.
+    const vx=state.vel.x,vy=state.vel.y;
+    const naturalPitch=Math.atan2(vy,Math.max(vx,0.01));
+    const pilotPitchOffset=state.smoothedPitch*PHYS.pitch_offset_max;
+    const targetPitch=naturalPitch+(p.tail?pilotPitchOffset:0);
+
+    // Apply pitch (eased)
+    if(!p.tail){
+      planeGroup.rotation.z+=(-Math.PI/4-planeGroup.rotation.z)*PHYS.nose_dive_no_tail*dt*0.4;
+    }else{
+      planeGroup.rotation.z=lerp(planeGroup.rotation.z,targetPitch,1-Math.exp(-dt*PHYS.pitch_align_with_tail*0.45));
+    }
+
+    // Compute angle-of-attack (AoA): fuselage_pitch − velocity_pitch.
+    // Positive AoA = nose above flight path → more lift (pull up effect).
+    const aoa=clamp(planeGroup.rotation.z-naturalPitch,-PHYS.aoa_clamp,PHYS.aoa_clamp);
+    const aoaLiftMul=1+aoa*PHYS.aoa_lift_gain;
+
+    const speed=Math.hypot(vx,vy);
     if(speed>0.01){
       const dirX=vx/speed,dirY=vy/speed;
       const perpX=-dirY,perpY=dirX;
       const speed2=speed*speed;
 
-      // drag
       const dragMag=PHYS.drag_coef*speed2;
       state.vel.x-=dirX*dragMag*dt;
       state.vel.y-=dirY*dragMag*dt;
 
-      // lift, capped at lift_cap_factor*g per wing-pair (so 2 wings ≈ 0.78g, never escapes gravity)
-      const rawLift=wings*PHYS.lift_coef_per_wing*speed2;
-      const liftCap=wings*PHYS.lift_cap_factor*PHYS.gravity*0.5;  // each wing contributes half of cap
+      const rawLift=wings*PHYS.lift_coef_per_wing*speed2*aoaLiftMul;
+      const liftCap=wings*PHYS.lift_cap_factor*PHYS.gravity*0.5*Math.max(aoaLiftMul,1);
       const liftMag=Math.min(rawLift,liftCap);
       state.vel.x+=perpX*liftMag*dt;
       state.vel.y+=perpY*liftMag*dt;
     }
 
-    // gravity
     state.vel.y-=PHYS.gravity*dt;
-
-    // sink-rate floor: with wings, the plane never falls faster than its terminal sink rate
     if(wings>=2 && state.vel.y<-PHYS.sink_rate_2_wings) state.vel.y=-PHYS.sink_rate_2_wings;
     else if(wings===1 && state.vel.y<-PHYS.sink_rate_1_wing) state.vel.y=-PHYS.sink_rate_1_wing;
+    state.vel.z-=state.vel.z*PHYS.z_drag*dt;
 
-    // nose dive without tail (forces pitch toward -45°, plane plummets nose-first)
-    if(!p.tail){
-      planeGroup.rotation.z+=(-Math.PI/4-planeGroup.rotation.z)*PHYS.nose_dive_no_tail*dt*0.4;
-    }else{
-      // pitch tracks velocity vector (smooth, immediate)
-      const targetPitch=Math.atan2(state.vel.y,Math.max(state.vel.x,0.01));
-      planeGroup.rotation.z=lerp(planeGroup.rotation.z,targetPitch,1-Math.pow(0.001,dt*PHYS.pitch_align_with_tail/6));
-    }
+    // yaw rotation (nose follows lateral velocity, eased)
+    const targetYaw=Math.atan2(state.vel.z,Math.max(state.vel.x,0.01));
+    planeGroup.rotation.y=lerp(planeGroup.rotation.y,-targetYaw,1-Math.exp(-dt*1.6));
 
-    // roll if asymmetric
+    // visual roll
+    let targetRoll=state.smoothedYaw*PHYS.roll_visual;
     if(p.wing_l !== p.wing_r){
       const dir=p.wing_l?1:-1;
       state.rotVel.x+=dir*PHYS.asymmetric_roll*dt;
     }
-    planeGroup.rotation.x+=state.rotVel.x*dt;
-    planeGroup.rotation.x=clamp(planeGroup.rotation.x,-1.6,1.6);
-    if(Math.abs(planeGroup.rotation.x)>0.5){state.vel.z+=Math.sin(planeGroup.rotation.x)*4*dt}
+    const baseRoll=planeGroup.rotation.x+state.rotVel.x*dt;
+    planeGroup.rotation.x=lerp(baseRoll,targetRoll,1-Math.exp(-dt*1.3));
+    // No clamp-crash anymore; just wrap visually
+    planeGroup.rotation.x=clamp(planeGroup.rotation.x,-3.5,3.5);
 
     planeGroup.position.addScaledVector(state.vel,dt);
     state.distance=Math.max(state.distance,planeGroup.position.x);
@@ -644,9 +915,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     floatLabel.lookAt(camera.position);
     setFloatLabel(Math.round(state.distance)+'M');
 
+    // Only ground impact crashes; asymmetry & rolling no longer end the run.
     if(planeGroup.position.y<=0.4){crash();return}
-    if(Math.abs(planeGroup.rotation.x)>1.4){crash();return}
-    if(state.vel.x<-2 && planeGroup.position.x<state.distance-3){crash();return}
   }
 
   // ── Camera ───────────────────────────────────────────────────────────
@@ -665,6 +935,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     camPos.lerp(ideal,1-Math.pow(0.001,dt*1.6));
     camTarget.lerp(lookAt,1-Math.pow(0.001,dt*2.2));
     camera.position.copy(camPos);
+
+    // Camera rumble (decays linearly over ~0.5s)
+    if(state.shake.intensity>0){
+      state.shake.t+=dt;
+      const decay=Math.max(0,1-state.shake.t/0.85);
+      const k=state.shake.intensity*decay;
+      camera.position.x+=(Math.random()-0.5)*k*0.6;
+      camera.position.y+=(Math.random()-0.5)*k*0.6;
+      camera.position.z+=(Math.random()-0.5)*k*0.6;
+      if(decay<=0){state.shake.intensity=0;state.shake.t=0}
+    }
     camera.lookAt(camTarget);
   }
 
@@ -682,10 +963,76 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function showHint(){elHint.classList.remove('hidden')}
   function hideHint(){elHint.classList.add('hidden')}
 
-  for(const el of document.querySelectorAll('.part:not(.locked)')){
-    el.addEventListener('click',(e)=>{e.stopPropagation();if(state.phase==='flying')return;const id=el.dataset.id;state.parts[id]=!state.parts[id];el.classList.toggle('on',state.parts[id]);applyPartsVisuals(state.parts)});
+  // ── Shop: parts cost coins, owned state is sticky ────────────────────
+  function refreshShopUI(){
+    elCoins.textContent=state.coins;
+    for(const el of document.querySelectorAll('.part:not(.locked)')){
+      const id=el.dataset.id;
+      const owned=!!state.owned[id];
+      const cost=COSTS[id]??0;
+      const canAfford=state.coins>=cost;
+      el.classList.toggle('owned',owned);
+      el.classList.toggle('affordable',!owned && canAfford);
+      el.classList.toggle('cantafford',!owned && !canAfford);
+      const valEl=el.querySelector('.val');
+      if(owned){
+        valEl.innerHTML='<span style="color:#22c55e;font-weight:900">✓ OWNED</span>';
+      }else{
+        valEl.classList.add('cost');
+        valEl.innerHTML=`<span class="coin"></span><span class="num">${cost}</span>`;
+      }
+    }
+    // Trigger CTA when upgrade is owned
+    if(state.owned.upgrade){
+      elParts.classList.add('hidden');
+      elCta.classList.add('show');
+    }
   }
-  for(const el of document.querySelectorAll('.part')){const id=el.dataset.id;el.classList.toggle('on',!!state.parts[id])}
+  for(const el of document.querySelectorAll('.part:not(.locked)')){
+    el.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      if(state.phase==='flying')return;
+      const id=el.dataset.id;
+      if(state.owned[id])return;
+      const cost=COSTS[id]??0;
+      if(state.coins<cost){
+        // shake the button to indicate insufficient
+        el.animate([{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:200});
+        return;
+      }
+      state.coins-=cost;
+      state.owned[id]=true;
+      syncParts();
+      if(id==='upgrade') applyUpgradeStats();
+      refreshShopUI();
+    });
+  }
+  elCta.addEventListener('click',()=>{
+    try{window.open(PLAY_STORE_URL,'_blank','noopener,noreferrer')}catch(e){location.href=PLAY_STORE_URL}
+  });
+  refreshShopUI();
+
+  function applyUpgradeStats(){
+    // Upgrade boosts performance + visual gold tint
+    PHYS.lift_coef_per_wing*=1.40;
+    PHYS.lift_cap_factor*=1.20;
+    PHYS.max_throw_speed*=1.20;
+    PHYS.sink_rate_2_wings*=0.7;
+    assembly.recolor('body',0xe8a93c);   // golden body
+    assembly.recolor('tail',0xe8a93c);
+    assembly.recolor('wing',0xfff3c6);   // pale gold wings
+  }
+
+  function awardCoins(amount){
+    if(amount<=0)return;
+    state.coins+=amount;
+    elCoinPopNum.textContent='+'+amount;
+    elCoinPop.classList.remove('show');
+    void elCoinPop.offsetWidth;
+    elCoinPop.classList.add('show');
+    setTimeout(()=>{elCoinPop.classList.remove('show')},1500);
+    refreshShopUI();
+  }
 
   // ── Drag-and-release with FULL angular direction ─────────────────────
   // Launch direction = inverse of drag (atan2 of dy, -dx).
@@ -714,19 +1061,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const px=Math.hypot(dx,dy);
     drag=null;clearDragVis();
     if(px<24)return;
-    // Power
-    const power=clamp((px-24)/(220-24),0,1);
+    const maxDrag=220;
+    const power=clamp((px-24)/(maxDrag-24),0,1);
     const speed=lerp(PHYS.min_throw_speed,PHYS.max_throw_speed,power);
-    // Direction: the drag goes from start to current, the launch goes the OPPOSITE way.
-    // Screen coord: x→right, y→down. World: X→forward, Y→up.
-    // Launch world.x  =  -dx (drag right means launch left; drag left means launch right/forward)
-    // Launch world.y  =  +dy (drag down means launch up)
-    // Then clamp the angle to forward half-plane: -15° to +60°.
-    const wx=-dx, wy=dy;
-    const angleRaw=Math.atan2(wy,wx);
-    const angle=clamp(angleRaw,-0.26,1.05);  // -15° to +60°
-    const sx=speed*Math.cos(angle), sy=speed*Math.sin(angle);
-    launch(sx,sy);
+
+    // 3D launch from a 2D drag.
+    //   Pitch (vertical angle): from dy normalized.  drag down (dy>0) → throw up.
+    //   Yaw   (lateral angle):  from dx normalized.  drag right (dx>0) → throw left (-Z).
+    //   Forward speed always positive (we always go +X).
+    const yNorm=clamp(dy/maxDrag,-1,1);
+    const xNorm=clamp(dx/maxDrag,-1,1);
+    const pitch=clamp(yNorm*1.05,-0.20,1.05);   // -11° to +60°
+    const yaw  =-xNorm*0.55;                     // ±31°
+    const sx=speed*Math.cos(pitch)*Math.cos(yaw);
+    const sy=speed*Math.sin(pitch);
+    const sz=speed*Math.cos(pitch)*Math.sin(yaw);
+    launch(sx,sy,sz);
   }
   function updateDragVis(){
     if(!drag)return;
@@ -748,6 +1098,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const dt=Math.min(0.05,(t-last)/1000);last=t;
     step(dt);
     stepDebris(dt);
+    stepCrashVfx(dt);
     followCamera(dt);
     assembly.spinPropeller(dt);
     updateHud();
