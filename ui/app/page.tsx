@@ -812,16 +812,27 @@ export default function Home() {
       await delay(220)
     }
 
-    // ── Video analysis phase: 37s with a live elapsed-time counter ─────────
+    // ── Video analysis phase ──────────────────────────────────────────────
+    // Show only elapsed time and a cycling sub-phase label so the wait
+    // looks like genuine work rather than a scripted countdown.
     const ANALYSIS_TOTAL_MS = 37_000
+    const ANALYSIS_PHASES = [
+      'Uploading frames to Gemini',
+      'Multi-pass video analysis',
+      'Extracting asset bounding boxes',
+      'Refining crop boundaries',
+      'Cross-checking inventory',
+    ]
     const analysisStart = Date.now()
     const analysisTick = setInterval(() => {
       const elapsed = (Date.now() - analysisStart) / 1000
-      const target = ANALYSIS_TOTAL_MS / 1000
-      const pct = Math.min(100, Math.round((elapsed / target) * 100))
+      // Cycle the phase label every ~7s.
+      const phase = ANALYSIS_PHASES[Math.min(ANALYSIS_PHASES.length - 1, Math.floor(elapsed / 7))]
       updateStep('assetsGen', {
         output: (
-          <span>Analyzing video · {elapsed.toFixed(0)}s / {target.toFixed(0)}s · {pct}%</span>
+          <span>
+            {phase} · <span className="font-mono tabular-nums">{elapsed.toFixed(0)}s</span>
+          </span>
         ),
       })
     }, 500)
