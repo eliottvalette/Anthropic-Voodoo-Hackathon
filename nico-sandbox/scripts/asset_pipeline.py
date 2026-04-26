@@ -636,15 +636,70 @@ def wait_for_file(client: genai.Client, name: str, timeout_s: int = 600) -> Any:
     raise TimeoutError(f"Timed out waiting for Gemini file {name}")
 
 
+def upload_video_resilient(client: genai.Client, video_path: Path, max_attempts: int = 3) -> Any:
+    """Upload a video to Gemini Files API, with recovery for the common
+    failure mode where a previous failed run left a stale upload session
+    that the SDK then rejects with `400 Upload has already <…>`.
+
+    On that specific error we:
+      1. Try to find an existing ACTIVE file with the same displayName via
+         client.files.list() and reuse its URI.
+      2. If we find one but it's still PROCESSING/FAILED, delete it and
+         retry from scratch.
+      3. Otherwise, sleep and retry.
+    """
+    display_name = video_path.name
+    last_err: Exception | None = None
+    for attempt in range(max_attempts):
+        try:
+            return client.files.upload(
+                file=str(video_path),
+                config=types.UploadFileConfig(mimeType="video/mp4", displayName=display_name),
+            )
+        except Exception as exc:
+            last_err = exc
+            err_str = str(exc)
+            print(f"[asset_pipeline] Video upload attempt {attempt + 1}/{max_attempts} failed: {err_str[:200]}")
+
+            if "already" in err_str.lower():
+                # Look for an existing file with the same displayName.
+                try:
+                    matching = []
+                    for existing in client.files.list():
+                        if getattr(existing, "display_name", None) == display_name:
+                            matching.append(existing)
+                    if matching:
+                        # Sort by create_time desc, take the most recent.
+                        matching.sort(key=lambda f: str(getattr(f, "create_time", "")), reverse=True)
+                        candidate = matching[0]
+                        state = str(getattr(candidate, "state", "")).lower()
+                        if "active" in state or state.endswith("state_active"):
+                            print(f"[asset_pipeline] Reusing existing Gemini file: {candidate.name}")
+                            return candidate
+                        # Not yet active — wait once, then reuse if it lands.
+                        try:
+                            return wait_for_file(client, candidate.name, timeout_s=120)
+                        except Exception:
+                            # Still not ready; clean it up so the retry doesn't conflict.
+                            try:
+                                client.files.delete(name=candidate.name)
+                                print(f"[asset_pipeline] Deleted stale file: {candidate.name}")
+                            except Exception as del_exc:
+                                print(f"[asset_pipeline] Could not delete stale file: {del_exc}")
+                except Exception as list_exc:
+                    print(f"[asset_pipeline] Could not list existing files: {list_exc}")
+
+            # Backoff before retry.
+            time.sleep(2 * (2 ** attempt))
+    raise RuntimeError(f"Video upload failed after {max_attempts} attempts: {last_err}")
+
+
 def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> dict[str, Any]:
     client = gemini_client()
     manifests_dir = output_dir / "manifests"
     manifests_dir.mkdir(parents=True, exist_ok=True)
 
-    uploaded = client.files.upload(
-        file=str(video_path),
-        config=types.UploadFileConfig(mimeType="video/mp4", displayName=video_path.name),
-    )
+    uploaded = upload_video_resilient(client, video_path)
     uploaded = wait_for_file(client, uploaded.name)
 
     part = types.Part(
