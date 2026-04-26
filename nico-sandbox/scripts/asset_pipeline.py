@@ -594,7 +594,9 @@ def padded_box(
 
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(path)
 
 
 def read_json(path: Path) -> Any:

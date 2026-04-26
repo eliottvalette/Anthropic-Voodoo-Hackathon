@@ -92,6 +92,7 @@ class ScenarioClient:
         self.config = config
         self.poll_interval_s = poll_interval_s
         self.timeout_s = timeout_s
+        self.session = requests.Session()
 
     def headers(self, *, json_content: bool = True) -> dict[str, str]:
         headers: dict[str, str] = {}
@@ -112,9 +113,29 @@ class ScenarioClient:
     def request_json(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         params = dict(kwargs.pop("params", {}) or {})
         params.setdefault("projectId", self.config.project_id)
-        response = requests.request(method, self._url(path), params=params, timeout=120, **kwargs)
-        if response.status_code >= 400:
+        backoff_s = 1.0
+        response = None
+        for attempt in range(4):  # 1 initial + 3 retries
+            response = self.session.request(method, self._url(path), params=params, timeout=120, **kwargs)
+            if response.status_code < 400:
+                break
+            if response.status_code in (429, 502, 503, 504) and attempt < 3:
+                retry_after = response.headers.get("Retry-After")
+                sleep_s = (
+                    float(retry_after)
+                    if retry_after and retry_after.replace(".", "").replace("-", "").isdigit()
+                    else backoff_s
+                )
+                time.sleep(min(sleep_s, 30.0))
+                backoff_s *= 2
+                continue
+            # Non-retryable 4xx OR exhausted retries
             raise RuntimeError(f"Scenario API {method} {path} failed: {response.status_code} {response.text}")
+        if response is None or response.status_code >= 400:
+            raise RuntimeError(
+                f"Scenario API {method} {path} failed after retries: "
+                f"{response.status_code if response is not None else 'no response'}"
+            )
         if not response.text:
             return {}
         return response.json()
@@ -148,7 +169,7 @@ class ScenarioClient:
         upload_id = upload["id"]
         part = upload["parts"][0]
         with path.open("rb") as handle:
-            put_response = requests.put(part["url"], data=handle, timeout=300)
+            put_response = self.session.put(part["url"], data=handle, timeout=300)
         if put_response.status_code >= 400:
             raise RuntimeError(f"Scenario presigned upload failed: {put_response.status_code} {put_response.text}")
         self.request_json("POST", f"/uploads/{upload_id}/action", headers=self.headers(), json={"action": "complete"})
@@ -196,7 +217,7 @@ class ScenarioClient:
 
     def download_asset(self, asset_id: str, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        response = requests.get(self.asset_url(asset_id), timeout=300)
+        response = self.session.get(self.asset_url(asset_id), timeout=300)
         if response.status_code >= 400:
             raise RuntimeError(f"Failed to download Scenario asset {asset_id}: {response.status_code} {response.text}")
         output_path.write_bytes(response.content)

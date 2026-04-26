@@ -188,7 +188,24 @@ def process_assets(args: argparse.Namespace, run_dir: Path, items: list[dict[str
                 item = future_to_item[future]
                 asset_id = str(item.get("asset_id"))
                 route = asset_factories.route_for_item(item)
-                result = future.result()
+                if future.cancelled():
+                    # Future was cancelled by pool.shutdown(cancel_futures=True)
+                    # in a previous iteration after stop-on-error fired. Skip
+                    # silently — the original error is already captured in
+                    # first_error and will be raised below.
+                    continue
+                try:
+                    result = future.result()
+                except Exception as exc:  # CancelledError or unhandled bug in _process
+                    result = {
+                        "asset_id": asset_id,
+                        "name": item.get("name"),
+                        "category": item.get("category"),
+                        "route": route,
+                        "source_crop": item.get("crop_path"),
+                        "error": f"{type(exc).__name__}: {exc}",
+                        "traceback": traceback.format_exc(),
+                    }
                 with checkpoint_lock:
                     results = merge_result(results, result)
                     completed_so_far += 1
@@ -202,6 +219,11 @@ def process_assets(args: argparse.Namespace, run_dir: Path, items: list[dict[str
                             first_error = RuntimeError(
                                 f"asset {asset_id} failed: {result['error']}"
                             )
+                            # Cancel any not-yet-started futures so we don't keep dispatching
+                            # new Scenario jobs after deciding to abort. In-flight HTTP
+                            # requests can't be aborted (no AbortController in `requests`),
+                            # but no new ones will be issued.
+                            pool.shutdown(wait=False, cancel_futures=True)
                     else:
                         completed_ids.add(asset_id)
                         print(
