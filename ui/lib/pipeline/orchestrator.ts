@@ -16,6 +16,7 @@ import type {
   StageEvent,
   SubCallEvent,
   RunMeta,
+  GeneratedAssetMetadata,
 } from './types'
 
 export type RunInput = {
@@ -28,6 +29,7 @@ export type RunInput = {
   // (e.g. our nico-sandbox asset-generation step) and feed the result in
   // here, so the user's wait covers both rather than running them serially.
   precomputedVideoAnalysis?: VideoAnalysis
+  generatedAssetMetadata?: GeneratedAssetMetadata[]
 }
 
 export type RunCallbacks = {
@@ -148,7 +150,7 @@ export async function runPipeline(input: RunInput, cbs: RunCallbacks = {}): Prom
   announce('codegen')
   let codegen: CodegenResult
   try {
-    codegen = await runP4Codegen(gameSpec!, codegenPrompt, input.assetFiles, variant, subs => progress('codegen', subs))
+    codegen = await runP4Codegen(gameSpec!, codegenPrompt, input.assetFiles, input.generatedAssetMetadata, variant, subs => progress('codegen', subs))
     meta.codegen = codegen
     done('codegen', codegen)
   } catch (e) { fail('codegen', e); throw e }

@@ -18,7 +18,7 @@ import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { runP1Video } from '@/lib/pipeline/p1-video'
 import { saveRun } from '@/lib/runs/store'
-import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, RunMeta, StageId } from '@/lib/pipeline/types'
+import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, RunMeta, StageId, GeneratedAssetMetadata } from '@/lib/pipeline/types'
 import type { ImportedAssetFile } from '@/utils/assetCoverage'
 import { fetchGeneratedAssetFiles, mergeAssetFiles } from '@/utils/sandboxAssets'
 import type { SandboxManifest } from '@/utils/sandboxTypes'
@@ -615,14 +615,18 @@ export default function Home() {
   }, [videoFiles, assetFiles, activateStep, completeStep, awaitStep, acceptStep, waitForReview])
 
   // ── Real run ────────────────────────────────────────────────────────────────
-  const runReal = useCallback(async (overrideAssets?: File[], precomputedVideoAnalysis?: VideoAnalysis) => {
+  const runReal = useCallback(async (
+    overrideAssets?: File[],
+    precomputedVideoAnalysis?: VideoAnalysis,
+    generatedAssetMetadata?: GeneratedAssetMetadata[],
+  ) => {
     const videoFile = videoFiles[0]
     const effectiveAssets = overrideAssets ?? assetFiles
     setErrorMsg(null)
 
     try {
       const meta = await runPipeline(
-        { videoFile, assetFiles: effectiveAssets, variant: '_default', userBrief: userBrief.trim() || undefined, precomputedVideoAnalysis },
+        { videoFile, assetFiles: effectiveAssets, variant: '_default', userBrief: userBrief.trim() || undefined, precomputedVideoAnalysis, generatedAssetMetadata },
         {
           onStageStart: (s) => activateStep(s),
           onStageProgress: (s, subs) => setSubCallsByStage(prev => ({ ...prev, [s]: subs })),
@@ -877,9 +881,12 @@ export default function Home() {
       // alongside the user's original imports. Without this, generated
       // assets sit on disk and the rest of the pipeline is blind to them.
       let pipelineAssets = assetFiles
+      let generatedAssetMetadata: GeneratedAssetMetadata[] = []
       try {
-        const generated = await fetchGeneratedAssetFiles(activeRunId)
-        pipelineAssets = mergeAssetFiles(assetFiles, generated)
+        const hydrated = await fetchGeneratedAssetFiles(activeRunId)
+        const merged = mergeAssetFiles(assetFiles, hydrated)
+        pipelineAssets = merged.files
+        generatedAssetMetadata = merged.metadata
       } catch (err) {
         // Hydration failure is non-fatal — we still try the pipeline with
         // the user imports only, and surface a soft warning.
@@ -896,7 +903,7 @@ export default function Home() {
         // remaining seconds. If P1 errored we pass undefined and the
         // orchestrator falls back to running it itself.
         const precomputedVideoAnalysis = await videoAnalysisPromise
-        await runReal(pipelineAssets, precomputedVideoAnalysis)
+        await runReal(pipelineAssets, precomputedVideoAnalysis, generatedAssetMetadata)
       }
     } finally {
       setIsRunning(false)

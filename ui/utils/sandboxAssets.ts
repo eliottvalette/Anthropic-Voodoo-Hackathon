@@ -7,6 +7,19 @@
 
 import type { SandboxManifest } from './sandboxTypes'
 
+export type GeneratedAssetMetadata = {
+  asset_id: string
+  filename: string         // matches the corresponding File.name in the returned files[]
+  name?: string            // human display name, e.g. "Main Background Plate"
+  category?: string
+  visual_description?: string
+}
+
+export type HydratedAssets = {
+  files: File[]
+  metadata: GeneratedAssetMetadata[]   // 1:1 ordering with files
+}
+
 const MIME_BY_EXT: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
@@ -29,7 +42,7 @@ function filenameFromAsset(assetId: string, sourceUrl: string): string {
   return `${assetId}.${safeExt}`
 }
 
-export async function fetchGeneratedAssetFiles(runId: string): Promise<File[]> {
+export async function fetchGeneratedAssetFiles(runId: string): Promise<HydratedAssets> {
   const response = await fetch(
     `/api/sandbox/manifest?run=${encodeURIComponent(runId)}`,
     { cache: 'no-store' },
@@ -38,9 +51,9 @@ export async function fetchGeneratedAssetFiles(runId: string): Promise<File[]> {
   const manifest = (await response.json()) as SandboxManifest
 
   const targets = manifest.assets.filter(asset => asset.status === 'done' && !!asset.final_url)
-  if (targets.length === 0) return []
+  if (targets.length === 0) return { files: [], metadata: [] }
 
-  const files = await Promise.all(
+  const entries = await Promise.all(
     targets.map(async asset => {
       const url = asset.final_url as string
       const fetchResp = await fetch(url, { cache: 'no-store' })
@@ -50,16 +63,36 @@ export async function fetchGeneratedAssetFiles(runId: string): Promise<File[]> {
       const blob = await fetchResp.blob()
       const filename = filenameFromAsset(asset.asset_id, url)
       const type = blob.type || inferMime(url, 'image/png')
-      return new File([blob], filename, { type })
+      const file = new File([blob], filename, { type })
+      const metadata: GeneratedAssetMetadata = {
+        asset_id: asset.asset_id,
+        filename,
+        name: asset.name,
+        category: asset.category,
+        visual_description: asset.visual_description,
+      }
+      return { file, metadata }
     }),
   )
-  return files
+  return {
+    files: entries.map(e => e.file),
+    metadata: entries.map(e => e.metadata),
+  }
 }
 
 // User-imported files take precedence over generated ones with the same
 // filename, so the user can override a generation by uploading their own.
-export function mergeAssetFiles(userFiles: File[], generated: File[]): File[] {
+export function mergeAssetFiles(
+  userFiles: File[],
+  hydrated: HydratedAssets,
+): { files: File[]; metadata: GeneratedAssetMetadata[] } {
   const seen = new Set(userFiles.map(f => f.name.toLowerCase()))
-  const extras = generated.filter(f => !seen.has(f.name.toLowerCase()))
-  return [...userFiles, ...extras]
+  const keep: File[] = []
+  const keepMeta: GeneratedAssetMetadata[] = []
+  for (let i = 0; i < hydrated.files.length; i++) {
+    if (seen.has(hydrated.files[i].name.toLowerCase())) continue
+    keep.push(hydrated.files[i])
+    keepMeta.push(hydrated.metadata[i])
+  }
+  return { files: [...userFiles, ...keep], metadata: keepMeta }
 }

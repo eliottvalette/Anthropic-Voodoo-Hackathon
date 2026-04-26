@@ -49,6 +49,14 @@ export type GameSpec = {
   [k: string]: unknown
 }
 
+export type GeneratedAssetMetadata = {
+  asset_id: string
+  filename: string
+  name?: string
+  category?: string
+  visual_description?: string
+}
+
 export type VerifyReport = {
   runs: boolean
   sizeOk: boolean

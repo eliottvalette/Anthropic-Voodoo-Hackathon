@@ -10,7 +10,7 @@ import { ANTHROPIC_MODELS, anthropicGenerate } from './anthropic-client'
 import { buildAssetsBlock, injectAssets } from './assemble'
 import { loadPrompt } from './prompts'
 import { verifyInIframe } from './verify-iframe'
-import type { CodegenResult, GameSpec, SubCallEvent } from './types'
+import type { CodegenResult, GameSpec, GeneratedAssetMetadata, SubCallEvent } from './types'
 
 export type P4Progress = (calls: SubCallEvent[]) => void
 
@@ -20,6 +20,7 @@ export async function runP4Codegen(
   gameSpec: GameSpec,
   codegenPrompt: string | undefined,
   assets: File[],
+  generatedAssetMetadata: GeneratedAssetMetadata[] | undefined,
   variant: string,
   onProgress: P4Progress
 ): Promise<CodegenResult> {
@@ -49,6 +50,18 @@ export async function runP4Codegen(
     mraidOk: false, mechanicStringMatch: false, interactionStateChange: false, htmlBytes: 0,
   }
 
+  // Force the role map to use asset_ids as keys (matching what the codegen
+  // prompt will tell the model to reference). This bypasses P2/P3
+  // hallucinating generic battle-game role names ('background', 'ground',
+  // 'hud_badge_vs', etc.) when the actual game has semantic asset_ids
+  // like 'bg_main_plate', 'game_grid_8x8', 'block_pink_heart'.
+  const effectiveAssetRoleMap: GameSpec['asset_role_map'] =
+    generatedAssetMetadata && generatedAssetMetadata.length > 0
+      ? Object.fromEntries(
+          generatedAssetMetadata.map(m => [m.asset_id, m.filename]),
+        )
+      : gameSpec.asset_role_map
+
   let attempt = 0
   while (attempt <= MAX_RETRIES) {
     attempt++
@@ -70,6 +83,18 @@ export async function runP4Codegen(
     const baseUserMessage = codegenPrompt && codegenPrompt.trim()
       ? codegenPrompt
       : JSON.stringify({ game_spec: gameSpec })
+
+    const assetSection = generatedAssetMetadata && generatedAssetMetadata.length > 0
+      ? '# Available assets — REQUIRED USAGE\n' +
+        'These assets are pre-loaded into a global `const A`. Reference them ONLY as `A.<asset_id>` — never invent role names. Every asset listed below WILL be available at runtime.\n\n' +
+        generatedAssetMetadata.map(m => {
+          const desc = m.visual_description || m.name || m.asset_id
+          const cat = m.category ? ` [${m.category}]` : ''
+          return `- A.${m.asset_id}${cat}: ${desc}`
+        }).join('\n') +
+        '\n\nDo not reference any A.<role> that is not in the list above.\n\n---\n\n'
+      : ''
+
     const retryAddendum = attempt > 1
       ? `\n\n# Retry context (attempt ${attempt})\nThe previous output failed verification. Fix:\n${
           Object.entries(buildFailureContext(report))
@@ -77,7 +102,7 @@ export async function runP4Codegen(
             .join('\n')
         }`
       : ''
-    const userPayload = baseUserMessage + retryAddendum
+    const userPayload = assetSection + baseUserMessage + retryAddendum
     const r = await anthropicGenerate<unknown>(
       userPayload,
       {
@@ -97,7 +122,7 @@ export async function runP4Codegen(
     // the playable's JS references undefined `A.<role>` symbols → blank
     // canvas → verify fails. Ported from proto-pipeline-m/assemble.ts.
     try {
-      const assetsBlock = await buildAssetsBlock(gameSpec.asset_role_map, assets)
+      const assetsBlock = await buildAssetsBlock(effectiveAssetRoleMap, assets)
       html = injectAssets(html, assetsBlock)
     } catch (err) {
       console.warn('[p4] asset injection failed; HTML may have undefined A.<role> refs:', err)
