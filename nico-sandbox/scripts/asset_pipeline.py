@@ -702,27 +702,39 @@ UPLOAD_HARD_TIMEOUT_S = 90  # cap each Gemini upload attempt; raise instead of h
 
 
 def _video_duration_seconds(video_path: Path) -> float:
-    """Probe duration with ffprobe (shipped alongside imageio_ffmpeg)."""
+    """Probe duration via ffmpeg's stderr output. imageio_ffmpeg only ships
+    `ffmpeg` (no `ffprobe`), so we run `ffmpeg -i <video>` (which exits
+    non-zero with no output but prints metadata to stderr) and parse the
+    "Duration: HH:MM:SS.ss" line."""
     try:
-        ffprobe = imageio_ffmpeg.get_ffmpeg_exe().replace("ffmpeg", "ffprobe")
-        out = subprocess.check_output(
-            [ffprobe, "-v", "error", "-show_entries", "format=duration",
-             "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
+        result = subprocess.run(
+            [ffmpeg_path(), "-hide_banner", "-i", str(video_path)],
+            capture_output=True,
             timeout=15,
         )
-        return float(out.decode().strip() or "0") or 30.0
+        stderr_text = (result.stderr or b"").decode("utf-8", errors="replace")
+        match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", stderr_text)
+        if match:
+            h, m, s = match.groups()
+            return int(h) * 3600 + int(m) * 60 + float(s)
     except Exception:
-        return 30.0  # safe default if ffprobe unavailable; gives 30s window for sampling
+        pass
+    # If we can't probe, assume a short clip — better to oversample the
+    # start than to seek past EOF and fail.
+    return 10.0
 
 
 def _sample_frames_jpeg(video_path: Path, count: int, max_width: int = 1280) -> list[bytes]:
     duration = _video_duration_seconds(video_path)
+    # Safety margin: leave a 0.2s buffer at the end so we never seek past
+    # the last keyframe even if the duration probe is slightly optimistic.
+    safe_duration = max(0.5, duration - 0.2)
     out_bytes: list[bytes] = []
     tmp_dir = video_path.parent / ".claude_frames_tmp"
     tmp_dir.mkdir(exist_ok=True)
     try:
         for i in range(count):
-            t = (duration * (i + 0.5)) / max(1, count)
+            t = (safe_duration * (i + 0.5)) / max(1, count)
             tmp = tmp_dir / f"frame_{i:03d}.jpg"
             cmd = [
                 ffmpeg_path(), "-hide_banner", "-loglevel", "error", "-y",
@@ -732,8 +744,15 @@ def _sample_frames_jpeg(video_path: Path, count: int, max_width: int = 1280) -> 
                 "-q:v", "4",
                 str(tmp),
             ]
-            subprocess.run(cmd, check=True, timeout=30)
-            out_bytes.append(tmp.read_bytes())
+            try:
+                subprocess.run(cmd, check=True, timeout=30)
+                out_bytes.append(tmp.read_bytes())
+            except subprocess.CalledProcessError as exc:
+                # ffmpeg failed at this timestamp (e.g. seek past EOF on
+                # short videos). Skip this frame and continue — better to
+                # send Claude N-1 frames than to crash the whole pipeline.
+                print(f"[asset_pipeline] frame extraction failed at t={t:.3f}s (skipping): {exc}")
+                continue
     finally:
         for f in tmp_dir.glob("frame_*.jpg"):
             try:
@@ -744,6 +763,8 @@ def _sample_frames_jpeg(video_path: Path, count: int, max_width: int = 1280) -> 
             tmp_dir.rmdir()
         except Exception:
             pass
+    if not out_bytes:
+        raise RuntimeError(f"Could not extract any frames from {video_path}")
     return out_bytes
 
 
