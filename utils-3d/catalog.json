@@ -1,0 +1,153 @@
+{
+  "version": "0.1.0",
+  "description": "3D playable building blocks — Three.js. Each preview rotates the live mesh in a small canvas.",
+  "categories": [
+    {
+      "id": "models",
+      "label": "Models",
+      "description": "Procedural Three.js meshes — modular plane assembly + low-poly environment props.",
+      "items": [
+        {
+          "name": "fuselage",
+          "kind": "3d",
+          "builder": "fuselage",
+          "description": "Tapered cylinder body + nose cone + tail cap + cockpit dome + 3-blade propeller + landing gear.",
+          "tags": ["plane", "core", "modular"]
+        },
+        {
+          "name": "wing",
+          "kind": "3d",
+          "builder": "wing",
+          "description": "Trapezoidal swept wing (span 1.5, chord 0.95→0.6 tip, sweep back 0.25). Solid 8-vertex extrusion.",
+          "tags": ["plane", "lift", "modular"]
+        },
+        {
+          "name": "tail",
+          "kind": "3d",
+          "builder": "tail",
+          "description": "Vertical fin + 2 horizontal stabilisers, swept trapezoidal shapes.",
+          "tags": ["plane", "stability", "modular"]
+        },
+        {
+          "name": "tree",
+          "kind": "3d",
+          "builder": "tree",
+          "description": "Bushy low-poly tree: tapered cylinder trunk + 2 icosphere foliage blobs, vertex-colour tints.",
+          "tags": ["env", "instanced"]
+        },
+        {
+          "name": "grass-tuft",
+          "kind": "3d",
+          "builder": "grass",
+          "description": "Procedural canvas-textured plane: 7 gradient blades per tuft, alpha-tested.",
+          "tags": ["env", "instanced"]
+        },
+        {
+          "name": "fence-marker",
+          "kind": "3d",
+          "builder": "fence",
+          "description": "Distance milestone: 7 wooden poles + cross-beam + checkered banner above.",
+          "tags": ["env", "marker"]
+        }
+      ]
+    },
+    {
+      "id": "vfx",
+      "label": "VFX",
+      "description": "3D crash explosion + camera rumble (port of LowPolyWar destruction).",
+      "items": [
+        {
+          "name": "crash-explosion",
+          "kind": "code",
+          "description": "Flash icosa + fire core + ring shockwave + scorch decal + point light + dust puffs. ~140 LOC.",
+          "tags": ["explosion", "additive"]
+        },
+        {
+          "name": "camera-shake",
+          "kind": "code",
+          "description": "Decay-based jitter on camera position over 850ms. Intensity 1.6 on impact.",
+          "tags": ["camera", "feedback"]
+        },
+        {
+          "name": "fragment-physics",
+          "kind": "code",
+          "description": "36 box fragments, 8-corner ground projection + restitution 0.32 + friction 0.78 + ang damp 0.94.",
+          "tags": ["physics", "balanced"]
+        }
+      ]
+    },
+    {
+      "id": "mechanics",
+      "label": "Mechanics",
+      "description": "Game logic — controls, physics, camera.",
+      "items": [
+        {
+          "name": "drag-throw-3d",
+          "kind": "code",
+          "description": "Drag-and-release input mapped to 3D launch direction (pitch + yaw + power, clamped half-plane).",
+          "tags": ["input", "slingshot"]
+        },
+        {
+          "name": "glide-physics",
+          "kind": "code",
+          "description": "Lift perpendicular to velocity, AoA-modulated, capped at 0.78×g; sink-rate floor.",
+          "tags": ["aero", "physics"]
+        },
+        {
+          "name": "keyboard-control",
+          "kind": "code",
+          "description": "↑/↓ rotate fuselage (AoA pilot input) + ←/→ yaw drift. Smoothed inputs, ~400ms ramp.",
+          "tags": ["input", "live"]
+        },
+        {
+          "name": "chase-camera",
+          "kind": "code",
+          "description": "Behind-and-above third-person camera, eased lerp on position + lookAt with shake hookup.",
+          "tags": ["camera"]
+        }
+      ]
+    },
+    {
+      "id": "hud",
+      "label": "HUD",
+      "description": "DOM overlays for the 3D playable. Lightweight, no canvas.",
+      "items": [
+        {
+          "name": "coin-counter",
+          "kind": "2d-mock",
+          "preview": "coin-counter",
+          "description": "Top-right balance pill with golden coin icon + bouncy +N popup on earn.",
+          "tags": ["currency", "feedback"]
+        },
+        {
+          "name": "speedometer",
+          "kind": "2d-mock",
+          "preview": "speedometer",
+          "description": "Round 64×64 KM/H gauge, white arc fills 0→120, neutral aviation style.",
+          "tags": ["velocity", "gauge"]
+        },
+        {
+          "name": "evolution-shop",
+          "kind": "2d-mock",
+          "preview": "shop",
+          "description": "Parts dock with cost in coins, owned/affordable/cantafford visual states.",
+          "tags": ["shop", "evolution"]
+        },
+        {
+          "name": "play-store-cta",
+          "kind": "2d-mock",
+          "preview": "cta",
+          "description": "Final upgrade purchase replaces the dock with a pulsing green Play Store button.",
+          "tags": ["cta", "endgame"]
+        },
+        {
+          "name": "title-banner",
+          "kind": "2d-mock",
+          "preview": "title",
+          "description": "Top-left game title overlay, plain text with subtle shadow.",
+          "tags": ["branding"]
+        }
+      ]
+    }
+  ]
+}

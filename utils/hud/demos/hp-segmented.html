@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>hp-segmented demo</title>
 <style>
-  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
-  canvas{background:#F6F9FC;border-radius:8px;cursor:pointer}
-  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+  html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(180deg,#bfe3ff,#e8f4ff);display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:transparent;cursor:pointer}
 </style>
 </head>
 <body>
 
-<canvas id="c" width="360" height="640"></canvas>
+<canvas id="c" width="360" height="260"></canvas>
 <script src="../hp-segmented.js"></script>
 <script>
 const cv = document.getElementById('c');
@@ -28,18 +27,18 @@ cv.addEventListener('pointerdown', () => {
 
 function draw() {
   ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#0F141C';
   ctx.font = '900 14px Arial';
   ctx.textAlign = 'left';
 
-  ctx.fillText('3 HP (hearts):', 20, 130);
-  drawHpSegmented(ctx, 20, 145, { current: hp3, max: 3, segWidth: 50, segHeight: 18, color: '#ef4444' });
+  ctx.fillText('3 HP (hearts):', 20, 22);
+  drawHpSegmented(ctx, 20, 36, { current: hp3, max: 3, segWidth: 50, segHeight: 18, color: '#ef4444' });
 
-  ctx.fillText('5 HP (chunks):', 20, 240);
-  drawHpSegmented(ctx, 20, 255, { current: hp5, max: 5, segWidth: 28, segHeight: 18, color: '#22c55e' });
+  ctx.fillText('5 HP (chunks):', 20, 110);
+  drawHpSegmented(ctx, 20, 124, { current: hp5, max: 5, segWidth: 28, segHeight: 18, color: '#22c55e' });
 
-  ctx.fillText('10 HP (slim):', 20, 350);
-  drawHpSegmented(ctx, 20, 365, { current: hp10, max: 10, segWidth: 14, segHeight: 18, gap: 2, color: '#f59e0b' });
+  ctx.fillText('10 HP (slim):', 20, 200);
+  drawHpSegmented(ctx, 20, 214, { current: hp10, max: 10, segWidth: 14, segHeight: 18, gap: 2, color: '#f59e0b' });
 }
 draw();
 </script>
