@@ -815,7 +815,9 @@ export default function Home() {
 
   // Pipeline card with optional sub-call renderer for the active stage
   const activeStageId = steps.find(s => s.status === 'active' || s.status === 'awaiting')?.id as StageId | undefined
-  const activeSubs = activeStageId ? subCallsByStage[activeStageId] : []
+  // 'assetsGen' (our stage) isn't in subCallsByStage — fallback to [] so
+  // .length below doesn't crash when our stage is active.
+  const activeSubs = (activeStageId ? subCallsByStage[activeStageId] : undefined) ?? []
   const pipelineCard = hasRun ? (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 fade-slide-in">
       <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-5">Pipeline</p>

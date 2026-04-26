@@ -312,6 +312,34 @@
             "neutral",
             "cta"
           ]
+        },
+        {
+          "name": "win-effect",
+          "file": "end-screens/win-effect.js",
+          "demo": "end-screens/demos/win-effect.html",
+          "signature": "createWinEffect({ W, H, headline, subhead, duration, ... }) → { update(dt), draw(ctx), reset(), t, done }",
+          "description": "Animated 'you won' moment — golden flash, rotating sun rays, pulsing glow, bouncy headline (overshoot scale-in), confetti rain + corner cannons, sparkle bursts. Generic brainrot-playable victory punctuation BEFORE handing off to the static drawGameWon end-screen.",
+          "tags": [
+            "end",
+            "win",
+            "animated",
+            "celebration",
+            "transition"
+          ]
+        },
+        {
+          "name": "game-over-effect",
+          "file": "end-screens/game-over-effect.js",
+          "demo": "end-screens/demos/game-over-effect.html",
+          "signature": "createGameOverEffect({ W, H, headline, subhead, duration, ... }) → { update(dt), draw(ctx), reset(), t, done, shakeX, shakeY }",
+          "description": "Animated 'you lost' moment — red flash, screen-shake (caller-applied), grayscale desaturate via 'saturation' composite op, dark red vignette pulse, headline drops from above with bounce. Generic brainrot-playable defeat punctuation BEFORE handing off to drawGameLost.",
+          "tags": [
+            "end",
+            "lose",
+            "animated",
+            "shake",
+            "transition"
+          ]
         }
       ]
     },

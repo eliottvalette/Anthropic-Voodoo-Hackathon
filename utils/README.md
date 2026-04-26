@@ -19,7 +19,7 @@ Every util is a single self-contained `.js` file with a header documenting its p
 |---|---|
 | **VFX** | smoke · burst · shake · float-text · debris · particles |
 | **HUD** | vs-bar-top · hp-segmented · hp-percentage · timer |
-| **End Screens** | game-lost · game-won |
+| **End Screens** | game-lost · game-won · try-again · win-effect · game-over-effect |
 | **Mechanics** | drag-release · camera-lerp · cta-trigger |
 
 ---
@@ -70,6 +70,15 @@ Diagonal split overlay. Left keeps the game, right is red. Replaceable `headline
 ### `drawGameWon(ctx, W, H, opts)` — `end-screens/game-won.js`
 Same shape, blue right panel + confetti dots.
 
+### `drawTryAgain(ctx, W, H, opts)` — `end-screens/try-again.js`
+Neutral "almost there" overlay with amber polka-dot panel.
+
+### `createWinEffect(opts)` — `end-screens/win-effect.js`
+Animated **win moment** played BEFORE the static end-screen — golden flash, rotating sun rays, pulsing glow, bouncy headline (overshoot scale-in), confetti rain + corner cannons, sparkle bursts. Returns `{ update(dt), draw(ctx), reset(), t, done }`. Self-contained, no deps.
+
+### `createGameOverEffect(opts)` — `end-screens/game-over-effect.js`
+Animated **lose moment** played BEFORE the static end-screen — red flash, screen-shake offset (caller-applied), grayscale desaturate via `globalCompositeOperation = "saturation"`, dark red vignette pulse, headline drops from above with bounce. Returns `{ update(dt), draw(ctx), reset(), t, done, shakeX, shakeY }`. Self-contained.
+
 ---
 
 ## Mechanics
@@ -98,17 +107,34 @@ spawnDebris(debris, x, y, "left", 16);
 smoke(particles, x, y, 12);
 ```
 
-**End game**:
+**End game (animated punctuation → static overlay)**:
 ```js
-if (won) drawGameWon(ctx, 360, 640, { headline: "VICTORY", cta: "PLAY NOW" });
-else     drawGameLost(ctx, 360, 640, { headline: "DEFEAT",  cta: "TRY AGAIN" });
+// On the moment the game resolves:
+const fx = won
+  ? createWinEffect({ W: 360, H: 640, headline: "VICTORY!", subhead: "YOU WIN" })
+  : createGameOverEffect({ W: 360, H: 640, headline: "GAME OVER", subhead: "TAP TO RETRY" });
+
+// In the loop:
+fx.update(dt);
+ctx.save();
+ctx.translate(fx.shakeX || 0, fx.shakeY || 0);   // shake the world (lose only)
+drawGame(ctx);
+ctx.restore();
+fx.draw(ctx);                                    // overlay the dramatic moment
+
+if (fx.done) {
+  // Hand off to the static end-screen (with optional fade-in)
+  if (won) drawGameWon (ctx, 360, 640, { primary: "BATTLE", secondary: "WON",    cta: "PLAY NOW" });
+  else     drawGameLost(ctx, 360, 640, { primary: "BATTLE", secondary: "FAILED", cta: "TRY AGAIN" });
+}
 
 canvas.addEventListener("pointerdown", e => {
+  if (!fx.done) return;                          // don't grab taps during the effect
   const r = canvas.getBoundingClientRect();
   const x = (e.clientX - r.left) * 360 / r.width;
   const y = (e.clientY - r.top)  * 640 / r.height;
-  const fn = won ? drawGameWon : drawGameLost;
-  if (isPointInCta(fn.lastCtaBounds, x, y)) openStore(STORE_URL);
+  const target = won ? drawGameWon : drawGameLost;
+  if (isPointInCta(target.lastCtaBounds, x, y)) openStore(STORE_URL);
 });
 ```
 
