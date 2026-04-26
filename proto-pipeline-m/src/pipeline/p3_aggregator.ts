@@ -3,27 +3,25 @@ import { resolve, join } from "node:path";
 import { z } from "zod";
 import {
   generateJson,
-  MODELS,
-  type ContentPart,
+  CLAUDE_MODELS,
+  type AnthropicContent,
   type GenerateOptions,
   type GenerateResult,
-} from "./gemini.ts";
+} from "./anthropic.ts";
 import {
   AggregatorOutputSchema,
   type AggregatorOutput,
   type GameSpec,
 } from "../schemas/gameSpec.ts";
 import {
-  SubsystemBriefsSchema,
-  type SubsystemBriefs,
   P3CritiqueSchema,
   type P3Critique,
   P3RoundtripSchema,
   type P3Roundtrip,
-} from "../schemas/subsystemBriefs.ts";
+} from "../schemas/p3.ts";
 import { MergedVideoSchema } from "../schemas/video/merged.ts";
 import { AssetMappingSchema } from "../schemas/assets.ts";
-import { scaffoldCheck, ScaffoldError, REQUIRED_SECTIONS } from "./scaffoldCheck.ts";
+import { scaffoldCheck, ScaffoldError, HallucinationError, hallucinationCheck, REQUIRED_SECTIONS } from "./scaffoldCheck.ts";
 
 type SubMeta = {
   step: string;
@@ -37,7 +35,6 @@ type SubMeta = {
 export type P3Output = {
   gameSpec: GameSpec;
   codegenPrompt: string;
-  briefs: SubsystemBriefs;
   critique: P3Critique;
   roundtrip: P3Roundtrip;
   meta: {
@@ -59,21 +56,21 @@ async function callJson<T>(
   userText: string,
   options: GenerateOptions = {},
 ): Promise<{ result: GenerateResult<unknown>; data: T; meta: SubMeta }> {
-  const userParts: ContentPart[] = [{ text: userText }];
+  const userParts: AnthropicContent[] = [{ type: "text", text: userText }];
   let attempt = 0;
   let lastErr: unknown;
   let sys = systemInstruction;
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson(MODELS.pro, sys, userParts, options);
+      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, options);
       const parsed = schema.parse(r.data);
       return {
         result: r,
         data: parsed,
         meta: {
           step,
-          model: MODELS.pro,
+          model: CLAUDE_MODELS.sonnet,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -95,6 +92,7 @@ async function callJson<T>(
 async function callAggregator(
   systemBase: string,
   userText: string,
+  evidenceTexts: Array<string | null | undefined>,
 ): Promise<{ data: AggregatorOutput; meta: SubMeta }> {
   let attempt = 0;
   let lastErr: unknown;
@@ -102,16 +100,17 @@ async function callAggregator(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson<AggregatorOutput>(MODELS.pro, sys, [
-        { text: userText },
+      const r = await generateJson<AggregatorOutput>(CLAUDE_MODELS.sonnet, sys, [
+        { type: "text", text: userText },
       ]);
       const parsed = AggregatorOutputSchema.parse(r.data);
       scaffoldCheck(parsed.codegen_prompt, parsed.game_spec.mechanic_name);
+      hallucinationCheck(parsed.codegen_prompt, evidenceTexts);
       return {
         data: parsed,
         meta: {
           step: "3_aggregator",
-          model: MODELS.pro,
+          model: CLAUDE_MODELS.sonnet,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -123,10 +122,14 @@ async function callAggregator(
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(`[p3] aggregator attempt ${attempt} failed: ${msg.slice(0, 300)}`);
       if (attempt >= 2) break;
-      const reminder =
-        e instanceof ScaffoldError
-          ? `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`
-          : `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences.`;
+      let reminder: string;
+      if (e instanceof ScaffoldError) {
+        reminder = `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`;
+      } else if (e instanceof HallucinationError) {
+        reminder = `Your codegen_prompt used mechanic words (${e.triggers.join(", ")}) that are NOT visible in the evidence (video.timeline / mechanics / defining_hook). Remove these claims. If the video does not show a special behavior, prefer a generic-but-correct description over an invented one.`;
+      } else {
+        reminder = `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences. defining_hook may be null with empty evidence_timestamps; tutorial_loss_at_seconds may be null with empty evidence_timestamps.`;
+      }
       sys = systemBase + "\n\n" + reminder;
     }
   }
@@ -136,6 +139,7 @@ async function callAggregator(
 export async function runP3(
   runId: string,
   variant = "_default",
+  referenceDir: string | null = null,
 ): Promise<P3Output> {
   const t0 = Date.now();
   const outDir = resolve("outputs", runId);
@@ -148,16 +152,46 @@ export async function runP3(
   );
 
   const subCalls: SubMeta[] = [];
-  const evidence = { video: merged, assets };
+  let reference: unknown = null;
+  if (referenceDir) {
+    try {
+      const expectedPath = join(resolve(referenceDir), "expected_behavior.json");
+      const manifestPath = join(resolve(referenceDir), "target_manifest.json");
+      const expected = JSON.parse(await readFile(expectedPath, "utf8"));
+      const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+      reference = {
+        viewport: manifest?.viewport ?? null,
+        mechanic: manifest?.mechanic ?? null,
+        expected_behavior: expected,
+      };
+      console.log(`[p3] reference loaded from ${referenceDir}`);
+    } catch (e) {
+      console.warn(`[p3] reference dir given but unreadable: ${(e as Error).message}`);
+    }
+  }
+  const evidence: Record<string, unknown> = { video: merged, assets };
+  if (reference) evidence.reference = reference;
 
   const aggSystem = await loadPrompt(variant, "3_aggregator.md");
   const critic = await loadPrompt(variant, "3_critic.md");
   const rewriter = await loadPrompt(variant, "3_rewriter.md");
-  const briefs = await loadPrompt(variant, "3_briefs.md");
   const roundtrip = await loadPrompt(variant, "3_roundtrip.md");
 
+  const evidenceTexts: Array<string | null | undefined> = [
+    merged.summary_one_sentence,
+    merged.defining_hook,
+    JSON.stringify(merged.core_loop),
+    JSON.stringify(merged.characters_or_props),
+    JSON.stringify(merged.hud),
+    JSON.stringify(merged),
+  ];
+
   console.log(`[p3] stage A: aggregator...`);
-  const agg = await callAggregator(aggSystem, JSON.stringify(evidence, null, 2));
+  const agg = await callAggregator(
+    aggSystem,
+    JSON.stringify(evidence, null, 2),
+    evidenceTexts,
+  );
   subCalls.push(agg.meta);
 
   console.log(`[p3] stage A.5: critic...`);
@@ -188,16 +222,6 @@ export async function runP3(
     subCalls.push(rewriteCall.meta);
   }
 
-  console.log(`[p3] stage B: subsystem briefs...`);
-  const briefsCall = await callJson(
-    "3_briefs",
-    SubsystemBriefsSchema,
-    briefs,
-    JSON.stringify(finalAgg.game_spec, null, 2),
-    { temperature: 0.3 },
-  );
-  subCalls.push(briefsCall.meta);
-
   console.log(`[p3] stage C: round-trip validation...`);
   const roundtripCall = await callJson(
     "3_roundtrip",
@@ -224,7 +248,6 @@ export async function runP3(
   return {
     gameSpec: finalAgg.game_spec,
     codegenPrompt: finalAgg.codegen_prompt,
-    briefs: briefsCall.data,
     critique: critiqueCall.data,
     roundtrip: roundtripCall.data,
     meta: {
@@ -239,10 +262,11 @@ export async function runP3(
 export async function writeP3(
   runId: string,
   variant = "_default",
+  referenceDir: string | null = null,
 ): Promise<{ outDir: string; output: P3Output }> {
   const outDir = resolve("outputs", runId);
   await mkdir(outDir, { recursive: true });
-  const output = await runP3(runId, variant);
+  const output = await runP3(runId, variant, referenceDir);
   await writeFile(
     join(outDir, "03_game_spec.json"),
     JSON.stringify(output.gameSpec, null, 2),
@@ -251,11 +275,6 @@ export async function writeP3(
   await writeFile(
     join(outDir, "03_codegen_prompt.txt"),
     output.codegenPrompt,
-    "utf8",
-  );
-  await writeFile(
-    join(outDir, "03_subsystem_briefs.json"),
-    JSON.stringify(output.briefs, null, 2),
     "utf8",
   );
   await writeFile(
