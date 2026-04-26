@@ -25,7 +25,7 @@ GameSpec schema:
   "first_5s_script": "string (what the player sees and does in the first 5 seconds, e.g. 'Castle on left fires at enemy on right; UI hint shows drag gesture; first projectile lands on a wall')",
   "tutorial_loss_at_seconds": "number 10..30 OR null (set to a number ONLY if video.timeline shows a tutorial-loss event before 30s; otherwise null)",
   "tutorial_loss_evidence_timestamps": ["MM:SS.mmm-MM:SS.mmm"] (empty [] when tutorial_loss_at_seconds is null),
-  "asset_role_map": { "<role>": "<filename or null>" },
+  "asset_role_map": { "<role>": "<exact filename from evidence.assets.roles[].filename, or null>" },
   "numeric_params": { "<key>": <number> },
   "win_condition": "string",
   "loss_condition": "string",
@@ -62,7 +62,7 @@ codegen_prompt scaffold (use these exact section headers, in this order; this is
 <mechanic_name>
 
 # Assets (already base64-inlined under const A)
-- A.<role>: <human description from asset_role_map values>
+- A.<role>: <one short human description of the asset, drawn from evidence.assets.roles[].description; do NOT modify the asset_role_map value — keep that as the bare filename>
 ... (one bullet per non-null role)
 
 # Required behaviour

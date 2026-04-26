@@ -20,6 +20,7 @@ import {
   type P3Roundtrip,
 } from "../schemas/p3.ts";
 import { MergedVideoSchema } from "../schemas/video/merged.ts";
+import { VideoDescriptionSchema } from "../schemas/video/description.ts";
 import { AssetMappingSchema } from "../schemas/assets.ts";
 import { scaffoldCheck, ScaffoldError, HallucinationError, hallucinationCheck, REQUIRED_SECTIONS } from "./scaffoldCheck.ts";
 
@@ -49,6 +50,48 @@ async function loadPrompt(variant: string, name: string): Promise<string> {
   return await readFile(resolve("prompts", variant, name), "utf8");
 }
 
+function summarizeZodIssues(e: unknown): string {
+  if (!(e instanceof z.ZodError)) return "";
+  const lines = e.issues.slice(0, 8).map((iss) => {
+    const path = iss.path.join(".") || "<root>";
+    return `  - ${path}: ${iss.message}`;
+  });
+  return lines.join("\n");
+}
+
+class AssetMapError extends Error {
+  constructor(public readonly badEntries: Array<{ role: string; value: string; reason: string }>) {
+    super(
+      `asset_role_map contains invalid values: ${badEntries
+        .map((b) => `${b.role}=${JSON.stringify(b.value)} (${b.reason})`)
+        .join("; ")}`,
+    );
+    this.name = "AssetMapError";
+  }
+}
+
+function validateAssetRoleMap(
+  spec: GameSpec,
+  knownFilenames: Set<string>,
+): void {
+  const bad: Array<{ role: string; value: string; reason: string }> = [];
+  for (const [role, value] of Object.entries(spec.asset_role_map)) {
+    if (value === null) continue;
+    if (typeof value !== "string") {
+      bad.push({ role, value: String(value), reason: "non-string" });
+      continue;
+    }
+    if (/[(){}[\]]/.test(value) || /\s—|\s-\s/.test(value) || /^.+\s+\(/.test(value)) {
+      bad.push({ role, value, reason: "contains parenthetical or descriptive suffix" });
+      continue;
+    }
+    if (!knownFilenames.has(value)) {
+      bad.push({ role, value, reason: "filename not in evidence.assets.roles[].filename" });
+    }
+  }
+  if (bad.length > 0) throw new AssetMapError(bad);
+}
+
 async function callJson<T>(
   step: string,
   schema: z.ZodType<T>,
@@ -60,7 +103,8 @@ async function callJson<T>(
   let attempt = 0;
   let lastErr: unknown;
   let sys = systemInstruction;
-  while (attempt < 2) {
+  const maxAttempts = 3;
+  while (attempt < maxAttempts) {
     attempt++;
     try {
       const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, options);
@@ -80,10 +124,22 @@ async function callJson<T>(
     } catch (e) {
       lastErr = e;
       console.warn(`[p3] ${step} attempt ${attempt} failed: ${(e as Error).message.slice(0, 250)}`);
-      if (attempt >= 2) break;
+      if (attempt >= maxAttempts) break;
+      const issueSummary = summarizeZodIssues(e);
+      const issueBlock = issueSummary
+        ? `\n\nValidation issues (fix EVERY ONE):\n${issueSummary}`
+        : "";
       sys =
         systemInstruction +
-        `\n\nThe previous response failed schema validation. Re-emit ONLY a JSON object exactly matching the schema. No markdown fences.`;
+        `\n\nThe previous response failed schema validation. Re-emit ONLY a JSON object exactly matching the schema. No markdown fences.` +
+        issueBlock +
+        `\n\nReminders:\n` +
+        `  - All timestamps in defining_hook_evidence_timestamps and tutorial_loss_evidence_timestamps MUST be strings formatted "MM:SS-MM:SS" (e.g. "00:03-00:07"). Never numbers.\n` +
+        `  - If defining_hook is non-null, defining_hook_evidence_timestamps must contain at least one such string.\n` +
+        `  - If defining_hook is null, defining_hook_evidence_timestamps must be the empty array [].\n` +
+        `  - If tutorial_loss_at_seconds is non-null, tutorial_loss_evidence_timestamps must contain at least one such string.\n` +
+        `  - If tutorial_loss_at_seconds is null, tutorial_loss_evidence_timestamps must be the empty array [].\n` +
+        `  - mechanic_name must match /^[a-z][a-z0-9_]*$/ (snake_case).`;
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
@@ -93,11 +149,13 @@ async function callAggregator(
   systemBase: string,
   userText: string,
   evidenceTexts: Array<string | null | undefined>,
+  knownFilenames: Set<string>,
 ): Promise<{ data: AggregatorOutput; meta: SubMeta }> {
   let attempt = 0;
   let lastErr: unknown;
   let sys = systemBase;
-  while (attempt < 2) {
+  const maxAttempts = 3;
+  while (attempt < maxAttempts) {
     attempt++;
     try {
       const r = await generateJson<AggregatorOutput>(CLAUDE_MODELS.sonnet, sys, [
@@ -106,6 +164,7 @@ async function callAggregator(
       const parsed = AggregatorOutputSchema.parse(r.data);
       scaffoldCheck(parsed.codegen_prompt, parsed.game_spec.mechanic_name);
       hallucinationCheck(parsed.codegen_prompt, evidenceTexts);
+      validateAssetRoleMap(parsed.game_spec, knownFilenames);
       return {
         data: parsed,
         meta: {
@@ -121,14 +180,32 @@ async function callAggregator(
       lastErr = e;
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(`[p3] aggregator attempt ${attempt} failed: ${msg.slice(0, 300)}`);
-      if (attempt >= 2) break;
+      if (attempt >= maxAttempts) break;
       let reminder: string;
       if (e instanceof ScaffoldError) {
         reminder = `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`;
       } else if (e instanceof HallucinationError) {
         reminder = `Your codegen_prompt used mechanic words (${e.triggers.join(", ")}) that are NOT visible in the evidence (video.timeline / mechanics / defining_hook). Remove these claims. If the video does not show a special behavior, prefer a generic-but-correct description over an invented one.`;
+      } else if (e instanceof AssetMapError) {
+        const bullets = e.badEntries
+          .map((b) => `  - "${b.role}": current value ${JSON.stringify(b.value)} — ${b.reason}`)
+          .join("\n");
+        const sample = Array.from(knownFilenames).slice(0, 8).join(", ");
+        reminder = `Your asset_role_map contains invalid entries:\n${bullets}\n\nValues MUST be EXACT bare filenames from evidence.assets.roles[].filename — examples: ${sample}. No parentheticals, no descriptions, no quotes-inside-string, no annotations. If a role has no asset, the value is null.`;
       } else {
-        reminder = `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences. defining_hook may be null with empty evidence_timestamps; tutorial_loss_at_seconds may be null with empty evidence_timestamps.`;
+        const issueSummary = summarizeZodIssues(e);
+        const issueBlock = issueSummary
+          ? `\n\nValidation issues (fix EVERY ONE):\n${issueSummary}`
+          : "";
+        reminder =
+          `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences.` +
+          issueBlock +
+          `\n\nReminders:\n` +
+          `  - All timestamps in defining_hook_evidence_timestamps and tutorial_loss_evidence_timestamps MUST be strings formatted "MM:SS-MM:SS" (e.g. "00:03-00:07"). Never numbers.\n` +
+          `  - If defining_hook is non-null, defining_hook_evidence_timestamps must contain at least one such string.\n` +
+          `  - If defining_hook is null, defining_hook_evidence_timestamps must be the empty array [].\n` +
+          `  - If tutorial_loss_at_seconds is non-null, tutorial_loss_evidence_timestamps must contain at least one such string.\n` +
+          `  - If tutorial_loss_at_seconds is null, tutorial_loss_evidence_timestamps must be the empty array [].`;
       }
       sys = systemBase + "\n\n" + reminder;
     }
@@ -150,6 +227,14 @@ export async function runP3(
   const assets = AssetMappingSchema.parse(
     JSON.parse(await readFile(join(outDir, "02_assets.json"), "utf8")),
   );
+  let description: unknown = null;
+  try {
+    description = VideoDescriptionSchema.parse(
+      JSON.parse(await readFile(join(outDir, "01_description.json"), "utf8")),
+    );
+  } catch {
+    description = null;
+  }
 
   const subCalls: SubMeta[] = [];
   let reference: unknown = null;
@@ -169,7 +254,9 @@ export async function runP3(
       console.warn(`[p3] reference dir given but unreadable: ${(e as Error).message}`);
     }
   }
-  const evidence: Record<string, unknown> = { video: merged, assets };
+  const videoEvidence: Record<string, unknown> = { ...(merged as unknown as Record<string, unknown>) };
+  if (description) videoEvidence.description = description;
+  const evidence: Record<string, unknown> = { video: videoEvidence, assets };
   if (reference) evidence.reference = reference;
 
   const aggSystem = await loadPrompt(variant, "3_aggregator.md");
@@ -185,12 +272,23 @@ export async function runP3(
     JSON.stringify(merged.hud),
     JSON.stringify(merged),
   ];
+  if (description) {
+    const d = description as { narrative?: string; key_moments?: unknown };
+    if (d.narrative) evidenceTexts.push(d.narrative);
+    if (d.key_moments) evidenceTexts.push(JSON.stringify(d.key_moments));
+  }
+
+  const knownFilenames = new Set<string>();
+  for (const r of assets.roles) {
+    if (r.filename) knownFilenames.add(r.filename);
+  }
 
   console.log(`[p3] stage A: aggregator...`);
   const agg = await callAggregator(
     aggSystem,
     JSON.stringify(evidence, null, 2),
     evidenceTexts,
+    knownFilenames,
   );
   subCalls.push(agg.meta);
 
@@ -218,6 +316,20 @@ export async function runP3(
       rewriteCall.data.codegen_prompt,
       rewriteCall.data.game_spec.mechanic_name,
     );
+    try {
+      validateAssetRoleMap(rewriteCall.data.game_spec, knownFilenames);
+    } catch (e) {
+      if (e instanceof AssetMapError) {
+        console.warn(
+          `[p3] rewrite produced invalid asset_role_map; salvaging by copying values from original. ${e.message.slice(0, 200)}`,
+        );
+        rewriteCall.data.game_spec.asset_role_map = {
+          ...agg.data.game_spec.asset_role_map,
+        };
+      } else {
+        throw e;
+      }
+    }
     finalAgg = rewriteCall.data;
     subCalls.push(rewriteCall.meta);
   }
