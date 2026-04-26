@@ -6,7 +6,8 @@
 // monolithic fallback; this V1 keeps it simple and treats P4 as one call,
 // surfaces the same VerifyReport shape so the UI is identical.
 
-import { generateContent, inlineDataPart } from './gemini-client'
+import { fileDataPart, generateContent, uploadFile, waitUntilActive } from './gemini-client'
+import type { ContentPart } from './gemini-client'
 import { loadPrompt } from './prompts'
 import { verifyInIframe } from './verify-iframe'
 import type { CodegenResult, GameSpec, SubCallEvent } from './types'
@@ -34,10 +35,24 @@ export async function runP4Codegen(
 
   const sysCodegen = await loadPrompt(variant, '4_codegen_legacy.md').catch(() => loadPrompt(variant, '4_render.md'))
 
-  // Inline assets as base64 in the prompt context (small images only, < 2 MB total budget)
-  const assetParts = await Promise.all(assets.slice(0, 16).map(async a => {
-    return [{ text: `--- asset: ${a.name} ---` }, await inlineDataPart(a)]
-  })).then(parts => parts.flat())
+  // Reference assets via Files API URIs instead of inlining base64. With the
+  // hydrated generated-asset set the inlined body blew past the /api/gemini
+  // proxy's ~10 MB Route Handler cap and Gemini returned
+  //   HTTP 400 "Invalid JSON payload received. Closing quote expected in string"
+  // Same fix as p2-assets.ts: each upload is its own (chunked) request, the
+  // codegen call only sends URIs.
+  const sliced = assets.slice(0, 16)
+  const uploaded = await Promise.all(
+    sliced.map(async a => {
+      const f = await uploadFile(a, a.name)
+      return waitUntilActive(f)
+    }),
+  )
+  const assetParts: ContentPart[] = []
+  for (let i = 0; i < sliced.length; i++) {
+    assetParts.push({ text: `--- asset: ${sliced[i].name} ---` })
+    assetParts.push(fileDataPart(uploaded[i].uri, uploaded[i].mimeType))
+  }
 
   let html = ''
   let report: Awaited<ReturnType<typeof verifyInIframe>> = {
