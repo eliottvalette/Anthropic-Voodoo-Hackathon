@@ -1,32 +1,23 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { config } from "dotenv";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 
-export async function loadApiKey(repoRoot: string): Promise<string> {
-  if (process.env.GEMINI_API_KEY) {
-    return process.env.GEMINI_API_KEY;
-  }
+const here = dirname(fileURLToPath(import.meta.url));
+const repoEnv = resolve(here, "../../.env");
+config({ path: repoEnv, override: true });
 
-  const envPath = join(repoRoot, ".env");
-  if (!existsSync(envPath)) {
-    throw new Error("GEMINI_API_KEY is not set and repo .env was not found.");
-  }
-
-  const text = await readFile(envPath, "utf8");
-  for (const line of text.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
-      continue;
-    }
-    const [key, ...rest] = trimmed.split("=");
-    if (key.trim() === "GEMINI_API_KEY") {
-      const value = rest.join("=").trim().replace(/^['"]|['"]$/g, "");
-      if (value) {
-        return value;
-      }
-    }
-  }
-
-  throw new Error("GEMINI_API_KEY was not found in repo .env.");
+const gemini = process.env.GEMINI_API_KEY?.trim();
+if (!gemini) {
+  throw new Error(`GEMINI_API_KEY missing. Expected in ${repoEnv}.`);
 }
 
+export const GEMINI_API_KEY: string = gemini;
+
+const anthRaw = process.env.ANTHROPIC_API_KEY?.trim();
+export const ANTHROPIC_API_KEY: string | undefined = anthRaw;
+export const OPENROUTER_API_KEY: string | undefined = anthRaw?.startsWith("sk-or-")
+  ? anthRaw
+  : process.env.OPENROUTER_API_KEY?.trim();
+export const ANTHROPIC_NATIVE_KEY: string | undefined = anthRaw?.startsWith("sk-ant-")
+  ? anthRaw
+  : undefined;
