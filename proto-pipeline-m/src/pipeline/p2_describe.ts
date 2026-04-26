@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import {
   generateJson,
-  CLAUDE_MODELS,
+  getActiveClaudeModel,
   imagePartFromPath,
   type AnthropicContent,
 } from "./anthropic.ts";
@@ -50,7 +50,8 @@ async function describeOne(
         imgPart,
         { type: "text", text: "Describe this asset per the system instruction." },
       ];
-      const r = await generateJson(CLAUDE_MODELS.sonnet, prompt, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, prompt, userParts, {
         temperature: 0.3,
       });
       const parsed = AssetDescriptionSchema.parse(r.data);
@@ -58,7 +59,7 @@ async function describeOne(
         description: parsed,
         meta: {
           step: `2_describe:${asset.filename}`,
-          model: CLAUDE_MODELS.sonnet,
+          model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -83,7 +84,7 @@ async function describeOne(
 function zeroMeta(filename: string, suffix: string): AssetDescribeMeta {
   return {
     step: `2_describe:${filename}:${suffix}`,
-    model: CLAUDE_MODELS.sonnet,
+    model: getActiveClaudeModel(),
     tokensIn: 0,
     tokensOut: 0,
     latencyMs: 0,

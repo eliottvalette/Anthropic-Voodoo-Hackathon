@@ -1,6 +1,6 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
+import { generateJson, getActiveClaudeModel, type AnthropicContent } from "./anthropic.ts";
 import { AssetMappingSchema, type AssetMapping } from "../schemas/assets.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import { MergedVideoSchema, type MergedVideo } from "../schemas/video/merged.ts";
@@ -88,7 +88,8 @@ export async function runP2(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, sys, userParts, {
         temperature: 0.3,
       });
       const rawMapping = AssetMappingSchema.parse(r.data);
@@ -122,9 +123,44 @@ export async function runP2(
         console.log(`[p2] pruned ${droppedReasons.length} weak role(s): ${droppedReasons.slice(0, 8).join("; ")}${droppedReasons.length > 8 ? " …" : ""}`);
       }
       const mapping: AssetMapping = { ...rawMapping, roles: keptRoles };
+
+      const categoryByFilename = new Map<string, string>();
+      for (const a of describedAssets) {
+        if (a.description?.category) {
+          categoryByFilename.set(a.filename, a.description.category);
+        }
+      }
+      const mappedFilenames = keptRoles
+        .map((r) => r.filename)
+        .filter((f): f is string => typeof f === "string");
+      const mappedCategories = new Set(
+        mappedFilenames
+          .map((f) => categoryByFilename.get(f))
+          .filter((c): c is string => typeof c === "string"),
+      );
+      const hasCharacter = mappedCategories.has("character");
+      const hasProjectile = mappedCategories.has("projectile");
+      if (!hasCharacter && !hasProjectile) {
+        const inventoryCats = new Set(
+          inventory
+            .map((a) => (a as { category?: string }).category)
+            .filter((c): c is string => typeof c === "string"),
+        );
+        const inventoryHasCharacter = inventoryCats.has("character");
+        const inventoryHasProjectile = inventoryCats.has("projectile");
+        if (!inventoryHasCharacter && !inventoryHasProjectile) {
+          throw new Error(
+            `P2 produced no character or projectile assets, and the inventory itself contains neither. Asset bank has nothing renderable. Inventory had ${inventory.length} assets, categories: ${[...inventoryCats].join(",") || "none"}.`,
+          );
+        }
+        console.warn(
+          `[p2] WARNING: role-map points to no character/projectile assets, but inventory has ${inventoryHasCharacter ? "character " : ""}${inventoryHasProjectile ? "projectile " : ""}assets. Model under-mapped — continuing but downstream may fall back to procedural drawing.`,
+        );
+      }
+
       const meta: SubMeta = {
         step: "2_role_map",
-        model: CLAUDE_MODELS.sonnet,
+        model,
         tokensIn: r.tokensIn,
         tokensOut: r.tokensOut,
         latencyMs: r.latencyMs,
