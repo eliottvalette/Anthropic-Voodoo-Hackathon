@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import {
   generateJson,
-  CLAUDE_MODELS,
+  getActiveClaudeModel,
   imagePartFromPath,
   type AnthropicContent,
 } from "./anthropic.ts";
@@ -34,12 +34,14 @@ async function loadPrompt(variant: string): Promise<string> {
 async function describeOne(
   prompt: string,
   asset: Asset,
-  assetsDir: string,
+  primaryDir: string,
+  bankDir: string | null,
 ): Promise<{ description: AssetDescription | null; meta: AssetDescribeMeta }> {
   if (asset.kind !== "image") {
-    return { description: null, meta: zeroMeta(asset.filename, "skip_audio") };
+    return { description: null, meta: zeroMeta(asset.relpath, "skip_audio") };
   }
-  const abs = join(assetsDir, asset.relpath);
+  const root = asset.source === "bank" && bankDir ? bankDir : primaryDir;
+  const abs = join(root, asset.relpath);
   let attempt = 0;
   let lastErr: unknown;
   while (attempt < 2) {
@@ -50,15 +52,16 @@ async function describeOne(
         imgPart,
         { type: "text", text: "Describe this asset per the system instruction." },
       ];
-      const r = await generateJson(CLAUDE_MODELS.sonnet, prompt, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, prompt, userParts, {
         temperature: 0.3,
       });
       const parsed = AssetDescriptionSchema.parse(r.data);
       return {
         description: parsed,
         meta: {
-          step: `2_describe:${asset.filename}`,
-          model: CLAUDE_MODELS.sonnet,
+          step: `2_describe:${asset.relpath}`,
+          model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -68,22 +71,22 @@ async function describeOne(
     } catch (e) {
       lastErr = e;
       console.warn(
-        `[p2 describe] ${asset.filename} attempt ${attempt} failed: ${(e as Error).message.slice(0, 200)}`,
+        `[p2 describe] ${asset.relpath} attempt ${attempt} failed: ${(e as Error).message.slice(0, 200)}`,
       );
       if (attempt >= 2) break;
     }
   }
   console.warn(
-    `[p2 describe] ${asset.filename} giving up; continuing without description`,
+    `[p2 describe] ${asset.relpath} giving up; continuing without description`,
   );
   void lastErr;
-  return { description: null, meta: zeroMeta(asset.filename, "fail") };
+  return { description: null, meta: zeroMeta(asset.relpath, "fail") };
 }
 
-function zeroMeta(filename: string, suffix: string): AssetDescribeMeta {
+function zeroMeta(idForLog: string, suffix: string): AssetDescribeMeta {
   return {
-    step: `2_describe:${filename}:${suffix}`,
-    model: CLAUDE_MODELS.sonnet,
+    step: `2_describe:${idForLog}:${suffix}`,
+    model: getActiveClaudeModel(),
     tokensIn: 0,
     tokensOut: 0,
     latencyMs: 0,
@@ -116,7 +119,7 @@ export async function describeAssets(
       while (inFlight < MAX_PARALLEL && queue.length > 0) {
         const a = queue.shift()!;
         inFlight++;
-        describeOne(prompt, a, probe.assetsDir)
+        describeOne(prompt, a, probe.assetsDir, probe.bankDir ?? null)
           .then(({ description, meta }) => {
             described.push({
               filename: a.filename,
@@ -140,7 +143,7 @@ export async function describeAssets(
     next();
   });
 
-  described.sort((x, y) => x.filename.localeCompare(y.filename));
+  described.sort((x, y) => x.relpath.localeCompare(y.relpath));
 
   return { describedAssets: described, metas };
 }

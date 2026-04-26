@@ -68,7 +68,7 @@ export const P4PlanSchema = z
     mechanic_name: z.string().min(1),
     viewport: z.object({ width: z.number(), height: z.number() }).strict(),
     tick_order: z.array(SceneElementNameSchema),
-    shared_state_shape: z.array(StateFieldSchema).min(4).max(20),
+    shared_state_shape: z.array(StateFieldSchema).min(4).max(10),
     numeric_params: z.record(z.union([z.number(), z.string(), z.boolean()])),
     phases: z.array(z.string()).min(2),
     transitions: z.array(PhaseTransitionSchema).min(1),
@@ -182,6 +182,16 @@ export const P4PlanSchema = z
         path: ["shared_state_shape"],
         message: `state.phase must be written_by ["actors"] (only actors owns phase transitions)`,
       });
+    }
+
+    for (const f of v.shared_state_shape) {
+      if (f.written_by.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["shared_state_shape"],
+          message: `state.${f.name} has no writer (every field must have ≥1 written_by)`,
+        });
+      }
     }
   });
 

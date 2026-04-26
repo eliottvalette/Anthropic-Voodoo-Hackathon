@@ -13,8 +13,12 @@ export const AssetRoleSchema = z
 export const AssetMappingSchema = z
   .object({
     roles: z.array(AssetRoleSchema),
+    cta_url: z.string().url().optional(),
   })
   .passthrough();
+
+export const DEFAULT_CTA_URL =
+  "https://play.google.com/store/apps/details?id=com.epicoro.castleclashers";
 
 export type AssetRole = z.infer<typeof AssetRoleSchema>;
 export type AssetMapping = z.infer<typeof AssetMappingSchema>;

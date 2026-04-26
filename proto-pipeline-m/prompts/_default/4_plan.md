@@ -45,21 +45,23 @@ Schema:
 }
 
 Rules for `shared_state_shape`:
-- 6 to 14 fields. Always include the FOUR RESERVED FIELDS (mandatory, exact names):
+- **HARD CAP: 4 to 10 fields total.** The schema rejects more than 10. Be ruthless — every field is a coordination cost across 5 sketches.
+- Always include the FOUR RESERVED FIELDS (mandatory, exact names):
   - `phase` — type `"idle|aiming|acting|resolving|win|loss"`, initial `"idle"`. WRITTEN ONLY BY `actors`. Read by any element that needs it.
   - `subPhase` — type `string|null`, initial `null`. Free-form genre flavour name (e.g. `"player_aim"`, `"enemy_fire"`). Written by `actors`.
   - `turnIndex` — type `number`, initial `0`. Integer counter, incremented by `actors` on each shot/turn cycle.
   - `isOver` — type `boolean`, initial `false`. Set true by `actors` on terminal phase.
-- Then add monotonic input counters (e.g. `dragsTotal`, `shotsFired`), HP counters (`playerHp`, `enemyHp` as integers), and genre-specific state.
+- That leaves 0 to 6 slots for game-specific state. Typical picks: one monotonic input counter (e.g. `shotsFired`), HP counters (`playerHp`, `enemyHp` as integers), one shared mutable list (e.g. `projectiles: []`), one event-bus array (e.g. `pendingEvents: []`). Skip cosmetic state — sketches can keep that locally.
 - Field types unambiguous. Avoid `any`. Initial values must be valid JSON.
-- Every field must have at least one writer AND at least one reader. A field nobody reads is dead state; a field nobody writes is a constant (move it to `numeric_params`).
+- **Every field must have ≥1 writer AND ≥1 reader.** Schema rejects orphans. A field nobody reads is dead state; a field nobody writes is a constant (move it to `numeric_params`).
 
 Rules for `tick_order`:
 - Must be exactly `["bg_ground", "actors", "projectiles", "hud", "end_card"]`. This guarantees layering and lets `bg_ground` paint first so the canvas is never blank.
 
 Rules for `scene_elements[*].reads` / `.writes`:
 - Reference `shared_state_shape[].name` exactly. The schema validator will reject unknown names.
-- Be exhaustive: if `actors.update()` mutates `phase`, declare `phase` in `actors.writes`. Sketches will be told "you may write only fields listed in your `writes`". Cross-element write conflicts must be caught here, not at integration time.
+- **HARD CAP: each element's `reads` list is ≤5 entries.** If an element seems to need more, it's probably overreaching — push that logic into the owner element instead.
+- Be exhaustive within those caps: if `actors.update()` mutates `phase`, declare `phase` in `actors.writes`. Sketches will be told "you may write only fields listed in your `writes`". Cross-element write conflicts must be caught here, not at integration time.
 - Reads/writes must be consistent with `state.written_by` / `read_by`. The schema enforces this two-way.
 
 Rules for `phases` and `transitions`:

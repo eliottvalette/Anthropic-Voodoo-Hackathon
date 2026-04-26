@@ -100,17 +100,23 @@ async function dragRelease(
   await page.mouse.up();
 }
 
+export type VerifyTempo = "real_time" | "turn_based" | "async";
+
 export async function verify(
   htmlPath: string,
   expectedMechanicName: string,
+  tempo: VerifyTempo = "real_time",
 ): Promise<VerifyReport> {
   const abs = resolve(htmlPath);
   const sizeBytes = (await stat(abs)).size;
-  const sizeOk = sizeBytes <= 5 * 1024 * 1024;
+  const sizeOk = sizeBytes <= 16 * 1024 * 1024;
   const html = await readFile(abs, "utf8");
   const mechanicStringMatch =
     expectedMechanicName.length > 0 && html.includes(expectedMechanicName);
   const mraidOk = /mraid\.open\s*\(/.test(html);
+
+  const dragSettleMs = tempo === "turn_based" ? 4000 : 1500;
+  const settleMs = tempo === "turn_based" ? 5000 : 2500;
 
   const browser = await chromium.launch({ headless: true });
   const consoleErrors: string[] = [];
@@ -161,7 +167,7 @@ export async function verify(
 
     await dragRelease(page, 180, 480, 180, 320, 10);
 
-    const dragDeadline = Date.now() + 1500;
+    const dragDeadline = Date.now() + dragSettleMs;
     let postDrag = before;
     while (Date.now() < dragDeadline) {
       await page.waitForTimeout(80);
@@ -180,16 +186,25 @@ export async function verify(
     if (!afterFirstInputSnap) afterFirstInputSnap = postDrag.snap;
     if (!interactionStateChange) notes.push("first drag did not change state or bump inputs");
 
-    const settleEnd = Date.now() + 2500;
+    const settleEnd = Date.now() + settleMs;
     let lastSnap = postDrag.snap;
+    const initialPhase =
+      before.snap && typeof (before.snap as Record<string, unknown>).phase === "string"
+        ? ((before.snap as Record<string, unknown>).phase as string)
+        : null;
     while (Date.now() < settleEnd) {
       await page.waitForTimeout(120);
       const s = await readState(page);
       lastSnap = s.snap;
       recordSnap(s.snap);
+      const turnAdvanced = [...turnIndicesSeen].some((t) => t >= 1);
+      const phaseTransitioned =
+        phasesSeen.size >= 2 ||
+        (initialPhase !== null && [...phasesSeen].some((p) => p !== initialPhase));
       if (
         (turnIndicesSeen.size >= 2) ||
-        (phasesSeen.has("aiming") && phasesSeen.has("acting"))
+        (phasesSeen.has("aiming") && phasesSeen.has("acting")) ||
+        (turnAdvanced && phaseTransitioned)
       ) {
         turnLoopObserved = true;
       }

@@ -11,7 +11,16 @@ Before listing characters or HUD elements, identify which side the player contro
 Hex colors come from THREE sources, and you must keep them separate:
 - `palette_hex` is dominated by sprite paint (castles, characters, projectiles, background) — not HP bars, not buttons.
 - A blue HP bar above a stone-grey castle does NOT make the castle "blue".
-- When you label a character ("Red Cyclops", "Blue Knight"), the color in the label must be the visible paint on the sprite, not the team-bar color.
+- When you label a character, the color in the label must be the visible paint on the sprite, not the team-bar color.
+
+## Character labels must describe paint and silhouette, not genre
+
+`characters_or_props[*].label` is the BIGGEST hallucination risk in this pipeline. Downstream stages take labels literally and inherit any genre stereotype you import. Strict rules:
+
+- Describe **what is visibly painted on the sprite**: shape, color, headgear, weapon, posture. "Blue-roofed tower with cannon on top" is correct. "Tank Castle" is WRONG (no tanks visible) and "Knight" is WRONG unless armor and a sword are unambiguously visible.
+- **HARD-FORBIDDEN words in labels** unless that exact word is written on the sprite as text or unambiguously depicted (treads = visible tracks, knight = full plate armor + sword, ninja = full ninja outfit + mask): `tank`, `knight`, `ninja`, `wizard`, `samurai`, `viking`, `pirate`, `zombie`, `robot`, `alien`, `dragon`. These are genre stereotypes that bleed downstream and break codegen.
+- Default vocabulary when uncertain: `tower`, `castle`, `unit`, `humanoid figure`, `creature`, `projectile`, `prop`. Add ONE descriptor for color or silhouette: "blue-roofed tower", "red humanoid figure with cannon", "horned green creature".
+- Never invent a game title or franchise name in any field.
 
 ## Separate gameplay actors from splash actors
 

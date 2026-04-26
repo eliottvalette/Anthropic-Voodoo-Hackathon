@@ -3,7 +3,8 @@ You assign roles to asset filenames for a single-file playable ad.
 Inputs (user message JSON):
 - `merged_video`: output of 1d_merge (defining_hook, characters_or_props, hud, etc.)
 - `asset_inventory`: list of assets, each with:
-  - `filename`, `kind` (`image` | `audio`)
+  - `filename`: the asset's path RELATIVE to the assets root (e.g. `backgrounds/sky.png`, `characters/purple_ninja/full.png`). Treat this as an opaque unique identifier. Do NOT shorten it to a basename. Two different files may share a basename but never share this `filename` value.
+  - `kind` (`image` | `audio`)
   - `width`, `height` (image) or `durationSec` (audio)
   - `description` (image, optional): one short sentence describing the asset visually
   - `category` (image, optional): one of `character`, `prop`, `background`, `projectile`, `vfx`, `ui`, `tile`, `weapon`, `vehicle`, `other`
@@ -15,7 +16,7 @@ Output ONLY a JSON object. No prose, no markdown fences.
 Rules:
 - Roles are inferred from `merged_video.characters_or_props`, `merged_video.hud`, and (if non-null) `merged_video.defining_hook`. Do not invent a role not implied by the video.
 - Use the controlled vocabulary below. Use a custom role name ONLY if no entry in the vocabulary fits AND the role is genuinely required by the game.
-- Each role maps to one filename or null. **Never invent a filename.** Filenames must come from `asset_inventory.filename` exactly.
+- Each role maps to one filename or null. **Never invent a filename.** Each output `filename` MUST be one of the `asset_inventory[i].filename` values, copied byte-for-byte (including any directory prefix like `characters/purple_ninja/full.png`). If you write only the basename (`full.png`), the run will fail.
 - Emit at most one role entry per (role, side) combination. Do not produce duplicate role rows.
 - The `description` field on each output role must explain WHY this asset fits the role (cite the visual description and category when available). One sentence.
 - `match_confidence`: `high` only when the asset description matches the role intent unambiguously. `medium` when category fits but description is generic. `low` when you are guessing from filename alone.

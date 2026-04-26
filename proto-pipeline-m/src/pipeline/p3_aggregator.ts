@@ -3,7 +3,7 @@ import { resolve, join } from "node:path";
 import { z } from "zod";
 import {
   generateJson,
-  CLAUDE_MODELS,
+  getActiveClaudeModel,
   type AnthropicContent,
   type GenerateOptions,
   type GenerateResult,
@@ -72,7 +72,7 @@ class AssetMapError extends Error {
 
 function validateAssetRoleMap(
   spec: GameSpec,
-  knownFilenames: Set<string>,
+  knownRelpaths: Set<string>,
 ): void {
   const bad: Array<{ role: string; value: string; reason: string }> = [];
   for (const [role, value] of Object.entries(spec.asset_role_map)) {
@@ -85,8 +85,8 @@ function validateAssetRoleMap(
       bad.push({ role, value, reason: "contains parenthetical or descriptive suffix" });
       continue;
     }
-    if (!knownFilenames.has(value)) {
-      bad.push({ role, value, reason: "filename not in evidence.assets.roles[].filename" });
+    if (!knownRelpaths.has(value)) {
+      bad.push({ role, value, reason: "value not in evidence.assets.roles[].filename (must be exact relpath)" });
     }
   }
   if (bad.length > 0) throw new AssetMapError(bad);
@@ -107,14 +107,15 @@ async function callJson<T>(
   while (attempt < maxAttempts) {
     attempt++;
     try {
-      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, options);
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, sys, userParts, options);
       const parsed = schema.parse(r.data);
       return {
         result: r,
         data: parsed,
         meta: {
           step,
-          model: CLAUDE_MODELS.sonnet,
+          model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -158,7 +159,8 @@ async function callAggregator(
   while (attempt < maxAttempts) {
     attempt++;
     try {
-      const r = await generateJson<AggregatorOutput>(CLAUDE_MODELS.sonnet, sys, [
+      const model = getActiveClaudeModel();
+      const r = await generateJson<AggregatorOutput>(model, sys, [
         { type: "text", text: userText },
       ]);
       const parsed = AggregatorOutputSchema.parse(r.data);
@@ -169,7 +171,7 @@ async function callAggregator(
         data: parsed,
         meta: {
           step: "3_aggregator",
-          model: CLAUDE_MODELS.sonnet,
+          model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -191,7 +193,7 @@ async function callAggregator(
           .map((b) => `  - "${b.role}": current value ${JSON.stringify(b.value)} — ${b.reason}`)
           .join("\n");
         const sample = Array.from(knownFilenames).slice(0, 8).join(", ");
-        reminder = `Your asset_role_map contains invalid entries:\n${bullets}\n\nValues MUST be EXACT bare filenames from evidence.assets.roles[].filename — examples: ${sample}. No parentheticals, no descriptions, no quotes-inside-string, no annotations. If a role has no asset, the value is null.`;
+        reminder = `Your asset_role_map contains invalid entries:\n${bullets}\n\nValues MUST be EXACT strings from evidence.assets.roles[].filename — examples: ${sample}. These are RELPATHS (may contain slashes, e.g. characters/purple_ninja/full.png), not bare basenames. No parentheticals, no descriptions, no quotes-inside-string, no annotations. If a role has no asset, the value is null.`;
       } else {
         const issueSummary = summarizeZodIssues(e);
         const issueBlock = issueSummary
@@ -317,11 +319,23 @@ export async function runP3(
   let finalAgg: AggregatorOutput = agg.data;
   if (critiqueCall.data.overall_severity !== "none") {
     console.log(`[p3] rewriting (severity=${critiqueCall.data.overall_severity})...`);
+    const allowedFilenames = Array.from(knownFilenames).sort();
     const rewriteCall = await callJson(
       "3_rewrite",
       AggregatorOutputSchema,
       rewriter,
-      JSON.stringify({ original: agg.data, critique: critiqueCall.data, evidence }, null, 2),
+      JSON.stringify(
+        {
+          original: agg.data,
+          critique: critiqueCall.data,
+          evidence,
+          allowed_asset_filenames: allowedFilenames,
+          asset_role_map_constraint:
+            "Every value in game_spec.asset_role_map MUST be either null OR an exact string from allowed_asset_filenames. Do NOT invent filenames. If unsure, copy the value from original.game_spec.asset_role_map verbatim.",
+        },
+        null,
+        2,
+      ),
       { temperature: 0.2 },
     );
     scaffoldCheck(
