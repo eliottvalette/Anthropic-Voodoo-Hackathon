@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
+const MAX_FILE_BYTES = 500 * 1024 * 1024  // 500 MB per file
+const MAX_TOTAL_FILES = 200                // for folder drops
+const MAX_FOLDER_DEPTH = 10
+
 interface DropZoneProps {
   label: string
   sublabel: string
@@ -22,7 +26,7 @@ function isAccepted(file: File, accept: string): boolean {
   })
 }
 
-async function readEntry(entry: FileSystemEntry): Promise<File[]> {
+async function readEntry(entry: FileSystemEntry, depth: number = 0): Promise<File[]> {
   if (entry.isFile) {
     return new Promise(resolve => {
       (entry as FileSystemFileEntry).file(
@@ -33,6 +37,10 @@ async function readEntry(entry: FileSystemEntry): Promise<File[]> {
   }
 
   if (entry.isDirectory) {
+    if (depth >= MAX_FOLDER_DEPTH) {
+      console.warn(`[DropZone] Max folder depth ${MAX_FOLDER_DEPTH} reached at ${entry.fullPath}; not descending further.`)
+      return []
+    }
     const reader = (entry as FileSystemDirectoryEntry).createReader()
     const all: File[] = []
 
@@ -43,7 +51,7 @@ async function readEntry(entry: FileSystemEntry): Promise<File[]> {
     do {
       batch = await readBatch()
       for (const e of batch) {
-        all.push(...await readEntry(e))
+        all.push(...await readEntry(e, depth + 1))
       }
     } while (batch.length > 0)
 
@@ -51,6 +59,23 @@ async function readEntry(entry: FileSystemEntry): Promise<File[]> {
   }
 
   return []
+}
+
+function applyDropCaps(files: File[]): File[] {
+  const sizeFiltered: File[] = []
+  for (const f of files) {
+    if (f.size > MAX_FILE_BYTES) {
+      console.warn(`[DropZone] Dropping oversized file: ${f.name} (${f.size} bytes > ${MAX_FILE_BYTES})`)
+      continue
+    }
+    sizeFiltered.push(f)
+  }
+  if (sizeFiltered.length > MAX_TOTAL_FILES) {
+    const dropped = sizeFiltered.length - MAX_TOTAL_FILES
+    console.warn(`[DropZone] Too many files (${sizeFiltered.length}); keeping first ${MAX_TOTAL_FILES}, dropping ${dropped}.`)
+    return sizeFiltered.slice(0, MAX_TOTAL_FILES)
+  }
+  return sizeFiltered
 }
 
 export default function DropZone({
@@ -80,13 +105,13 @@ export default function DropZone({
       all.push(...await readEntry(entry))
     }
 
-    const filtered = all.filter(f => isAccepted(f, accept))
+    const filtered = applyDropCaps(all.filter(f => isAccepted(f, accept)))
     if (filtered.length) onFiles(filtered)
   }, [accept, onFiles])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return
-    const filtered = Array.from(e.target.files).filter(f => isAccepted(f, accept))
+    const filtered = applyDropCaps(Array.from(e.target.files).filter(f => isAccepted(f, accept)))
     if (filtered.length) onFiles(filtered)
   }, [accept, onFiles])
 

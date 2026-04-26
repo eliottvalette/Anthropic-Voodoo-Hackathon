@@ -35,9 +35,14 @@ function probePython(pythonPath: string): { ok: boolean; reason?: string } {
   }
 }
 
-const PYTHON_PROBE = probePython(PYTHON_PATH)
-if (!PYTHON_PROBE.ok) {
-  console.warn(`[sandboxBackend] Python health check FAILED — pipeline jobs will likely fail.\n  PYTHON_PATH=${PYTHON_PATH}\n  Reason: ${PYTHON_PROBE.reason}\n  Fix: ensure ${PYTHON_PATH} exists and has imageio_ffmpeg, google-genai, pillow installed, OR set SANDBOX_PYTHON env var to a working interpreter.`)
+let _pythonProbe: { ok: boolean; reason?: string } | null = null
+function getPythonProbe(): { ok: boolean; reason?: string } {
+  if (_pythonProbe) return _pythonProbe
+  _pythonProbe = probePython(PYTHON_PATH)
+  if (!_pythonProbe.ok) {
+    console.warn(`[sandboxBackend] Python health check FAILED — pipeline jobs will likely fail.\n  PYTHON_PATH=${PYTHON_PATH}\n  Reason: ${_pythonProbe.reason}\n  Fix: ensure ${PYTHON_PATH} exists and has imageio_ffmpeg, google-genai, pillow installed, OR set SANDBOX_PYTHON env var to a working interpreter.`)
+  }
+  return _pythonProbe
 }
 
 function jobStore(): RegenerateJobStore {
@@ -315,7 +320,8 @@ function spawnPipelineJob(input: SpawnPipelineJobInput): SandboxJob {
     job.status = 'error'
     job.finished_at = Date.now() / 1000
     const baseMsg = error instanceof Error ? error.message : String(error)
-    job.error = PYTHON_PROBE.ok ? baseMsg : `${baseMsg}\n[hint] ${PYTHON_PROBE.reason}`
+    const probe = getPythonProbe()
+    job.error = probe.ok ? baseMsg : `${baseMsg}\n[hint] ${probe.reason}`
   })
   child.on('close', code => {
     job.finished_at = Date.now() / 1000

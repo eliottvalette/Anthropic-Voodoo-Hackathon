@@ -96,8 +96,13 @@ function Skeleton() {
 export default function ReviewPanel({
   steps, reviewContent, playableHtml, isAwaiting, onAccept, onRetry, onCorrect, onToggleFullscreen,
 }: ReviewPanelProps) {
-  const activeStep  = steps.find(s => s.status === 'active' || s.status === 'awaiting') ?? null
+  const activeStep  = (
+    steps.find(s => s.status === 'active' || s.status === 'awaiting')
+    ?? [...steps].reverse().find(s => s.status === 'error')
+    ?? null
+  )
   const isLoading   = activeStep?.status === 'active'
+  const isErrored   = activeStep?.status === 'error'
   const allDone     = steps.every(s => s.status === 'done') && !!playableHtml
   const hasContent  = activeStep || allDone
 
@@ -123,7 +128,20 @@ export default function ReviewPanel({
     <div className="flex flex-col h-full gap-4">
       {/* Content */}
       <div className={`flex-1 min-h-0 ${allDone ? 'overflow-hidden' : 'overflow-auto'}`}>
-        {isLoading ? (
+        {isErrored ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 fade-slide-in">
+            <div className="text-[10px] font-semibold text-red-700 uppercase tracking-widest mb-1">
+              Stage failed: {activeStep?.label}
+            </div>
+            {activeStep && reviewContent[activeStep.id] ? (
+              <div className="mt-2">{reviewContent[activeStep.id]}</div>
+            ) : (
+              <div className="text-xs text-red-700">
+                See the upload card below for the error details, or check the stepper.
+              </div>
+            )}
+          </div>
+        ) : isLoading ? (
           <Skeleton />
         ) : allDone ? (
           <div className="h-full fade-slide-in">
