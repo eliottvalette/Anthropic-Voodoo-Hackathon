@@ -67,6 +67,50 @@
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); triggerCta(); }
     });
   }
+  // ── Live tuning panel (top-right sliders, temporary while we dial in) ──
+  // Defined now (no `state` access at parse time); invoked from boot() once
+  // `state` is initialized.
+  function bindTuningPanel() {
+    const panel    = document.getElementById("tuning-panel");
+    const toggle   = document.getElementById("tuning-toggle");
+    const positionControls = [
+      { side: "player", slot: 0, axis: "x", input: document.getElementById("t-p0-x"), output: document.getElementById("t-p0-x-out") },
+      { side: "player", slot: 0, axis: "y", input: document.getElementById("t-p0-y"), output: document.getElementById("t-p0-y-out") },
+      { side: "player", slot: 1, axis: "x", input: document.getElementById("t-p1-x"), output: document.getElementById("t-p1-x-out") },
+      { side: "player", slot: 1, axis: "y", input: document.getElementById("t-p1-y"), output: document.getElementById("t-p1-y-out") },
+      { side: "player", slot: 2, axis: "x", input: document.getElementById("t-p2-x"), output: document.getElementById("t-p2-x-out") },
+      { side: "player", slot: 2, axis: "y", input: document.getElementById("t-p2-y"), output: document.getElementById("t-p2-y-out") },
+      { side: "enemy", slot: 0, axis: "x", input: document.getElementById("t-e0-x"), output: document.getElementById("t-e0-x-out") },
+      { side: "enemy", slot: 0, axis: "y", input: document.getElementById("t-e0-y"), output: document.getElementById("t-e0-y-out") },
+      { side: "enemy", slot: 1, axis: "x", input: document.getElementById("t-e1-x"), output: document.getElementById("t-e1-x-out") },
+      { side: "enemy", slot: 1, axis: "y", input: document.getElementById("t-e1-y"), output: document.getElementById("t-e1-y-out") },
+      { side: "enemy", slot: 2, axis: "x", input: document.getElementById("t-e2-x"), output: document.getElementById("t-e2-x-out") },
+      { side: "enemy", slot: 2, axis: "y", input: document.getElementById("t-e2-y"), output: document.getElementById("t-e2-y-out") },
+    ];
+    if (!panel || !toggle) return;
+    if (positionControls.some(c => !c.input || !c.output)) return;
+    positionControls.forEach((control) => {
+      control.input.value = String(unitSlots[control.side][control.slot][control.axis]);
+    });
+
+    function applyAll() {
+      positionControls.forEach((control) => {
+        const value = Number(control.input.value);
+        unitSlots[control.side][control.slot][control.axis] = value;
+        control.output.textContent = String(Math.round(value));
+      });
+      state.tuning.unitPositions = {
+        player: unitSlots.player.map(p => ({ x: p.x, y: p.y })),
+        enemy: unitSlots.enemy.map(p => ({ x: p.x, y: p.y })),
+      };
+    }
+
+    positionControls.map(c => c.input)
+      .forEach(el => el.addEventListener("input", applyAll));
+    toggle.addEventListener("click", () => panel.classList.toggle("collapsed"));
+    applyAll();
+  }
+
   function syncOverlays() {
     if (!elPullHint || !elDownloadCta) return;
     // PULL BACK hint visible while the player has not yet thrown a shot:
@@ -139,8 +183,8 @@
     enemy:  { x: 472, y: 124, w: 235, h: 386 },
   };
   const unitSlots = {
-    player: [{ x: 131, y: 271 }, { x: 187, y: 376 }, { x: 102, y: 455 }],
-    enemy:  [{ x: 601, y: 271 }, { x: 545, y: 376 }, { x: 630, y: 455 }],
+    player: [{ x: 214, y: 271 }, { x: 158, y: 348 }, { x: 102, y: 380 }],
+    enemy:  [{ x: 533, y: 277 }, { x: 563, y: 376 }, { x: 630, y: 455 }],
   };
 
   // ── Vec2 + RNG helpers (small, local — full version is in the bank if reused)
@@ -805,16 +849,19 @@
       const rngP = makeRng(12), rngE = makeRng(231);
       state.castles.player = new Castle(images.castlePlayer, "player", castleBoxes.player, rngP);
       state.castles.enemy  = new Castle(images.castleEnemy,  "enemy",  castleBoxes.enemy,  rngE);
-      // Visual tilt applied at draw-time. Both castles lean LEFT (negative).
-      // Live-tunable via the on-canvas sliders (top-right overlay).
+      // Fixed visual tuning for castle lean and inside alignment.
       state.tuning = {
-        tiltBlueDeg: -11,           // player castle, leaning left
-        tiltRedDeg:  -9,            // enemy castle, leaning left
-        insideScale: 1.00,          // inside PNG width relative to outside box
-        insideTopRel: 0.0,          // inside PNG top offset (×box.h, +down/-up)
+        tiltBlueDeg: -9.5,          // player castle, leaning left
+        tiltRedDeg:  -9.0,          // enemy castle, leaning left
+        insideScale: 0.86,          // inside PNG width relative to outside box
+        insideTopRel: 0.02,         // inside PNG top offset (×box.h, +down/-up)
+        insideLeftRel: 0.02,        // inside PNG x offset (×box.w, +right/-left)
       };
       state.castles.player.tiltRad = (state.tuning.tiltBlueDeg * Math.PI) / 180;
       state.castles.enemy.tiltRad  = (state.tuning.tiltRedDeg  * Math.PI) / 180;
+
+      // Wire the live tuning sliders now that castles + state.tuning exist.
+      bindTuningPanel();
 
       state.phase = "aiming";
       showTutorialHandIfNeeded();
@@ -1255,10 +1302,12 @@
   }
   function drawWorld() {
     drawBackground();
-    drawCastleSide("player");
-    drawCastleSide("enemy");
+    drawCastleInside("player");
+    drawCastleInside("enemy");
     drawUnits("player");
     drawUnits("enemy");
+    drawCastleOutside("player");
+    drawCastleOutside("enemy");
     drawTrajectory();
     drawProjectiles();
     drawDebrisV2();
@@ -1273,7 +1322,7 @@
     ctx.fillStyle = "rgba(0,0,0,0.06)";
     ctx.fillRect(-80, 0, WORLD_W + 160, H);
   }
-  function drawCastleSide(side) {
+  function drawCastleInside(side) {
     const castle = state.castles[side];
     const c = castleBoxes[side];
     const hp = side === "player" ? state.playerHp : state.enemyHp;
@@ -1284,32 +1333,35 @@
     const inside = images.castleInside;
 
     if (reveal && hp > 0 && inside) {
-      // The inside PNG is the cropped TOP portion of a castle. Glue it at
-      // the same width and same TOP as the outside, so the towers line up.
-      // Then mirror the outside's tilt around the same center so the X-ray
-      // hole through the outside reveals the matching inside region.
-      const tilt = castle.tiltRad || 0;
-      const cx = c.x + c.w * 0.5;
-      const cy = c.y + c.h * 0.5;
-      const insideW = c.w;
+      // The inside PNG stays UPRIGHT (no tilt). Same width as outside, anchored
+      // by its top to the outside top + a tunable vertical offset.
+      const t = state.tuning || { insideScale: 1, insideTopRel: 0, insideLeftRel: 0 };
+      const insideW = c.w * t.insideScale;
       const insideH = insideW * (inside.naturalHeight / inside.naturalWidth);
-      // Anchor inside top with the outside top (relative coords inside the
-      // tilt frame so the rotation pivots on the same center).
-      const insideRelX = -c.w * 0.5;
-      const insideRelY = -c.h * 0.5;
+      const insideX = c.x + (c.w - insideW) * 0.5 + c.w * (t.insideLeftRel || 0);
+      const insideY = c.y + c.h * t.insideTopRel;
 
-      // 1) Draw the inside layer behind, clipped to the reveal circle.
+      // 1) Inside layer (no tilt), clipped to the reveal circle.
       ctx.save();
       ctx.beginPath();
       ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, TAU);
       ctx.clip();
-      ctx.translate(cx, cy);
-      ctx.rotate(tilt);
-      ctx.drawImage(inside, insideRelX, insideRelY, insideW, insideH);
+      ctx.drawImage(inside, insideX, insideY, insideW, insideH);
       ctx.restore();
+    }
+  }
+  function drawCastleOutside(side) {
+    const castle = state.castles[side];
+    const c = castleBoxes[side];
+    const hp = side === "player" ? state.playerHp : state.enemyHp;
+    if (!castle) return;
 
-      // 2) Draw the outside (tilted internally by Castle.draw) with the
-      //    reveal circle punched out via even-odd clip on the world plane.
+    const reveal = revealForSide(side);
+    const inside = images.castleInside;
+
+    if (reveal && hp > 0 && inside) {
+      // Draw the outside with the reveal circle punched out so heroes can sit
+      // between the inside art and the castle facade.
       ctx.save();
       ctx.beginPath();
       ctx.rect(c.x - 40, c.y - 40, c.w + 80, c.h + 80);
@@ -1318,7 +1370,6 @@
       castle.draw(ctx);
       ctx.restore();
 
-      // 3) Subtle outline so the X-ray reads as deliberate.
       ctx.save();
       ctx.strokeStyle = "rgba(255,255,255,0.45)";
       ctx.lineWidth = 1.5;
