@@ -53,6 +53,12 @@ type Stage = {
   elapsedMs?: number
 }
 
+function lastNonEmptyLine(text: string | undefined): string | undefined {
+  if (!text) return undefined
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  return lines.length > 0 ? lines[lines.length - 1] : undefined
+}
+
 function deriveStages(args: {
   jobs: SandboxJob[]
   manifest: SandboxManifest | null
@@ -95,7 +101,7 @@ function deriveStages(args: {
     analyzeDetail = 'Gemini video analysis (~30–90s)'
   } else if (analyzeJob?.status === 'error') {
     analyzeState = 'error'
-    analyzeDetail = analyzeJob.error?.split('\n')[0] || 'Analysis failed'
+    analyzeDetail = lastNonEmptyLine(analyzeJob.error) || 'Analysis failed'
   } else if (manifest && manifest.assets.length > 0) {
     analyzeState = 'done'
     analyzeDetail = `${manifest.assets.length} assets identified`
@@ -111,7 +117,7 @@ function deriveStages(args: {
     coverageDetail = 'Matching filenames against assets…'
   } else if (coverageJob?.status === 'error') {
     coverageState = 'error'
-    coverageDetail = coverageJob.error?.split('\n')[0] || 'Matching failed'
+    coverageDetail = lastNonEmptyLine(coverageJob.error) || 'Matching failed'
   } else if (coverageReport) {
     coverageState = 'done'
     coverageDetail = `${coverageReport.summary.provided}/${coverageReport.summary.total} imported · ${coverageReport.summary.missing} missing`
@@ -131,7 +137,7 @@ function deriveStages(args: {
     generateDetail = `Scenario generating ${generatedDone}/${total}${errors ? ` · ${errors} errors` : ''}`
   } else if (generateJob?.status === 'error') {
     generateState = 'error'
-    generateDetail = generateJob.error?.split('\n')[0] || 'Generation failed'
+    generateDetail = lastNonEmptyLine(generateJob.error) || 'Generation failed'
   } else if (generationKickedOff && generatedDone > 0) {
     generateState = 'done'
     generateDetail = `${generatedDone}/${total} generated${errors ? ` · ${errors} errors` : ''}`
@@ -474,6 +480,20 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
   const autoGenStartedRef = useRef(false)
   const completeFiredRef = useRef(false)
 
+  useEffect(() => {
+    coverageStartedRef.current = false
+    autoGenStartedRef.current = false
+    completeFiredRef.current = false
+    setManifest(null)
+    setJobs([])
+    setCoverageReport(null)
+    setCoverageStatus('idle')
+    setCoverageError(null)
+    setError(null)
+    setSelected(new Set())
+    setGenerationKickedOff(false)
+  }, [runId])
+
   const load = useCallback(async () => {
     if (!runId) return
     const [manifestResponse, jobsResponse, coverageResponse] = await Promise.all([
@@ -497,6 +517,7 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
     if (!runId) return
     let cancelled = false
     const safeLoad = () => {
+      if (completeFiredRef.current) return
       load().catch(err => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load asset state')
       })
