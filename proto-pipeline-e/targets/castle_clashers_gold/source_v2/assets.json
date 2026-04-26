@@ -4,6 +4,7 @@
   "castleEnemy":  "../../../../nico-sandbox/runs/B11/final-assets-v1/props/castle_enemy.png",
   "castleInside": "../../../../ressources/Castle Clashers/Assets/inside.png",
   "castleInsideBottom": "./best_assets/tiltedbottom.png",
+  "boss": "./best_assets/boss.png",
   "iconCastleBlue": "../../../../ressources/Castle Clashers/Assets/Blue Castle.png",
   "iconCastleRed":  "../../../../ressources/Castle Clashers/Assets/Red Castle.png",
   "castlePlayer_impact":     "./assets/destruction/Blue_Castle_01_impact.png",

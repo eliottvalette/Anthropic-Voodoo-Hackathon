@@ -1029,11 +1029,10 @@
     startMusic();
     haptic("tap");
     if (state.ctaVisible && performance.now() >= state.endStaticAt) {
-      const r = canvas.getBoundingClientRect();
-      const sx = ((event.clientX - r.left) / r.width)  * W;
-      const sy = ((event.clientY - r.top)  / r.height) * H;
-      const fn = state.result === "victory" ? drawGameWon : drawGameLost;
-      if (isPointInCta(fn.lastCtaBounds, sx, sy)) {
+      const v = getCanvasViewport();
+      const sx = ((event.clientX - v.left) / v.width)  * W;
+      const sy = ((event.clientY - v.top)  / v.height) * H;
+      if (isPointInCta(drawStaticEndScreen.lastCtaBounds, sx, sy)) {
         playSfx("ui");
         haptic("ui");
         openStore(STORE_URL);
@@ -1385,21 +1384,209 @@
     syncOverlays();
   }
   function drawStaticEndScreen() {
-    if (state.result === "victory") {
-      drawGameWon(ctx, W, H, {
-        primary: "BATTLE", secondary: "WON", cta: "PLAY NOW",
-        rewards: [{ label: "+22", color: "#f5c842", kind: "trophy" },
-                  { label: "180", color: "#f5c842", kind: "coin" },
-                  { label: "26",  color: "#a06d3a", kind: "wood" }],
-      });
-    } else {
-      drawGameLost(ctx, W, H, {
-        primary: "BATTLE", secondary: "FAILED", cta: "TRY AGAIN",
-        rewards: [{ label: "-12.40", color: "#f5c842", kind: "trophy" },
-                  { label: "45",     color: "#f5c842", kind: "coin" },
-                  { label: "8",      color: "#a06d3a", kind: "wood" }],
-      });
+    const victory = state.result === "victory";
+    const winnerSide = victory ? "player" : "enemy";
+    const accent = victory ? "#ffd24a" : "#ff4141";
+    const crest = winnerSide === "player" ? images.iconCastleBlue : images.iconCastleRed;
+    const endT = performance.now() / 1000;
+    const pulse = 1 + Math.sin(endT * 4.6) * 0.018;
+
+    ctx.save();
+    ctx.fillStyle = victory ? "rgba(6, 8, 12, 0.46)" : "rgba(16, 3, 5, 0.58)";
+    ctx.fillRect(0, 0, W, H);
+
+    drawEndVignette(victory);
+    drawEndRays(W * 0.5, H * 0.35, accent, victory ? 0.20 : 0.13, endT);
+
+    ctx.save();
+    ctx.translate(W / 2, 118);
+    ctx.scale(pulse, pulse);
+    if (crest) {
+      ctx.save();
+      ctx.globalAlpha = 0.95;
+      ctx.shadowColor = accent;
+      ctx.shadowBlur = 24;
+      drawContain(crest, -36, -102, 72, 72);
+      ctx.restore();
     }
+    drawEndTitle("CASTLE", -4, 0, 34, "#fffdf3", "#0b0705");
+    drawEndTitle(victory ? "CRUSHED!" : "FALLEN", 0, 51, victory ? 56 : 58, accent, "#120906");
+    ctx.restore();
+
+    drawEndSubtitle(
+      victory ? "ENEMY STRONGHOLD DESTROYED" : "YOUR STRONGHOLD WAS DESTROYED",
+      W / 2,
+      214,
+      victory ? "#ffeaa2" : "#ffc7c7"
+    );
+
+    drawEndBoss(endT);
+    drawEndSmoke(victory, endT);
+    drawEndCta("BOSS", endT);
+    ctx.restore();
+  }
+  drawStaticEndScreen.lastCtaBounds = null;
+
+  function drawEndTitle(text, x, y, size, fill, stroke) {
+    ctx.save();
+    ctx.font = "900 " + size + "px 'Lilita One', 'Arial Black', Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(7, size * 0.18);
+    ctx.strokeStyle = stroke;
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = Math.max(4, size * 0.10);
+    ctx.strokeText(text, x, y);
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = fill;
+    ctx.fillText(text, x, y);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(-W, y - size * 0.58, W * 2, size * 0.28);
+    ctx.clip();
+    ctx.fillStyle = "rgba(255,255,255,0.36)";
+    ctx.fillText(text, x, y);
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function drawEndSubtitle(text, x, y, color) {
+    ctx.save();
+    ctx.font = "900 14px 'Lilita One', 'Arial Black', Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#100907";
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function drawEndRays(cx, cy, color, alpha, time) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(time * 0.18);
+    ctx.globalAlpha = alpha;
+    const radius = Math.max(W, H) * 0.75;
+    for (let i = 0; i < 16; i += 1) {
+      const a = (i / 16) * TAU;
+      ctx.fillStyle = i % 2 ? "rgba(255,255,255,0.70)" : color;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a - 0.055) * radius, Math.sin(a - 0.055) * radius);
+      ctx.lineTo(Math.cos(a + 0.055) * radius, Math.sin(a + 0.055) * radius);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawEndVignette(victory) {
+    const glow = ctx.createRadialGradient(W * 0.5, H * 0.42, 40, W * 0.5, H * 0.42, H * 0.74);
+    if (victory) {
+      glow.addColorStop(0, "rgba(255,210,74,0.24)");
+      glow.addColorStop(0.42, "rgba(255,138,39,0.08)");
+    } else {
+      glow.addColorStop(0, "rgba(255,65,65,0.18)");
+      glow.addColorStop(0.42, "rgba(90,0,0,0.18)");
+    }
+    glow.addColorStop(1, "rgba(0,0,0,0.72)");
+    ctx.save();
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  function drawEndSmoke(victory, time) {
+    ctx.save();
+    const baseY = H * 0.66;
+    for (let i = 0; i < 18; i += 1) {
+      const x = (i / 17) * W + Math.sin(time * 1.6 + i) * 10;
+      const y = baseY + Math.sin(i * 1.7 + time) * 18;
+      const r = 22 + (i % 5) * 8;
+      ctx.fillStyle = victory ? "rgba(38,31,24,0.18)" : "rgba(22,18,20,0.30)";
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawEndBoss(time) {
+    const boss = images.boss;
+    if (!boss) return;
+    const bob = Math.sin(time * 2.6) * 5;
+    const w = 270;
+    const h = w * (boss.naturalHeight / boss.naturalWidth);
+    const x = (W - w) / 2;
+    const y = 240 + bob;
+
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    ctx.shadowColor = "rgba(255,32,18,0.90)";
+    ctx.shadowBlur = 24;
+    drawContain(boss, x, y, w, h);
+    ctx.restore();
+  }
+
+  function drawEndCta(label, time) {
+    const ctaW = 330;
+    const ctaH = 108;
+    const ctaX = (W - ctaW) / 2;
+    const ctaY = H - 136;
+    const bob = Math.sin(time * 5.2) * 2.5;
+    drawStaticEndScreen.lastCtaBounds = { x: ctaX, y: ctaY + bob, w: ctaW, h: ctaH };
+
+    ctx.save();
+    ctx.translate(0, bob);
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    roundRect(ctx, ctaX + 5, ctaY + 8, ctaW, ctaH, 18);
+    ctx.fill();
+    const grad = ctx.createLinearGradient(0, ctaY, 0, ctaY + ctaH);
+    grad.addColorStop(0, "#ffb034");
+    grad.addColorStop(0.48, "#ff6a24");
+    grad.addColorStop(1, "#e72519");
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = "#ffd28b";
+    ctx.lineWidth = 4;
+    roundRect(ctx, ctaX, ctaY, ctaW, ctaH, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,0.24)";
+    roundRect(ctx, ctaX + 10, ctaY + 8, ctaW - 20, 16, 8);
+    ctx.fill();
+
+    drawEndCtaText(label, W / 2, ctaY + ctaH / 2 + 3, 62, "#ff2a1b");
+    ctx.restore();
+  }
+
+  function drawEndCtaText(text, x, y, size, fill) {
+    ctx.save();
+    ctx.font = "900 " + size + "px 'Lilita One', 'Arial Black', Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(4, size * 0.16);
+    ctx.strokeStyle = "#4a1a05";
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = fill;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    const rad = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rad, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rad);
+    ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad);
+    ctx.arcTo(x, y, x + w, y, rad);
+    ctx.closePath();
   }
   function applyCamera() {
     ctx.translate(W / 2, H / 2);

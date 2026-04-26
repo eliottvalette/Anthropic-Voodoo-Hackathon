@@ -1,12 +1,12 @@
 {
   "output": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/applovin_playable.html",
-  "bytes": 1269867,
-  "decimalMB": 1.2698669999999999,
-  "mebibytes": 1.2110395431518555,
+  "bytes": 1406665,
+  "decimalMB": 1.406665,
+  "mebibytes": 1.3415002822875977,
   "maxBytes": 5000000,
   "under5MB": true,
-  "assetBytesBefore": 7051932,
-  "assetBytesAfter": 819883,
+  "assetBytesBefore": 13468599,
+  "assetBytesAfter": 916873,
   "assets": [
     {
       "key": "background",
@@ -20,84 +20,91 @@
       "source": "nico-sandbox/runs/B11/final-assets-v1/props/castle_player.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castlePlayer.webp",
       "sourceBytes": 629592,
-      "bundledBytes": 36672
+      "bundledBytes": 36454
     },
     {
       "key": "castleEnemy",
       "source": "nico-sandbox/runs/B11/final-assets-v1/props/castle_enemy.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleEnemy.webp",
       "sourceBytes": 535625,
-      "bundledBytes": 32632
+      "bundledBytes": 32448
     },
     {
       "key": "castleInside",
       "source": "ressources/Castle Clashers/Assets/inside.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleInside.webp",
       "sourceBytes": 1130966,
-      "bundledBytes": 44554
+      "bundledBytes": 44176
     },
     {
       "key": "castleInsideBottom",
       "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/best_assets/tiltedbottom.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/castleInsideBottom.webp",
       "sourceBytes": 68106,
-      "bundledBytes": 7920
+      "bundledBytes": 7868
+    },
+    {
+      "key": "boss",
+      "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/best_assets/boss.png",
+      "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/boss.webp",
+      "sourceBytes": 6416667,
+      "bundledBytes": 100282
     },
     {
       "key": "iconCastleBlue",
       "source": "ressources/Castle Clashers/Assets/Blue Castle.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/iconCastleBlue.webp",
       "sourceBytes": 184902,
-      "bundledBytes": 21582
+      "bundledBytes": 20884
     },
     {
       "key": "iconCastleRed",
       "source": "ressources/Castle Clashers/Assets/Red Castle.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/iconCastleRed.webp",
       "sourceBytes": 180828,
-      "bundledBytes": 21404
+      "bundledBytes": 20638
     },
     {
       "key": "unitFire",
       "source": "nico-sandbox/runs/B11/final-assets-v1/characters/char_cyclops_red/full.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitFire.webp",
       "sourceBytes": 555581,
-      "bundledBytes": 24264
+      "bundledBytes": 24116
     },
     {
       "key": "unitPoison",
       "source": "nico-sandbox/runs/B11/final-assets-v1/characters/char_goblin_green/full.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitPoison.webp",
       "sourceBytes": 462884,
-      "bundledBytes": 28142
+      "bundledBytes": 27972
     },
     {
       "key": "unitMissile",
       "source": "nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/unitMissile.webp",
       "sourceBytes": 449608,
-      "bundledBytes": 27900
+      "bundledBytes": 27712
     },
     {
       "key": "projFire",
       "source": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/assets/destruction/fireball.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projFire.webp",
       "sourceBytes": 285963,
-      "bundledBytes": 13614
+      "bundledBytes": 13492
     },
     {
       "key": "projMissile",
       "source": "nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_missile.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projMissile.webp",
       "sourceBytes": 254236,
-      "bundledBytes": 14572
+      "bundledBytes": 14470
     },
     {
       "key": "projPoison",
       "source": "nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png",
       "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/projPoison.webp",
       "sourceBytes": 313356,
-      "bundledBytes": 16436
+      "bundledBytes": 16302
     },
     {
       "key": "sfxCanonWhistle",
@@ -143,15 +150,16 @@
     "source": "nico-sandbox/runs/B11/final-assets-v1/ui/ui_hand_cursor.png",
     "bundled": "proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/optimized-assets/tutorialHand.webp",
     "sourceBytes": 442256,
-    "bundledBytes": 19540
+    "bundledBytes": 19408
   },
   "checks": [
     "single HTML",
     "no external font links",
     "manifest inlined",
+    "MRAID ready before boot",
     "MRAID open available via openStore",
     "music starts only after pointerdown",
     "visibility/pagehide stops music",
-    "boot waits for MRAID ready promise when available"
+    "SFX inlined through CC_ASSETS"
   ]
 }
