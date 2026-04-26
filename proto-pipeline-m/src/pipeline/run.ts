@@ -7,11 +7,13 @@ import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
 import { writeP3 } from "./p3_aggregator.ts";
 import { runP4 } from "./p4_codegen.ts";
-import { runP4Legacy } from "./p4_legacy.ts";
-import type { SubsystemName } from "./p4_subsystems.ts";
-import { verify } from "./verify.ts";
+import { verify, buildRetryAddendum } from "./verify.ts";
 import { GameSpecSchema } from "../schemas/gameSpec.ts";
 import type { VerifyReport } from "../schemas/verifyReport.ts";
+import {
+  SCENE_ELEMENT_NAMES,
+  type SceneElementName,
+} from "../schemas/p4Plan.ts";
 
 type StageMeta = {
   step: string;
@@ -35,12 +37,11 @@ export type RunMeta = {
   stages: StageMeta[];
   verify: VerifyReport;
   retries: number;
-  subsystemFailCounts: Record<SubsystemName, number>;
-  monolithicFallbackUsed: boolean;
+  elementFailCounts: Record<SceneElementName, number>;
+  repaired: boolean;
 };
 
-const SUBSYSTEM_NAMES: SubsystemName[] = ["input", "physics", "render", "state", "winloss"];
-const PER_SUBSYSTEM_RETRY_BUDGET = 2;
+const PER_ELEMENT_RETRY_BUDGET = 2;
 
 function failingAsserts(r: VerifyReport): string[] {
   const out: string[] = [];
@@ -50,28 +51,48 @@ function failingAsserts(r: VerifyReport): string[] {
   if (!r.mraidOk) out.push("mraid.open( not found");
   if (!r.mechanicStringMatch) out.push("mechanic_name string missing in JS");
   if (!r.interactionStateChange) out.push("__engineState.snapshot did not change after tap+drag");
+  if (!r.turnLoopObserved) out.push("turn loop not observed");
+  if (!r.hpDecreasesOnHit) out.push("HP never decreased on hit");
+  if (!r.ctaReachable) out.push("CTA not reachable");
   return out;
 }
 
 type Routing = {
-  subsystems: SubsystemName[];
-  reaggregateOnly: boolean;
+  elements: SceneElementName[];
+  recomposeOnly: boolean;
 };
 
 function routeFailures(r: VerifyReport): Routing {
-  const subs = new Set<SubsystemName>();
-  if (!r.canvasNonBlank) subs.add("render");
-  if (!r.interactionStateChange) {
-    subs.add("input");
-    subs.add("state");
+  const els = new Set<SceneElementName>();
+  if (!r.canvasNonBlank) {
+    els.add("bg_ground");
+    els.add("actors");
   }
-  if (!r.mraidOk) subs.add("winloss");
+  if (!r.interactionStateChange) {
+    els.add("actors");
+  }
+  if (!r.mechanicStringMatch) {
+    els.add("actors");
+  }
+  if (!r.turnLoopObserved) {
+    els.add("actors");
+    els.add("projectiles");
+  }
+  if (!r.hpDecreasesOnHit) {
+    els.add("projectiles");
+    els.add("actors");
+  }
+  if (!r.ctaReachable) {
+    els.add("end_card");
+  }
+  if (!r.mraidOk) {
+    els.add("end_card");
+  }
   if (r.consoleErrors.length > 0) {
-    SUBSYSTEM_NAMES.forEach((n) => subs.add(n));
+    SCENE_ELEMENT_NAMES.forEach((n) => els.add(n));
   }
   if (!r.sizeOk) {
-    subs.add("render");
-    subs.add("state");
+    els.add("bg_ground");
   }
   const onlyMechanicMissing =
     !r.mechanicStringMatch &&
@@ -79,10 +100,13 @@ function routeFailures(r: VerifyReport): Routing {
     r.interactionStateChange &&
     r.mraidOk &&
     r.sizeOk &&
-    r.consoleErrors.length === 0;
+    r.consoleErrors.length === 0 &&
+    r.turnLoopObserved &&
+    r.hpDecreasesOnHit &&
+    r.ctaReachable;
   return {
-    subsystems: Array.from(subs),
-    reaggregateOnly: onlyMechanicMissing,
+    elements: Array.from(els),
+    recomposeOnly: onlyMechanicMissing,
   };
 }
 
@@ -92,6 +116,7 @@ export async function runPipeline(
   assetsDir: string,
   variant = "_default",
   maxRetries = 4,
+  referenceDir: string | null = null,
 ): Promise<RunMeta> {
   const runId = await stampRunId(requestedRunId);
   console.log(`[run] runId "${requestedRunId}" stamped → "${runId}"`);
@@ -123,29 +148,53 @@ export async function runPipeline(
   stages.push(...p2.output.meta.subCalls);
 
   console.log(`[run] stage 3: P3 aggregator`);
-  const p3 = await writeP3(runId, variant);
+  const p3 = await writeP3(runId, variant, referenceDir);
   stages.push(...p3.output.meta.subCalls);
 
   const gameSpec = GameSpecSchema.parse(
     JSON.parse(await readFile(join(outDir, "03_game_spec.json"), "utf8")),
   );
 
-  const subsystemFailCounts: Record<SubsystemName, number> = {
-    input: 0,
-    physics: 0,
-    render: 0,
-    state: 0,
-    winloss: 0,
+  const elementFailCounts: Record<SceneElementName, number> = {
+    bg_ground: 0,
+    actors: 0,
+    projectiles: 0,
+    hud: 0,
+    end_card: 0,
   };
-  let monolithicFallbackUsed = false;
 
-  console.log(`[run] stage 4: P4 codegen (attempt 1, modular)`);
-  let p4 = await runP4(runId, assetsDir, variant);
+  console.log(`[run] stage 4: P4 codegen (plan + sketches + final)`);
+  let p4 = await runP4(runId, assetsDir, variant, { referenceDir });
   stages.push(...p4.meta.subCalls);
+  let repaired = p4.meta.repaired;
 
   console.log(`[run] verifying...`);
   let report = await verify(p4.htmlPath, gameSpec.mechanic_name);
   let retries = 0;
+
+  const writeFailureSummary = async (r: typeof report, attempt: number) => {
+    if (r.runs) return;
+    const failed = failingAsserts(r);
+    const addendum = buildRetryAddendum(r);
+    const summary = [
+      `runId: ${runId}`,
+      `attempt: ${attempt}`,
+      `failingAsserts: ${failed.join(" | ")}`,
+      `phasesSeen: ${(r.trajectory?.phasesSeen ?? []).join(",")}`,
+      `turnIndicesSeen: ${(r.trajectory?.turnIndicesSeen ?? []).join(",")}`,
+      `inputsTotal: ${r.trajectory?.inputsTotal ?? 0}`,
+      `hpDeltaPlayer: ${r.trajectory?.hpDeltaPlayer ?? "null"}`,
+      `hpDeltaEnemy: ${r.trajectory?.hpDeltaEnemy ?? "null"}`,
+      ``,
+      `--- retry addendum ---`,
+      addendum,
+      ``,
+      `--- next step ---`,
+      `Invoke the browser-tester agent on this runDir to get a structured fix-hint.`,
+    ].join("\n");
+    await writeFile(join(outDir, "verify_failure_summary.txt"), summary, "utf8");
+  };
+  await writeFailureSummary(report, 0);
 
   while (!report.runs && retries < maxRetries) {
     retries++;
@@ -154,37 +203,33 @@ export async function runPipeline(
       `[run] verify failed (${failingAsserts(report).join("; ")}). Retry ${retries}/${maxRetries}.`,
     );
 
-    const overBudget = routing.subsystems.find(
-      (s) => subsystemFailCounts[s] >= PER_SUBSYSTEM_RETRY_BUDGET,
+    const overBudget = routing.elements.find(
+      (e) => elementFailCounts[e] >= PER_ELEMENT_RETRY_BUDGET,
     );
-    if (overBudget && !monolithicFallbackUsed) {
+    if (overBudget) {
       console.warn(
-        `[run] subsystem "${overBudget}" hit ${PER_SUBSYSTEM_RETRY_BUDGET} strikes — falling back to monolithic codegen.`,
+        `[run] element "${overBudget}" hit ${PER_ELEMENT_RETRY_BUDGET} strikes — re-running full P4 chain.`,
       );
-      monolithicFallbackUsed = true;
-      const failedAtBudget = SUBSYSTEM_NAMES.filter(
-        (s) => subsystemFailCounts[s] >= PER_SUBSYSTEM_RETRY_BUDGET,
-      );
-      const legacy = await runP4Legacy(runId, assetsDir, variant, failedAtBudget);
-      stages.push(...legacy.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
-      report = await verify(legacy.htmlPath, gameSpec.mechanic_name);
-      continue;
-    }
-
-    if (routing.reaggregateOnly) {
-      console.log(`[run] re-aggregating only (mechanic marker fix)...`);
-      p4 = await runP4(runId, assetsDir, variant, { retryOnly: [] });
-    } else if (routing.subsystems.length > 0) {
-      console.log(`[run] routing retry to subsystems: ${routing.subsystems.join(", ")}`);
-      for (const s of routing.subsystems) subsystemFailCounts[s]++;
-      p4 = await runP4(runId, assetsDir, variant, { retryOnly: routing.subsystems });
+      p4 = await runP4(runId, assetsDir, variant, { referenceDir });
+    } else if (routing.recomposeOnly) {
+      console.log(`[run] recomposing only (mechanic marker fix)...`);
+      p4 = await runP4(runId, assetsDir, variant, { retryOnly: [], referenceDir });
+    } else if (routing.elements.length > 0) {
+      console.log(`[run] routing retry to elements: ${routing.elements.join(", ")}`);
+      for (const e of routing.elements) elementFailCounts[e]++;
+      p4 = await runP4(runId, assetsDir, variant, {
+        retryOnly: routing.elements,
+        referenceDir,
+      });
     } else {
-      console.warn(`[run] no specific routing matched — re-running all subsystems`);
-      for (const s of SUBSYSTEM_NAMES) subsystemFailCounts[s]++;
-      p4 = await runP4(runId, assetsDir, variant);
+      console.warn(`[run] no specific routing matched — re-running full P4`);
+      for (const e of SCENE_ELEMENT_NAMES) elementFailCounts[e]++;
+      p4 = await runP4(runId, assetsDir, variant, { referenceDir });
     }
     stages.push(...p4.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
+    repaired = repaired || p4.meta.repaired;
     report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+    await writeFailureSummary(report, retries);
   }
 
   await writeFile(
@@ -207,8 +252,8 @@ export async function runPipeline(
     stages,
     verify: report,
     retries,
-    subsystemFailCounts,
-    monolithicFallbackUsed,
+    elementFailCounts,
+    repaired,
   };
   await writeFile(
     join(outDir, "_meta.json"),

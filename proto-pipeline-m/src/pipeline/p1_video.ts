@@ -5,11 +5,18 @@ import {
   uploadFile,
   waitUntilActive,
   generateJson,
+  generateJsonProWithFallback,
   MODELS,
   type ContentPart,
   type GenerateResult,
   type GenerateOptions,
 } from "./gemini.ts";
+import {
+  generateJson as generateJsonClaude,
+  imagePartFromPath,
+  CLAUDE_MODELS,
+  type AnthropicContent,
+} from "./anthropic.ts";
 import { TimelineSchema, type Timeline } from "../schemas/video/timeline.ts";
 import { MechanicsSchema, type Mechanics } from "../schemas/video/mechanics.ts";
 import { VisualUiSchema, type VisualUi } from "../schemas/video/visualUi.ts";
@@ -23,6 +30,10 @@ import {
   P1dCritiqueSchema,
   type P1dCritique,
 } from "../schemas/video/merged.ts";
+import {
+  VideoDescriptionSchema,
+  type VideoDescription,
+} from "../schemas/video/description.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import { buildContactSheet } from "./p1_contact_sheet.ts";
 
@@ -46,9 +57,8 @@ type SubMeta = {
   attempt: number;
 };
 
-async function runWithRetry<T>(
+async function runGeminiVideoWithRetry<T>(
   step: string,
-  model: string,
   schema: z.ZodType<T>,
   systemInstruction: string,
   userParts: ContentPart[],
@@ -59,14 +69,14 @@ async function runWithRetry<T>(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson(model, systemInstruction, userParts, options);
+      const r = await generateJsonProWithFallback(systemInstruction, userParts, options);
       const parsed = schema.parse(r.data);
       return {
         result: r,
         data: parsed,
         meta: {
           step,
-          model,
+          model: r.model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -88,6 +98,47 @@ async function runWithRetry<T>(
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
+async function runClaudeWithRetry<T>(
+  step: string,
+  schema: z.ZodType<T>,
+  systemInstruction: string,
+  userParts: AnthropicContent[],
+  options: { temperature?: number; maxTokens?: number } = {},
+): Promise<{ data: T; meta: SubMeta }> {
+  let attempt = 0;
+  let lastErr: unknown;
+  let sys = systemInstruction;
+  while (attempt < 2) {
+    attempt++;
+    try {
+      const r = await generateJsonClaude(CLAUDE_MODELS.sonnet, sys, userParts, options);
+      const parsed = schema.parse(r.data);
+      return {
+        data: parsed,
+        meta: {
+          step,
+          model: CLAUDE_MODELS.sonnet,
+          tokensIn: r.tokensIn,
+          tokensOut: r.tokensOut,
+          latencyMs: r.latencyMs,
+          attempt,
+        },
+      };
+    } catch (e) {
+      lastErr = e;
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(
+        `[p1] ${step} attempt ${attempt} failed: ${msg.slice(0, 200)}`,
+      );
+      if (attempt >= 2) break;
+      sys =
+        systemInstruction +
+        `\n\nThe previous response failed JSON schema validation. Re-emit ONLY a JSON object that exactly matches the schema, no markdown, no prose.`;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
 async function readAssetFilenames(outDir: string): Promise<string[] | null> {
   const probePath = join(outDir, "00_probe.json");
   if (!(await exists(probePath))) return null;
@@ -102,6 +153,7 @@ async function readAssetFilenames(outDir: string): Promise<string[] | null> {
 
 export type P1Output = {
   merged: MergedVideo;
+  description: VideoDescription;
   contactSheet: ContactSheetAnalysis | null;
   critique: P1dCritique | null;
   alternate: AlternateInterpretation | null;
@@ -115,6 +167,7 @@ export type P1Output = {
     timeline: Timeline;
     mechanics: Mechanics;
     visualUi: VisualUi;
+    description: VideoDescription;
   };
 };
 
@@ -124,7 +177,7 @@ export async function runP1(
   outDir?: string,
 ): Promise<P1Output> {
   const t0 = Date.now();
-  const [p1a, p1b, p1c, p1d, p1e, p1dCritic, p1dRewriter, p1f] = await Promise.all([
+  const [p1a, p1b, p1c, p1d, p1e, p1dCritic, p1dRewriter, p1f, p1g] = await Promise.all([
     loadPrompt(variant, "1a_timeline.md"),
     loadPrompt(variant, "1b_mechanics.md"),
     loadPrompt(variant, "1c_visual_ui.md"),
@@ -133,6 +186,7 @@ export async function runP1(
     loadPrompt(variant, "1d_critic.md"),
     loadPrompt(variant, "1d_rewriter.md"),
     loadPrompt(variant, "1f_alternate.md"),
+    loadPrompt(variant, "1g_description.md"),
   ]);
 
   const assetFilenames = outDir ? await readAssetFilenames(outDir) : null;
@@ -155,18 +209,6 @@ export async function runP1(
   console.log(`[p1] video uploaded as ${file.name}, waiting until ACTIVE...`);
   await waitUntilActive(file.name);
 
-  const sheetUpload = sheet
-    ? await uploadFile(sheet.pngPath).catch((e) => {
-        console.warn(`[p1] contact sheet upload failed: ${(e as Error).message.slice(0, 200)}`);
-        return null;
-      })
-    : null;
-  if (sheetUpload) {
-    await waitUntilActive(sheetUpload.name).catch(() => {
-      // upload of static images is usually instant; ignore wait failures
-    });
-  }
-
   const filePart: ContentPart = {
     fileData: { fileUri: file.uri, mimeType: file.mimeType },
   };
@@ -175,32 +217,34 @@ export async function runP1(
     { text: "Analyze the video per the system instruction." },
   ];
 
-  console.log(`[p1] running 1a/1b/1c/1e in parallel...`);
-  const sheetCallParts: ContentPart[] | null = sheetUpload
+  console.log(`[p1] running 1a/1b/1c/1e/1g in parallel...`);
+  const sheetClaudeParts: AnthropicContent[] | null = sheet
     ? [
-        { fileData: { fileUri: sheetUpload.uri, mimeType: sheetUpload.mimeType } },
-        { text: "Analyze this 4x4 contact sheet per the system instruction. Cells are numbered left-to-right, top-to-bottom (1..16)." },
+        await imagePartFromPath(sheet.pngPath),
+        { type: "text", text: "Analyze this 4x4 contact sheet per the system instruction. Cells are numbered left-to-right, top-to-bottom (1..16)." },
       ]
     : null;
 
-  const [a, b, c, e] = await Promise.all([
-    runWithRetry("1a_timeline", MODELS.flash, TimelineSchema, p1a, userParts),
-    runWithRetry("1b_mechanics", MODELS.flash, MechanicsSchema, p1b, userParts),
-    runWithRetry("1c_visual_ui", MODELS.flash, VisualUiSchema, p1c, userParts),
-    sheetCallParts
-      ? runWithRetry(
+  const videoOpts: GenerateOptions = { mediaResolution: "high" };
+  const [a, b, c, e, g] = await Promise.all([
+    runGeminiVideoWithRetry("1a_timeline", TimelineSchema, p1a, userParts, videoOpts),
+    runGeminiVideoWithRetry("1b_mechanics", MechanicsSchema, p1b, userParts, videoOpts),
+    runGeminiVideoWithRetry("1c_visual_ui", VisualUiSchema, p1c, userParts, videoOpts),
+    sheetClaudeParts
+      ? runClaudeWithRetry(
           "1e_contact_sheet",
-          MODELS.flash,
           ContactSheetAnalysisSchema,
           p1e,
-          sheetCallParts,
+          sheetClaudeParts,
         )
       : Promise.resolve(null),
+    runGeminiVideoWithRetry("1g_description", VideoDescriptionSchema, p1g, userParts, videoOpts),
   ]);
 
-  console.log(`[p1] sub-calls done. Merging on Pro...`);
+  console.log(`[p1] sub-calls done. Merging on Claude...`);
 
   const mergeInput: Record<string, unknown> = {
+    description: g.data,
     timeline: a.data,
     mechanics: b.data,
     visual_ui: c.data,
@@ -210,16 +254,11 @@ export async function runP1(
     mergeInput.asset_filenames = assetFilenames;
   }
 
-  const mergeUserParts: ContentPart[] = [
-    { text: JSON.stringify(mergeInput, null, 2) },
-  ];
-
-  const m = await runWithRetry(
+  const m = await runClaudeWithRetry(
     "1d_merge",
-    MODELS.pro,
     MergedVideoSchema,
     p1d,
-    mergeUserParts,
+    [{ type: "text", text: JSON.stringify(mergeInput, null, 2) }],
   );
 
   console.log(`[p1] critique pass...`);
@@ -228,12 +267,11 @@ export async function runP1(
     null,
     2,
   );
-  const critique = await runWithRetry(
+  const critique = await runClaudeWithRetry(
     "1d_critique",
-    MODELS.pro,
     P1dCritiqueSchema,
     p1dCritic,
-    [{ text: critiqueInput }],
+    [{ type: "text", text: critiqueInput }],
     { temperature: 0.2 },
   );
 
@@ -246,12 +284,11 @@ export async function runP1(
       null,
       2,
     );
-    const r = await runWithRetry(
+    const r = await runClaudeWithRetry(
       "1d_rewrite",
-      MODELS.pro,
       MergedVideoSchema,
       p1dRewriter,
-      [{ text: rewriteInput }],
+      [{ type: "text", text: rewriteInput }],
       { temperature: 0.2 },
     );
     finalMerged = r.data;
@@ -259,16 +296,15 @@ export async function runP1(
   }
 
   console.log(`[p1] alternate-interpretation pass (separate context)...`);
-  const alt = await runWithRetry(
+  const alt = await runClaudeWithRetry(
     "1f_alternate",
-    MODELS.pro,
     AlternateInterpretationSchema,
     p1f,
-    [{ text: JSON.stringify(finalMerged, null, 2) }],
+    [{ type: "text", text: JSON.stringify(finalMerged, null, 2) }],
     { temperature: 0.4 },
   );
 
-  const subCalls: SubMeta[] = [a.meta, b.meta, c.meta];
+  const subCalls: SubMeta[] = [a.meta, b.meta, c.meta, g.meta];
   if (e) subCalls.push(e.meta);
   subCalls.push(m.meta, critique.meta);
   if (rewriteMeta) subCalls.push(rewriteMeta);
@@ -276,6 +312,7 @@ export async function runP1(
 
   return {
     merged: finalMerged,
+    description: g.data,
     contactSheet: e ? e.data : null,
     critique: critique.data,
     alternate: alt.data,
@@ -289,6 +326,7 @@ export async function runP1(
       timeline: a.data as Timeline,
       mechanics: b.data as Mechanics,
       visualUi: c.data as VisualUi,
+      description: g.data as VideoDescription,
     },
   };
 }
@@ -314,6 +352,11 @@ export async function writeP1(
   await writeFile(
     join(outDir, "01_video_subs.json"),
     JSON.stringify(output.rawSubResults, null, 2),
+    "utf8",
+  );
+  await writeFile(
+    join(outDir, "01_description.json"),
+    JSON.stringify(output.description, null, 2),
     "utf8",
   );
   if (output.contactSheet) {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ScreenLayoutSchema } from "./description.ts";
 
 const ResolvedContradictionSchema = z
   .object({
@@ -18,6 +19,7 @@ export const MergedVideoSchema = z
       .passthrough(),
     win_condition: z.string(),
     loss_condition: z.string(),
+    screen_layout: ScreenLayoutSchema.optional(),
     tempo: z.enum(["real_time", "turn_based", "async"]),
     art_style: z.enum([
       "cartoon_2d",
@@ -37,12 +39,37 @@ export const MergedVideoSchema = z
     palette_hex: z.array(z.string()),
     hud: z.array(z.string()),
     characters_or_props: z.array(z.string()),
-    defining_hook: z.string().min(1),
-    defining_hook_evidence_timestamps: z.array(z.string()).min(1),
+    defining_hook: z.string().nullable(),
+    defining_hook_evidence_timestamps: z.array(z.string()),
     resolved_contradictions: z.array(ResolvedContradictionSchema),
     open_questions: z.array(z.string()),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((v, ctx) => {
+    if (v.defining_hook !== null && v.defining_hook_evidence_timestamps.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook_evidence_timestamps"],
+        message:
+          "defining_hook is non-null; at least one evidence timestamp range is required",
+      });
+    }
+    if (v.defining_hook === null && v.defining_hook_evidence_timestamps.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook_evidence_timestamps"],
+        message:
+          "defining_hook is null; evidence timestamps must be empty",
+      });
+    }
+    if (typeof v.defining_hook === "string" && v.defining_hook.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defining_hook"],
+        message: "defining_hook must be null or a non-empty string",
+      });
+    }
+  });
 
 export type MergedVideo = z.infer<typeof MergedVideoSchema>;
 

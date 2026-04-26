@@ -1,13 +1,22 @@
+const DEFAULT_VIDEO = "../ressources/Castle Clashers/Video Example/B11.mp4";
+const DEFAULT_BENCH_VIDEOS = "b11";
+
 const HELP = `proto-pipeline-m
 
 Usage:
   bun run pipeline --help
   bun run pipeline --list-models
-  bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]
-  bun run pipeline --probe-only --run <id> --video <path> --assets <dir>
+  bun run pipeline --run <id> [--video <path>] --assets <dir> [--variant <id>] [--retries N] [--reference <gold-dir>]
+  bun run pipeline --probe-only --run <id> [--video <path>] --assets <dir>
   bun run verify <html-path> [--mechanic <name>]
-  bun run bench --variants <csv> --videos <csv> [--assets <dir>] [--retries N]
+  bun run bench --variants <csv> [--videos <csv>] [--assets <dir>] [--retries N] [--reference <gold-dir>]
   bun run bench --aggregate-only --batch <timestamp>
+  bun run pipeline --score-spec --spec <03_game_spec.json> --gold <gold-dir>
+  bun run pipeline --score-runtime --report <verify_report.json> --gold <gold-dir>
+
+Defaults:
+  --video defaults to ${DEFAULT_VIDEO} (B11). Pass --video to override.
+  --videos defaults to "${DEFAULT_BENCH_VIDEOS}". Pass --videos to override.
 `;
 
 async function listModels(): Promise<void> {
@@ -29,11 +38,11 @@ function getFlag(args: string[], name: string): string | undefined {
 
 async function runProbeOnly(args: string[]): Promise<void> {
   const rawRunId = getFlag(args, "--run");
-  const video = getFlag(args, "--video");
+  const video = getFlag(args, "--video") ?? DEFAULT_VIDEO;
   const assets = getFlag(args, "--assets");
-  if (!rawRunId || !video || !assets) {
+  if (!rawRunId || !assets) {
     console.error(
-      "Usage: bun run pipeline --probe-only --run <id> --video <path> --assets <dir>",
+      "Usage: bun run pipeline --probe-only --run <id> [--video <path>] --assets <dir>",
     );
     process.exit(1);
   }
@@ -58,12 +67,12 @@ async function runProbeOnly(args: string[]): Promise<void> {
 
 async function runP1Only(args: string[]): Promise<void> {
   const rawRunId = getFlag(args, "--run");
-  const video = getFlag(args, "--video");
+  const video = getFlag(args, "--video") ?? DEFAULT_VIDEO;
   const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
-  if (!rawRunId || !video) {
+  if (!rawRunId) {
     console.error(
-      "Usage: bun run pipeline --p1-only --run <id> --video <path> [--assets <dir>] [--variant <id>]",
+      "Usage: bun run pipeline --p1-only --run <id> [--video <path>] [--assets <dir>] [--variant <id>]",
     );
     process.exit(1);
   }
@@ -113,15 +122,16 @@ async function runP2Only(args: string[]): Promise<void> {
 async function runP3Only(args: string[]): Promise<void> {
   const runId = getFlag(args, "--run");
   const variant = getFlag(args, "--variant") ?? "_default";
+  const reference = getFlag(args, "--reference") ?? null;
   if (!runId) {
     console.error(
-      "Usage: bun run pipeline --p3-only --run <id> [--variant <id>]\n" +
+      "Usage: bun run pipeline --p3-only --run <id> [--variant <id>] [--reference <gold-dir>]\n" +
         "(requires outputs/<id>/01_video.json and 02_assets.json)",
     );
     process.exit(1);
   }
   const { writeP3 } = await import("./pipeline/p3_aggregator.ts");
-  const { outDir, output } = await writeP3(runId, variant);
+  const { outDir, output } = await writeP3(runId, variant, reference);
   console.log(`wrote ${outDir}/03_game_spec.json + 03_codegen_prompt.txt + meta`);
   console.log(JSON.stringify(output.meta, null, 2));
   console.log(`mechanic_name: ${output.gameSpec.mechanic_name}`);
@@ -134,31 +144,32 @@ async function runP4Only(args: string[]): Promise<void> {
   const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
   const retryOnlyCsv = getFlag(args, "--retry-only");
+  const reference = getFlag(args, "--reference") ?? null;
   if (!runId || !assets) {
     console.error(
-      "Usage: bun run pipeline --p4-only --run <id> --assets <dir> [--variant <id>] [--retry-only <csv>]\n" +
-        "  --retry-only: comma-separated subsystems to regenerate (input,physics,render,state,winloss).\n" +
-        "                Empty value means re-aggregate+re-lint only without regenerating any subsystem.",
+      "Usage: bun run pipeline --p4-only --run <id> --assets <dir> [--variant <id>] [--retry-only <csv>] [--reference <gold-dir>]\n" +
+        "  --retry-only: comma-separated scene elements to regenerate (bg_ground,actors,projectiles,hud,end_card).\n" +
+        "                Empty value means recompose-only without regenerating any sketch.",
     );
     process.exit(1);
   }
   const { runP4 } = await import("./pipeline/p4_codegen.ts");
-  type Sub = "input" | "physics" | "render" | "state" | "winloss";
-  const VALID: Sub[] = ["input", "physics", "render", "state", "winloss"];
-  let retryOnly: Sub[] | undefined;
+  const { SCENE_ELEMENT_NAMES } = await import("./schemas/p4Plan.ts");
+  type El = (typeof SCENE_ELEMENT_NAMES)[number];
+  let retryOnly: El[] | undefined;
   if (retryOnlyCsv !== undefined) {
     retryOnly = retryOnlyCsv
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean) as Sub[];
+      .filter(Boolean) as El[];
     for (const s of retryOnly) {
-      if (!VALID.includes(s)) {
+      if (!SCENE_ELEMENT_NAMES.includes(s)) {
         console.error(`invalid --retry-only entry: ${s}`);
         process.exit(1);
       }
     }
   }
-  const out = await runP4(runId, assets, variant, { retryOnly });
+  const out = await runP4(runId, assets, variant, { retryOnly, referenceDir: reference });
   console.log(
     `wrote ${out.htmlPath} (${(out.bytes / 1024).toFixed(1)} KB)`,
   );
@@ -167,19 +178,20 @@ async function runP4Only(args: string[]): Promise<void> {
 
 async function runFull(args: string[]): Promise<void> {
   const runId = getFlag(args, "--run");
-  const video = getFlag(args, "--video");
+  const video = getFlag(args, "--video") ?? DEFAULT_VIDEO;
   const assets = getFlag(args, "--assets");
   const variant = getFlag(args, "--variant") ?? "_default";
   const retriesArg = getFlag(args, "--retries");
   const maxRetries = retriesArg !== undefined ? Number(retriesArg) : 4;
-  if (!runId || !video || !assets) {
+  const reference = getFlag(args, "--reference") ?? null;
+  if (!runId || !assets) {
     console.error(
-      "Usage: bun run pipeline --run <id> --video <path> --assets <dir> [--variant <id>] [--retries N]",
+      "Usage: bun run pipeline --run <id> [--video <path>] --assets <dir> [--variant <id>] [--retries N] [--reference <gold-dir>]",
     );
     process.exit(1);
   }
   const { runPipeline } = await import("./pipeline/run.ts");
-  const meta = await runPipeline(runId, video, assets, variant, maxRetries);
+  const meta = await runPipeline(runId, video, assets, variant, maxRetries, reference);
   console.log("--- summary ---");
   console.log(
     JSON.stringify(
@@ -209,20 +221,21 @@ async function runBench(args: string[]): Promise<void> {
     return;
   }
   const variantsCsv = getFlag(args, "--variants");
-  const videosCsv = getFlag(args, "--videos");
-  const assets = getFlag(args, "--assets") ?? "../ressources/Castle Clashers Assets";
+  const videosCsv = getFlag(args, "--videos") ?? DEFAULT_BENCH_VIDEOS;
+  const assets = getFlag(args, "--assets") ?? "../ressources/Castle Clashers/Assets";
   const retriesArg = getFlag(args, "--retries");
   const retries = retriesArg !== undefined ? Number(retriesArg) : 2;
-  if (!variantsCsv || !videosCsv) {
+  const reference = getFlag(args, "--reference") ?? null;
+  if (!variantsCsv) {
     console.error(
-      "Usage: bun run bench --variants <csv> --videos <csv> [--assets <dir>] [--retries N]",
+      "Usage: bun run bench --variants <csv> [--videos <csv>] [--assets <dir>] [--retries N] [--reference <gold-dir>]",
     );
     process.exit(1);
   }
   const variants = variantsCsv.split(",").map((s) => s.trim()).filter(Boolean);
   const videos = videosCsv.split(",").map((s) => s.trim()).filter(Boolean);
   const { runBench } = await import("./bench/run.ts");
-  const batch = await runBench(variants, videos, assets, retries);
+  const batch = await runBench(variants, videos, assets, retries, reference);
   console.log(`[bench] batch ${batch} done`);
 }
 
@@ -239,6 +252,41 @@ async function runVerify(args: string[]): Promise<void> {
   console.log(JSON.stringify(report, null, 2));
 }
 
+async function runScoreSpec(args: string[]): Promise<void> {
+  const specPath = getFlag(args, "--spec");
+  const goldDir = getFlag(args, "--gold");
+  if (!specPath || !goldDir) {
+    console.error(
+      "Usage: bun run pipeline --score-spec --spec <03_game_spec.json> --gold <gold-dir>",
+    );
+    process.exit(1);
+  }
+  const { scoreSpecFromPaths, summarizeReport } = await import("./bench/discrepancy_spec.ts");
+  const report = await scoreSpecFromPaths(specPath, goldDir);
+  console.log(summarizeReport(report));
+  console.log("");
+  console.log(JSON.stringify({
+    scorePct: report.scorePct,
+    byCriterion: report.byCriterion,
+  }, null, 2));
+}
+
+async function runScoreRuntime(args: string[]): Promise<void> {
+  const reportPath = getFlag(args, "--report");
+  const goldDir = getFlag(args, "--gold");
+  if (!reportPath || !goldDir) {
+    console.error(
+      "Usage: bun run pipeline --score-runtime --report <verify_report.json> --gold <gold-dir>",
+    );
+    process.exit(1);
+  }
+  const { scoreRuntimeFromPaths, summarizeRuntime } = await import("./bench/discrepancy_runtime.ts");
+  const report = await scoreRuntimeFromPaths(reportPath, goldDir);
+  console.log(summarizeRuntime(report));
+  console.log("");
+  console.log(JSON.stringify({ scorePct: report.scorePct }, null, 2));
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -249,6 +297,16 @@ async function main(): Promise<void> {
 
   if (args.includes("--list-models")) {
     await listModels();
+    return;
+  }
+
+  if (args.includes("--score-spec")) {
+    await runScoreSpec(args);
+    return;
+  }
+
+  if (args.includes("--score-runtime")) {
+    await runScoreRuntime(args);
     return;
   }
 

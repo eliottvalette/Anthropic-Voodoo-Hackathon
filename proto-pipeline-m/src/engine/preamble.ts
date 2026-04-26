@@ -26,7 +26,12 @@ body{display:flex;align-items:center;justify-content:center}
   window.__engineState={
     inputs:0,
     frames:0,
-    snapshot:function(){return {inputs:this.inputs,frames:this.frames};}
+    phase:"idle",
+    subPhase:null,
+    turnIndex:0,
+    isOver:false,
+    ctaVisible:false,
+    snapshot:function(){return {inputs:this.inputs,frames:this.frames,phase:this.phase,subPhase:this.subPhase,turnIndex:this.turnIndex,isOver:this.isOver,ctaVisible:this.ctaVisible};}
   };
   function __bumpInput(){window.__engineState.inputs++;}
   window.addEventListener('pointerdown',__bumpInput,true);

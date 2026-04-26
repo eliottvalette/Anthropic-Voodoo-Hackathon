@@ -1,15 +1,23 @@
 import { $ } from "bun";
-import { mkdir, writeFile, readdir, stat } from "node:fs/promises";
-import { extname, join, relative, resolve, basename } from "node:path";
+import { mkdir, writeFile, readdir, stat, readFile } from "node:fs/promises";
+import { extname, join, relative, resolve, basename, dirname } from "node:path";
 import {
   ProbeReportSchema,
+  RigPartSchema,
   type Asset,
   type ProbeReport,
   type VideoMeta,
 } from "../schemas/probe.ts";
+import { z } from "zod";
 
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
 const AUDIO_EXT = new Set([".mp3", ".wav", ".ogg", ".m4a", ".aac"]);
+
+const RigJsonSchema = z.object({
+  asset_id: z.string(),
+  anchor: z.object({ x: z.number(), y: z.number() }).strict(),
+  parts: z.array(RigPartSchema),
+});
 
 function parseFps(rate: string): number {
   if (!rate || rate === "0/0") return 0;
@@ -76,21 +84,77 @@ async function walk(dir: string): Promise<string[]> {
   return out;
 }
 
+async function loadRigForFolder(
+  folderAbs: string,
+): Promise<{ asset_id: string; anchor: { x: number; y: number }; parts: z.infer<typeof RigPartSchema>[]; parts_dir_relpath: string } | null> {
+  const rigPath = join(folderAbs, "rig.json");
+  try {
+    const raw = await readFile(rigPath, "utf8");
+    const parsed = RigJsonSchema.parse(JSON.parse(raw));
+    return {
+      asset_id: parsed.asset_id,
+      anchor: parsed.anchor,
+      parts: parsed.parts,
+      parts_dir_relpath: "parts",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function probeAssets(assetsDir: string): Promise<Asset[]> {
   const root = resolve(assetsDir);
   const files = await walk(root);
+  const skipParts = new Set<string>();
+  const rigFolders = new Map<string, { asset_id: string; anchor: { x: number; y: number }; parts: z.infer<typeof RigPartSchema>[]; parts_dir_relpath: string }>();
+  for (const f of files) {
+    if (basename(f) === "rig.json") {
+      const folder = dirname(f);
+      const rig = await loadRigForFolder(folder);
+      if (!rig) continue;
+      rigFolders.set(folder, rig);
+      const partsDir = join(folder, "parts");
+      for (const p of rig.parts) {
+        skipParts.add(join(folder, p.file));
+      }
+      skipParts.add(partsDir);
+    }
+  }
+
   const out: Asset[] = [];
   for (const abs of files) {
     const ext = extname(abs).toLowerCase();
     const relpath = relative(root, abs);
     const filename = basename(abs);
+    if (basename(abs) === "rig.json" || basename(abs) === "asset_manifest.json") continue;
+    if (skipParts.has(abs)) continue;
+    if (filename === "parts_sheet.png") continue;
+    let inSkippedParts = false;
+    for (const partAbs of skipParts) {
+      if (abs.startsWith(partAbs + "/") || abs === partAbs) {
+        inSkippedParts = true;
+        break;
+      }
+    }
+    if (inSkippedParts) continue;
+
     const bytes = (await stat(abs)).size;
     if (IMAGE_EXT.has(ext)) {
       try {
         const { width, height } = await probeImage(abs);
-        out.push({ filename, relpath, kind: "image", width, height, bytes });
+        const asset: Asset = { filename, relpath, kind: "image", width, height, bytes };
+        if (filename === "full.png") {
+          const rig = rigFolders.get(dirname(abs));
+          if (rig) asset.rig = rig;
+        }
+        out.push(asset);
       } catch {
-        out.push({ filename, relpath, kind: "image", width: 0, height: 0, bytes });
+        const asset: Asset = { filename, relpath, kind: "image", width: 0, height: 0, bytes };
+        if (filename === "full.png") {
+          const rig = rigFolders.get(dirname(abs));
+          if (rig) asset.rig = rig;
+        }
+        out.push(asset);
       }
     } else if (AUDIO_EXT.has(ext)) {
       try {
