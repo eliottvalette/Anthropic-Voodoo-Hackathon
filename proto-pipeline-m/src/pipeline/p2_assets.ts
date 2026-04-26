@@ -1,6 +1,6 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, MODELS, type ContentPart } from "./gemini.ts";
+import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
 import { AssetMappingSchema, type AssetMapping } from "../schemas/assets.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import { MergedVideoSchema, type MergedVideo } from "../schemas/video/merged.ts";
@@ -79,7 +79,7 @@ export async function runP2(
     null,
     2,
   );
-  const userParts: ContentPart[] = [{ text: userJson }];
+  const userParts: AnthropicContent[] = [{ type: "text", text: userJson }];
 
   let attempt = 0;
   let lastErr: unknown;
@@ -88,21 +88,43 @@ export async function runP2(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson(MODELS.pro, sys, userParts, {
+      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
         temperature: 0.3,
       });
-      const mapping = AssetMappingSchema.parse(r.data);
+      const rawMapping = AssetMappingSchema.parse(r.data);
       const validFilenames = new Set(probe.assets.map((a) => a.filename));
-      for (const role of mapping.roles) {
+      for (const role of rawMapping.roles) {
         if (role.filename && !validFilenames.has(role.filename)) {
           throw new Error(
             `Hallucinated filename: ${role.filename} (role=${role.role})`,
           );
         }
       }
+      const seenRoles = new Set<string>();
+      const droppedReasons: string[] = [];
+      const keptRoles = rawMapping.roles.filter((r) => {
+        if (seenRoles.has(r.role)) {
+          droppedReasons.push(`${r.role} (duplicate)`);
+          return false;
+        }
+        seenRoles.add(r.role);
+        if (r.filename === null && r.match_confidence === "low") {
+          droppedReasons.push(`${r.role} (null + low confidence)`);
+          return false;
+        }
+        if (r.filename === null && r.match_confidence === "medium") {
+          droppedReasons.push(`${r.role} (null + medium confidence)`);
+          return false;
+        }
+        return true;
+      });
+      if (droppedReasons.length > 0) {
+        console.log(`[p2] pruned ${droppedReasons.length} weak role(s): ${droppedReasons.slice(0, 8).join("; ")}${droppedReasons.length > 8 ? " …" : ""}`);
+      }
+      const mapping: AssetMapping = { ...rawMapping, roles: keptRoles };
       const meta: SubMeta = {
         step: "2_role_map",
-        model: MODELS.pro,
+        model: CLAUDE_MODELS.sonnet,
         tokensIn: r.tokensIn,
         tokensOut: r.tokensOut,
         latencyMs: r.latencyMs,

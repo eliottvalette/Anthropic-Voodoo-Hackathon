@@ -1,11 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import {
-  uploadFile,
   generateJson,
-  MODELS,
-  type ContentPart,
-} from "./gemini.ts";
+  CLAUDE_MODELS,
+  imagePartFromPath,
+  type AnthropicContent,
+} from "./anthropic.ts";
 import {
   AssetDescriptionSchema,
   type AssetDescription,
@@ -45,21 +45,20 @@ async function describeOne(
   while (attempt < 2) {
     attempt++;
     try {
-      const file = await uploadFile(abs);
-      const userParts: ContentPart[] = [
-        { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
-        { text: "Describe this asset per the system instruction." },
+      const imgPart = await imagePartFromPath(abs);
+      const userParts: AnthropicContent[] = [
+        imgPart,
+        { type: "text", text: "Describe this asset per the system instruction." },
       ];
-      const r = await generateJson(MODELS.flash, prompt, userParts, {
+      const r = await generateJson(CLAUDE_MODELS.sonnet, prompt, userParts, {
         temperature: 0.3,
-        mediaResolution: "high",
       });
       const parsed = AssetDescriptionSchema.parse(r.data);
       return {
         description: parsed,
         meta: {
           step: `2_describe:${asset.filename}`,
-          model: MODELS.flash,
+          model: CLAUDE_MODELS.sonnet,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,
@@ -84,7 +83,7 @@ async function describeOne(
 function zeroMeta(filename: string, suffix: string): AssetDescribeMeta {
   return {
     step: `2_describe:${filename}:${suffix}`,
-    model: MODELS.flash,
+    model: CLAUDE_MODELS.sonnet,
     tokensIn: 0,
     tokensOut: 0,
     latencyMs: 0,
