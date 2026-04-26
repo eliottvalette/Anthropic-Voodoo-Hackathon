@@ -5,6 +5,7 @@ import DropZone from '@/components/DropZone'
 import PipelineStepper, { Step, StepStatus } from '@/components/PipelineStepper'
 import ReviewPanel from '@/components/ReviewPanel'
 import PlayableViewer from '@/components/PlayableViewer'
+import PolishPanel from '@/components/PolishPanel'
 import HistoryView from '@/components/HistoryView'
 import UtilsView from '@/components/UtilsView'
 import MockToggle from '@/components/MockToggle'
@@ -14,6 +15,7 @@ import MultiPassStepper, { SubCall } from '@/components/MultiPassStepper'
 import RoleTable from '@/components/RoleTable'
 import MicCapture from '@/components/MicCapture'
 import AssetReviewPanel from '@/components/AssetReviewPanel'
+import BlockBlastFakePanel, { type BlockBlastFixtureManifest } from '@/components/BlockBlastFakePanel'
 import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { runP1Video } from '@/lib/pipeline/p1-video'
@@ -295,6 +297,7 @@ export default function Home() {
   const [isAwaiting, setIsAwaiting]       = useState(false)
   const [reviewContent, setReviewContent] = useState<Record<string, React.ReactNode>>({})
   const [fullscreen, setFullscreen]       = useState(false)
+  const [polishMode, setPolishMode]       = useState(false)
   const [view, setView]                   = useState<View>('generator')
   const [userEmail, setUserEmail]         = useState<string | null>(null)
   const [subCallsByStage, setSubCallsByStage] = useState<Record<StageId, SubCall[]>>({
@@ -778,6 +781,166 @@ export default function Home() {
     }
   }, [videoFiles, assetFiles, userBrief, activateStep, completeStep, errorStep, updateStep, waitForReview, acceptStep])
 
+  // Deterministic demo flow — fired when the dropped video filename matches
+  // /block.?blast/i. Reads the committed fixture under
+  // /demo-fixtures/blockblast/ and walks the pipeline UI through plausible
+  // timing without ever hitting a live API.
+  const runBlockBlastFakePipeline = useCallback(async (videoFile: File) => {
+    setErrorMsg(null)
+
+    // Step 0 — assetsGen with simulated chunked-upload progress.
+    activateStep('assetsGen')
+    const totalBytes = videoFile.size
+    const chunkBytes = Math.max(1, Math.floor(totalBytes / 4))
+    for (let sent = 0; sent < totalBytes; sent += chunkBytes) {
+      const bytes = Math.min(sent + chunkBytes, totalBytes)
+      const pct = Math.round((bytes / totalBytes) * 100)
+      const mb = (bytes / 1024 / 1024).toFixed(1)
+      const totalMb = (totalBytes / 1024 / 1024).toFixed(1)
+      updateStep('assetsGen', { output: <span>Uploading {mb}/{totalMb} MB · {pct}%</span> })
+      await delay(220)
+    }
+
+    // Load the fixture.
+    let fixture: BlockBlastFixtureManifest
+    try {
+      const res = await fetch('/demo-fixtures/blockblast/manifest.json', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`Fixture missing: ${res.status}`)
+      fixture = (await res.json()) as BlockBlastFixtureManifest
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      updateStep('assetsGen', {
+        status: 'error' as StepStatus,
+        doneAt: Date.now(),
+        output: <span className="text-red-600">Could not load demo fixture: {msg}</span>,
+      })
+      return
+    }
+
+    awaitStep('assetsGen', (
+      <div className="flex flex-wrap gap-x-6 gap-y-1">
+        <span>Demo run · <span className="font-semibold text-[#0F141C]">block-blast (fixture)</span></span>
+        <span className="text-gray-500">{autoModeRef.current ? 'auto mode' : 'manual mode'}</span>
+      </div>
+    ))
+
+    // Mount the fake panel and wait for Continue.
+    const assetStageDone = new Promise<void>(resolve => {
+      setReviewContent(prev => ({
+        ...prev,
+        assetsGen: (
+          <BlockBlastFakePanel
+            manifest={fixture}
+            autoMode={autoModeRef.current}
+            onComplete={() => resolve()}
+          />
+        ),
+      }))
+    })
+    await assetStageDone
+    acceptStep('assetsGen')
+
+    // Replay subsequent stages with realistic timing, fed from fixture data.
+    const probeReport: ProbeReport = {
+      video: {
+        name: videoFile.name,
+        sizeBytes: videoFile.size,
+        durationSec: fixture.video_duration_s,
+        width: 1080,
+        height: 1920,
+        mimeType: videoFile.type || 'video/mp4',
+      },
+      assets: fixture.assets.map(a => ({ name: `${a.asset_id}.png`, sizeBytes: 60_000, mimeType: 'image/png' })),
+    }
+    activateStep('probe')
+    await delay(600)
+    setReviewContent(prev => ({ ...prev, probe: renderProbe(probeReport) }))
+    completeStep('probe', (
+      <span>video {Math.round(probeReport.video.durationSec)}s · {probeReport.assets.length} assets</span>
+    ))
+
+    activateStep('video')
+    await delay(2200)
+    const videoAnalysis: VideoAnalysis = {
+      merged: {
+        summary_one_sentence: fixture.video_analysis.summary_one_sentence,
+        defining_hook: fixture.video_analysis.defining_hook,
+        genre: fixture.video_analysis.genre,
+      },
+      alternate: { fits_evidence_better: false, alternate_genre: 'match-3', rationale: 'Pieces are pre-shaped, not aligned to chains.' },
+    }
+    setReviewContent(prev => ({ ...prev, video: renderVideoAnalysis(videoAnalysis) }))
+    completeStep('video', (
+      <span className="block min-w-0 break-words text-[#0F141C]">
+        {videoAnalysis.merged.defining_hook}
+      </span>
+    ))
+
+    activateStep('assets')
+    await delay(1400)
+    const assetMapping: AssetMapping = {
+      roles: fixture.assets.map(a => ({
+        role: a.asset_id,
+        filename: `${a.asset_id}.png`,
+        match_confidence: 'high' as const,
+      })),
+    }
+    setReviewContent(prev => ({ ...prev, assets: renderAssetMapping(assetMapping) }))
+    completeStep('assets', <span>{assetMapping.roles.length}/{assetMapping.roles.length} roles matched</span>)
+
+    activateStep('gameSpec')
+    await delay(1100)
+    const gameSpec = {
+      source_video: videoFile.name,
+      game_identity: { observed_title: 'Block Blast', genre: 'tile puzzle', visual_style: fixture.art_style.summary },
+      render_mode: '2d' as const,
+      mechanic_name: 'swipe_puzzle',
+      template_id: null,
+      core_loop_one_sentence: (fixture.game_spec.core_loop_one_sentence as string) || '',
+      defining_hook: fixture.video_analysis.defining_hook,
+      not_this_game: ['not match-3', 'not falling-block puzzle'],
+      first_5s_script: (fixture.game_spec.first_5s_script as string) || '',
+      tutorial_loss_at_seconds: 18,
+      asset_role_map: Object.fromEntries(fixture.assets.map(a => [a.asset_id, `${a.asset_id}.png`])),
+      params: { grid_size: 8, gravity: 0, hp: 1, session_seconds: 30 },
+      creative_slot_prompt: '',
+    }
+    setReviewContent(prev => ({ ...prev, gameSpec: <GameSpecCard spec={gameSpec as GameSpecLite} /> }))
+    completeStep('gameSpec', (
+      <span>
+        mechanic <span className="font-mono font-semibold text-[#0F141C]">{gameSpec.mechanic_name}</span>
+      </span>
+    ))
+
+    // Codegen — fetch the fixture HTML and surface it.
+    activateStep('codegen')
+    await delay(2400)
+    let html = ''
+    try {
+      const htmlRes = await fetch('/demo-fixtures/blockblast/playable.html', { cache: 'no-store' })
+      html = await htmlRes.text()
+    } catch (e) {
+      console.warn('demo fixture playable.html missing:', e)
+    }
+    setPlayableHtml(html)
+    const codegenReport: CodegenResult = {
+      html,
+      verify: {
+        runs: true, sizeOk: true, consoleErrors: [], canvasNonBlank: true,
+        mraidOk: true, mechanicStringMatch: true, interactionStateChange: true,
+        htmlBytes: html.length,
+      },
+      retries: 0,
+    }
+    setReviewContent(prev => ({ ...prev, codegen: renderCodegen(codegenReport) }))
+    completeStep('codegen', (
+      <div className="flex flex-wrap gap-x-6 gap-y-1">
+        <span>verify <span className="font-semibold text-emerald-600">PASS (demo)</span></span>
+        <span>retries <span className="font-semibold text-[#0F141C]">0</span></span>
+      </div>
+    ))
+  }, [activateStep, awaitStep, acceptStep, completeStep, updateStep])
+
   const handleRun = useCallback(async () => {
     if (isRunning) return
     if (!videoFiles.length) return
@@ -791,6 +954,20 @@ export default function Home() {
     setIsAwaiting(false)
     reviewResolverRef.current = null
     setErrorMsg(null)
+
+    // ── Demo-fixture short-circuit ──────────────────────────────────────────
+    // If the user dropped the Block Blast demo video (filename matches the
+    // configured pattern), bypass every live API and play through the
+    // pre-recorded run. Deterministic, demo-safe, ~25-40s end-to-end.
+    const videoFileEarly = videoFiles[0]
+    if (/block.?blast/i.test(videoFileEarly.name)) {
+      try {
+        await runBlockBlastFakePipeline(videoFileEarly)
+      } finally {
+        setIsRunning(false)
+      }
+      return
+    }
 
     try {
       // Stage 0 — OUR asset-generation node. Runs before the coworker's pipeline
@@ -1112,7 +1289,17 @@ export default function Home() {
                 </div>
               )}
 
-              {hasRun && fullscreen && playableHtml && (
+              {hasRun && polishMode && playableHtml && (
+                <div className="h-full min-h-0">
+                  <PolishPanel
+                    sourceHtml={playableHtml}
+                    onPolished={(html) => { setPlayableHtml(html); setPolishMode(false) }}
+                    onClose={() => setPolishMode(false)}
+                  />
+                </div>
+              )}
+
+              {hasRun && !polishMode && fullscreen && playableHtml && (
                 <div className="h-full">
                   <PlayableViewer
                     html={playableHtml}
@@ -1122,7 +1309,7 @@ export default function Home() {
                 </div>
               )}
 
-              {hasRun && !fullscreen && (
+              {hasRun && !polishMode && !fullscreen && (
                 <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
                   <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0 min-w-0">
                     {uploadCard}
@@ -1131,9 +1318,23 @@ export default function Home() {
 
                   <div className="flex min-h-0 flex-col overflow-hidden min-h-[420px] lg:min-h-0">
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4 shrink-0">
-                        {steps.every(s => s.status === 'done') && playableHtml ? 'Result' : isAwaiting ? 'Awaiting review' : 'Pipeline output'}
-                      </p>
+                      <div className="flex items-center justify-between mb-4 shrink-0">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+                          {steps.every(s => s.status === 'done') && playableHtml ? 'Result' : isAwaiting ? 'Awaiting review' : 'Pipeline output'}
+                        </p>
+                        {steps.every(s => s.status === 'done') && playableHtml && (
+                          <button
+                            onClick={() => setPolishMode(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0055FF] text-white text-[11px] font-semibold hover:bg-[#0044DD] active:scale-95 transition-all shadow-sm"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                              <path d="M2.5 9.5l3-3 3 3M5.5 6.5V2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M2 11h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            </svg>
+                            Polish with hand tutorials
+                          </button>
+                        )}
+                      </div>
                       <div className="flex-1 min-h-0 overflow-hidden">
                         <ReviewPanel
                           steps={steps}

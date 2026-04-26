@@ -1,0 +1,43 @@
+{
+  "video_match": "block.?blast",
+  "video_duration_s": 13.86,
+  "art_style": {
+    "summary": "Casual, cute mobile puzzle game with a soft, tactile candy-and-chocolate aesthetic. Soft-shaded heart-shaped tiles on a chocolate-brown background.",
+    "rendering": "Soft 2D flat-shaded with subtle gradients, slight rounded corners on every tile.",
+    "palette": "Chocolate brown #6e4a2c, strawberry pink #f5a6c2, vanilla cream #f0e3c0, gold #f1c150",
+    "anti_styles": ["pixel art", "low-poly 3D", "photorealistic"]
+  },
+  "video_analysis": {
+    "summary_one_sentence": "8x8 grid puzzle where the player drags shapes from a tray onto the board to clear lines for combo bonuses.",
+    "defining_hook": "Pre-shaped pieces tray, drop on grid, simultaneous horizontal+vertical line clears for combo bonuses.",
+    "genre": "tile puzzle / falling-block-puzzle"
+  },
+  "game_spec": {
+    "mechanic_name": "swipe_puzzle",
+    "template_id": null,
+    "core_loop_one_sentence": "Drag tray shapes onto an 8x8 grid; clearing rows or columns scores points.",
+    "first_5s_script": "Brown background with 8x8 grid centered. Three pre-shaped tile pieces visible at the bottom in a tray. Score in top-left, high score in top-right with crown.",
+    "win_condition": "Survive — keep dropping tiles, never let the tray get stuck",
+    "loss_condition": "No more valid drops"
+  },
+  "assets": [
+    { "asset_id": "bg_main_texture", "name": "Main Background Plate", "category": "background", "visual_description": "Chocolate-brown leather-grained backdrop", "route": "background_plate" },
+    { "asset_id": "game_grid_8x8", "name": "Puzzle Grid", "category": "background", "visual_description": "Empty 8x8 grid with subtle inset cells", "route": "background_plate" },
+    { "asset_id": "block_pink_single", "name": "Pink Heart Tile", "category": "other", "visual_description": "Soft strawberry-pink rounded heart-shaped tile", "route": "static_sprite" },
+    { "asset_id": "block_cream_single", "name": "Cream Heart Tile", "category": "other", "visual_description": "Vanilla-cream rounded heart-shaped tile", "route": "static_sprite" },
+    { "asset_id": "tray_block_2x2_cream", "name": "2x2 Cream Block Piece", "category": "other", "visual_description": "Square cluster of 4 cream heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_2x3_pink", "name": "2x3 Pink Rectangle Piece", "category": "other", "visual_description": "Rectangle cluster of 6 pink heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_3x3_pink", "name": "3x3 Pink Block Piece", "category": "other", "visual_description": "Square cluster of 9 pink heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_1x4_cream", "name": "1x4 Cream Line Piece", "category": "other", "visual_description": "Horizontal row of 4 cream heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_1x5_pink", "name": "1x5 Pink Line Piece", "category": "other", "visual_description": "Vertical column of 5 pink heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_l_cream_3", "name": "L-Shape Cream Piece", "category": "other", "visual_description": "L-shaped cluster of 3 cream heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_l_pink_3", "name": "L-Shape Pink Piece", "category": "other", "visual_description": "L-shaped cluster of 3 pink heart tiles", "route": "static_sprite" },
+    { "asset_id": "tray_block_t_cream_4", "name": "T-Shape Cream Piece", "category": "other", "visual_description": "T-shaped cluster of 4 cream heart tiles", "route": "static_sprite" },
+    { "asset_id": "ui_main_score", "name": "Main Score Display", "category": "ui", "visual_description": "Large bright pink rounded score number badge", "route": "ui_asset" },
+    { "asset_id": "ui_high_score_value", "name": "High Score Text", "category": "ui", "visual_description": "Smaller cream-on-brown high score number", "route": "ui_asset" },
+    { "asset_id": "ui_crown_icon", "name": "Crown High Score Icon", "category": "ui", "visual_description": "Gold crown icon next to high score", "route": "ui_asset" },
+    { "asset_id": "ui_settings_gear", "name": "Settings Icon", "category": "ui", "visual_description": "Gear icon top-right corner", "route": "ui_asset" },
+    { "asset_id": "text_combo_banner", "name": "Combo Banner", "category": "ui", "visual_description": "Animated 'COMBO!' word art when player chains clears", "route": "ui_asset" },
+    { "asset_id": "text_united_banner", "name": "United Banner", "category": "ui", "visual_description": "Animated 'UNITED!' word art on multi-line clear", "route": "ui_asset" }
+  ]
+}
