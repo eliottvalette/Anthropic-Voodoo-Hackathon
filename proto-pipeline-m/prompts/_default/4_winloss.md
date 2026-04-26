@@ -22,7 +22,7 @@ The aggregator's main loop calls `Outcome.isOver(state)` then if true `Outcome.d
 
 ```js
 (function(){
-  var CTA_URL = "https://apps.apple.com/app/castle-clashers/id1641352927";
+  var CTA_URL = "https://play.google.com/store/apps/details?id=com.epicoro.castleclashers";
   var attached = false;
   return {
     frame: function(state, dt){
