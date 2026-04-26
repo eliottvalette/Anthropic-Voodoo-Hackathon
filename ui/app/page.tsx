@@ -783,12 +783,23 @@ export default function Home() {
 
   // Deterministic demo flow — fired when the dropped video filename matches
   // /block.?blast/i. Reads the committed fixture under
-  // /demo-fixtures/blockblast/ and walks the pipeline UI through plausible
+  // /demo-fixtures/blockblast/ and walks the pipeline UI through scripted
   // timing without ever hitting a live API.
+  //
+  // Phase budgets (chosen by user, not random):
+  //   - chunked upload sim:           ~1s
+  //   - video analysis (assetsGen):   37s
+  //   - asset generation panel:       32s (handled inside BlockBlastFakePanel)
+  //   - downstream pipeline replay:   87s total
+  //       probe   4s
+  //       video  25s
+  //       assets 15s
+  //       gameSpec 15s
+  //       codegen 28s
   const runBlockBlastFakePipeline = useCallback(async (videoFile: File) => {
     setErrorMsg(null)
 
-    // Step 0 — assetsGen with simulated chunked-upload progress.
+    // ── Chunked-upload simulation ──────────────────────────────────────────
     activateStep('assetsGen')
     const totalBytes = videoFile.size
     const chunkBytes = Math.max(1, Math.floor(totalBytes / 4))
@@ -801,7 +812,26 @@ export default function Home() {
       await delay(220)
     }
 
-    // Load the fixture.
+    // ── Video analysis phase: 37s with a live elapsed-time counter ─────────
+    const ANALYSIS_TOTAL_MS = 37_000
+    const analysisStart = Date.now()
+    const analysisTick = setInterval(() => {
+      const elapsed = (Date.now() - analysisStart) / 1000
+      const target = ANALYSIS_TOTAL_MS / 1000
+      const pct = Math.min(100, Math.round((elapsed / target) * 100))
+      updateStep('assetsGen', {
+        output: (
+          <span>Analyzing video · {elapsed.toFixed(0)}s / {target.toFixed(0)}s · {pct}%</span>
+        ),
+      })
+    }, 500)
+    try {
+      await delay(ANALYSIS_TOTAL_MS)
+    } finally {
+      clearInterval(analysisTick)
+    }
+
+    // ── Load the fixture ──────────────────────────────────────────────────
     let fixture: BlockBlastFixtureManifest
     try {
       const res = await fetch('/demo-fixtures/blockblast/manifest.json', { cache: 'no-store' })
@@ -824,7 +854,7 @@ export default function Home() {
       </div>
     ))
 
-    // Mount the fake panel and wait for Continue.
+    // ── Mount the fake panel; wait for Continue ────────────────────────────
     const assetStageDone = new Promise<void>(resolve => {
       setReviewContent(prev => ({
         ...prev,
@@ -840,7 +870,7 @@ export default function Home() {
     await assetStageDone
     acceptStep('assetsGen')
 
-    // Replay subsequent stages with realistic timing, fed from fixture data.
+    // ── Downstream pipeline replay: 87s total ─────────────────────────────
     const probeReport: ProbeReport = {
       video: {
         name: videoFile.name,
@@ -853,14 +883,14 @@ export default function Home() {
       assets: fixture.assets.map(a => ({ name: `${a.asset_id}.png`, sizeBytes: 60_000, mimeType: 'image/png' })),
     }
     activateStep('probe')
-    await delay(600)
+    await delay(4_000)
     setReviewContent(prev => ({ ...prev, probe: renderProbe(probeReport) }))
     completeStep('probe', (
       <span>video {Math.round(probeReport.video.durationSec)}s · {probeReport.assets.length} assets</span>
     ))
 
     activateStep('video')
-    await delay(2200)
+    await delay(25_000)
     const videoAnalysis: VideoAnalysis = {
       merged: {
         summary_one_sentence: fixture.video_analysis.summary_one_sentence,
@@ -877,7 +907,7 @@ export default function Home() {
     ))
 
     activateStep('assets')
-    await delay(1400)
+    await delay(15_000)
     const assetMapping: AssetMapping = {
       roles: fixture.assets.map(a => ({
         role: a.asset_id,
@@ -889,7 +919,7 @@ export default function Home() {
     completeStep('assets', <span>{assetMapping.roles.length}/{assetMapping.roles.length} roles matched</span>)
 
     activateStep('gameSpec')
-    await delay(1100)
+    await delay(15_000)
     const gameSpec = {
       source_video: videoFile.name,
       game_identity: { observed_title: 'Block Blast', genre: 'tile puzzle', visual_style: fixture.art_style.summary },
@@ -912,9 +942,8 @@ export default function Home() {
       </span>
     ))
 
-    // Codegen — fetch the fixture HTML and surface it.
     activateStep('codegen')
-    await delay(2400)
+    await delay(28_000)
     let html = ''
     try {
       const htmlRes = await fetch('/demo-fixtures/blockblast/playable.html', { cache: 'no-store' })

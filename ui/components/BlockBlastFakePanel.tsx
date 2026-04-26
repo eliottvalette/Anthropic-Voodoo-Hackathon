@@ -43,11 +43,11 @@ type Props = {
 
 const FIXTURE_BASE = '/demo-fixtures/blockblast'
 
-// Picks a random delay between 0.4 and 2.5s. Sums to ~roughly 10-40s for
-// 18 assets when staggered.
-function randomDelayMs(min = 400, max = 2500): number {
-  return Math.floor(min + Math.random() * (max - min))
-}
+// Total deterministic generation wall-clock once Generate is clicked. The
+// N assets complete at evenly-spaced offsets within this window, so the
+// last card lands exactly at GENERATION_TOTAL_MS. Demo-script driven —
+// not randomized.
+const GENERATION_TOTAL_MS = 32_000
 
 export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: Props) {
   const [states, setStates] = useState<Record<string, AssetState>>(() =>
@@ -65,16 +65,18 @@ export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: 
   const startGeneration = useCallback(() => {
     if (generationKickedOff) return
     setGenerationKickedOff(true)
-    // Mark all pending → running and schedule completion at randomized
-    // offsets so the cards flip naturally across ~10-30s.
+    // Mark all pending → running, then schedule each asset's completion
+    // at evenly-spaced offsets across GENERATION_TOTAL_MS. Last asset
+    // lands exactly on the deadline; first asset lands at total/N.
     setStates(prev => Object.fromEntries(Object.keys(prev).map(k => [k, 'running' as AssetState])))
-    let cumulative = 0
-    for (const asset of manifest.assets) {
-      cumulative += randomDelayMs()
+    const N = manifest.assets.length
+    const slot = GENERATION_TOTAL_MS / N
+    manifest.assets.forEach((asset, i) => {
+      const completeAt = Math.round(slot * (i + 1))
       setTimeout(() => {
         setStates(prev => ({ ...prev, [asset.asset_id]: 'done' }))
-      }, cumulative)
-    }
+      }, completeAt)
+    })
   }, [generationKickedOff, manifest.assets])
 
   // Auto-mode kickoff: fire Generate as soon as we mount.
