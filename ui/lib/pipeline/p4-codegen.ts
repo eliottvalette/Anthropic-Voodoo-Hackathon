@@ -6,6 +6,7 @@
 // monolithic fallback; this V1 keeps it simple and treats P4 as one call,
 // surfaces the same VerifyReport shape so the UI is identical.
 
+import { buildAssetsBlock, injectAssets } from './assemble'
 import { fileDataPart, generateContent, uploadFile, waitUntilActive } from './gemini-client'
 import type { ContentPart } from './gemini-client'
 import { loadPrompt } from './prompts'
@@ -85,6 +86,18 @@ export async function runP4Codegen(
     finishCall('4_codegen', performance.now() - tC, r.tokensIn, r.tokensOut)
 
     html = extractHtml(r.text)
+
+    // Codegen prompt instructs the model to emit a `/* ASSETS_BASE64 */`
+    // placeholder; the runtime is responsible for swapping it for a real
+    // `const A = { role: "data:image/png;base64,..." }` block. Without this,
+    // the playable's JS references undefined `A.<role>` symbols → blank
+    // canvas → verify fails. Ported from proto-pipeline-m/assemble.ts.
+    try {
+      const assetsBlock = await buildAssetsBlock(gameSpec.asset_role_map, assets)
+      html = injectAssets(html, assetsBlock)
+    } catch (err) {
+      console.warn('[p4] asset injection failed; HTML may have undefined A.<role> refs:', err)
+    }
 
     startCall('4_verify')
     const tV = performance.now()
