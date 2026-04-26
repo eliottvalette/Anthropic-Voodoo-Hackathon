@@ -116,4 +116,18 @@ export async function generateJson<T = unknown>(
 
 export const CLAUDE_MODELS = {
   sonnet: "anthropic/claude-sonnet-4.5",
+  haiku: "anthropic/claude-haiku-4.5",
 } as const;
+
+export type ClaudeTier = keyof typeof CLAUDE_MODELS;
+
+export function getActiveClaudeModel(): string {
+  const tier = (process.env.CLAUDE_TIER ?? "sonnet").trim().toLowerCase();
+  if (tier === "haiku") return CLAUDE_MODELS.haiku;
+  return CLAUDE_MODELS.sonnet;
+}
+
+export function getActiveClaudeTier(): ClaudeTier {
+  const tier = (process.env.CLAUDE_TIER ?? "sonnet").trim().toLowerCase();
+  return tier === "haiku" ? "haiku" : "sonnet";
+}

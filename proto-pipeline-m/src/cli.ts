@@ -17,6 +17,8 @@ Usage:
 Defaults:
   --video defaults to ${DEFAULT_VIDEO} (B11). Pass --video to override.
   --videos defaults to "${DEFAULT_BENCH_VIDEOS}". Pass --videos to override.
+  --model selects the Claude tier for ALL Claude calls (sonnet | haiku).
+          Default: sonnet. Equivalent to setting CLAUDE_TIER=haiku in env.
 `;
 
 async function listModels(): Promise<void> {
@@ -293,6 +295,17 @@ async function main(): Promise<void> {
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(HELP);
     return;
+  }
+
+  const modelFlag = getFlag(args, "--model");
+  if (modelFlag !== undefined) {
+    const tier = modelFlag.trim().toLowerCase();
+    if (tier !== "sonnet" && tier !== "haiku") {
+      console.error(`invalid --model "${modelFlag}" (expected: sonnet | haiku)`);
+      process.exit(1);
+    }
+    process.env.CLAUDE_TIER = tier;
+    console.log(`[cli] CLAUDE_TIER=${tier}`);
   }
 
   if (args.includes("--list-models")) {
