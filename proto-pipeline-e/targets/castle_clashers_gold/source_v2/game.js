@@ -30,18 +30,10 @@
   const PLAYER_DAMAGE_CRIT   = 66.8;     // 2× normal
   const ENEMY_DAMAGE         = 20.0;     // % per non-glance enemy hit
   const ENEMY_GLANCE_RATE    = 0.40;
-  const PROJECTILE_GRAVITY   = 0.00054;  // world units per ms²
   const HIT_STOP_MS          = 60;
   const HIT_STOP_CRIT_MS     = 130;
   const SLOWMO_DURATION_MS   = 320;
   const SLOWMO_TIME_SCALE    = 0.35;
-  const ROCKET_SALVO_COUNT   = 4;
-  const ROCKET_DAMAGE_SCALE  = 1 / ROCKET_SALVO_COUNT;
-  const ROCKET_SWAY_SPEED    = 0.0145;
-  const ROCKET_SWAY_AMPLITUDE = 12;
-  const ROCKET_LANE_SPACING  = 12;
-  const ROCKET_VELOCITY_FAN  = 0.014;
-  const ROCKET_SPEED_STEP    = 0.075;
   // Destruction physics — world-units per second² and fractional damping/sec.
   const DESTRUCT = {
     gravity:        780,
@@ -114,7 +106,6 @@
     currentSide: "player",
     teamSlot: { player: 0, enemy: 0 },
     playerShotsFired: 0,
-    activeVolley: null,
     combo: 0,
     bestCombo: 0,
     hitStopUntil: 0,
@@ -797,7 +788,6 @@
       const skip = new Set([
         "castlePlayer_impact","castlePlayer_break","castlePlayer_destroyed",
         "castleEnemy_impact","castleEnemy_break","castleEnemy_destroyed",
-        "sfxCanonWhistle","sfxCanonHitCastle","sfxLose","sfxTriomph","sfxTriomphAlt",
       ]);
       await Promise.all(
         Object.entries(manifest)
@@ -878,121 +868,6 @@
   // ── Turn helpers ───────────────────────────────────────────────────────
   function activeTurn() { return { side: state.currentSide, slot: state.teamSlot[state.currentSide] }; }
   function activeSlot() { const t = activeTurn(); return unitSlots[t.side][t.slot]; }
-  function isRocketType(type) { return !!type && type.projectile === "projMissile"; }
-
-  function createProjectile(side, slot, type, x, y, vx, vy, isCrit, extras = {}) {
-    return {
-      side, slot, type,
-      originX: x, originY: y,
-      x, y,
-      vx, vy, gravity: PROJECTILE_GRAVITY, age: 0,
-      rotation: Math.atan2(vy, vx),
-      isCrit,
-      damageScale: 1,
-      waveAmp: 0,
-      waveFreq: 0,
-      wavePhase: 0,
-      waveNormalX: 0,
-      waveNormalY: 0,
-      trailCount: isCrit ? 2 : 1,
-      trailSize: isCrit ? 7 : 5,
-      feedbackScale: 1,
-      drawW: 36,
-      drawH: 36,
-      leadBias: 0,
-      isRocket: false,
-      ...extras,
-    };
-  }
-
-  function projectilePositionAt(projectile, ageMs) {
-    const x = projectile.originX + projectile.vx * ageMs;
-    const y = projectile.originY + projectile.vy * ageMs + 0.5 * projectile.gravity * ageMs * ageMs;
-    if (!projectile.waveAmp) return { x, y };
-    const ramp = Math.min(1, ageMs / 140);
-    const wave = Math.sin(ageMs * projectile.waveFreq + projectile.wavePhase) * projectile.waveAmp * ramp;
-    return {
-      x: x + projectile.waveNormalX * wave,
-      y: y + projectile.waveNormalY * wave,
-    };
-  }
-
-  function pickLeadProjectile(list) {
-    if (!list || !list.length) return null;
-    let best = list[0];
-    for (let i = 1; i < list.length; i += 1) {
-      const p = list[i];
-      if ((p.leadBias || 0) < (best.leadBias || 0)) best = p;
-    }
-    return best;
-  }
-
-  function buildShotProjectiles(side, slot, vx, vy, isCrit) {
-    const from = unitSlots[side][slot];
-    const type = unitTypes[slot];
-    const startX = from.x;
-    const startY = from.y - 20;
-    const dir = vNormSafe({ x: vx, y: vy });
-    const normal = { x: -dir.y, y: dir.x };
-    const center = (ROCKET_SALVO_COUNT - 1) * 0.5;
-    const rockets = [];
-    for (let i = 0; i < ROCKET_SALVO_COUNT; i += 1) {
-      const lane = i - center;
-      const offset = lane * ROCKET_LANE_SPACING;
-      const speedMul = 1 + lane * ROCKET_SPEED_STEP;
-      const drawW = isRocketType(type) ? 46 : 34;
-      const drawH = isRocketType(type) ? 28 : 24;
-      rockets.push(createProjectile(
-        side,
-        slot,
-        type,
-        startX + normal.x * offset,
-        startY + normal.y * offset,
-        vx * speedMul + normal.x * lane * ROCKET_VELOCITY_FAN,
-        vy * speedMul + normal.y * lane * ROCKET_VELOCITY_FAN,
-        isCrit,
-        {
-          damageScale: ROCKET_DAMAGE_SCALE,
-          waveAmp: ROCKET_SWAY_AMPLITUDE * (0.95 + Math.abs(lane) * 0.08),
-          waveFreq: ROCKET_SWAY_SPEED,
-          wavePhase: (TAU / ROCKET_SALVO_COUNT) * i,
-          waveNormalX: normal.x,
-          waveNormalY: normal.y,
-          trailCount: isCrit ? 2 : 1,
-          trailSize: isCrit ? 8 : 6,
-          feedbackScale: 0.42,
-          drawW,
-          drawH,
-          leadBias: Math.abs(lane),
-          isRocket: true,
-        }
-      ));
-    }
-    return rockets;
-  }
-
-  function settleProjectile(index, projectile, outcome) {
-    state.projectiles.splice(index, 1);
-    if (!state.activeVolley) {
-      state.activeProjectile = null;
-      window.setTimeout(advanceTurn, outcome === "hit" ? 360 : 260);
-      return;
-    }
-
-    state.activeVolley.pending = Math.max(0, state.activeVolley.pending - 1);
-    if (state.activeVolley.pending > 0) {
-      state.activeProjectile = pickLeadProjectile(state.projectiles);
-      return;
-    }
-
-    if (state.activeVolley.side === "player" && !state.activeVolley.hitRegistered) {
-      state.combo = 0;
-    }
-    const delay = state.activeVolley.hitRegistered ? 360 : 260;
-    state.activeVolley = null;
-    state.activeProjectile = null;
-    window.setTimeout(advanceTurn, delay);
-  }
 
   function getCanvasViewport() {
     const rect = canvas.getBoundingClientRect();
@@ -1067,7 +942,7 @@
     const aimX = target.x + target.w * (0.42 + Math.sin(state.timer * 2.1 + turn.slot) * aimNoise);
     const aimY = target.y + target.h * (0.44 + Math.cos(state.timer * 1.7 + turn.slot) * aimNoise);
     const flight = 930;
-    const gravity = PROJECTILE_GRAVITY;
+    const gravity = 0.00078;
     const vx = (aimX - from.x) / flight;
     const vy = (aimY - (from.y - 20) - 0.5 * gravity * flight * flight) / flight;
     fireProjectile("enemy", turn.slot, vx, vy);
@@ -1075,6 +950,7 @@
   }
 
   function fireProjectile(side, slot, vx, vy) {
+    const from = unitSlots[side][slot];
     const type = unitTypes[slot];
     const isPlayerShot = side === "player";
     let isCrit = false;
@@ -1082,23 +958,24 @@
       state.playerShotsFired += 1;
       isCrit = (state.playerShotsFired % PLAYER_CRIT_INTERVAL) === 0;
     }
-    const volleyProjectiles = buildShotProjectiles(side, slot, vx, vy, isCrit);
-    state.phase = "projectile";
-    state.activeVolley = {
-      side,
-      type,
-      pending: volleyProjectiles.length,
-      hitRegistered: false,
+    const projectile = {
+      side, slot, type,
+      x: from.x, y: from.y - 20,
+      vx, vy, gravity: 0.00078, age: 0,
+      rotation: side === "player" ? 0 : Math.PI,
+      isCrit,
     };
-    state.activeProjectile = pickLeadProjectile(volleyProjectiles);
-    state.projectiles.push(...volleyProjectiles);
-    recoil(side, slot, isCrit, type);
+    state.phase = "projectile";
+    state.activeProjectile = projectile;
+    state.projectiles.push(projectile);
+    recoil(side, slot, isCrit);
   }
-  function recoil(side, slot, isCrit, type) {
+  function recoil(side, slot, isCrit) {
     const p = unitSlots[side][slot];
-    const count = isCrit ? 18 : 12;
+    const count = isCrit ? 14 : 8;
     burst(state.particles, p.x, p.y - 8, "rgba(255,255,255,0.7)", count, 0.06);
-    smoke(state.particles, p.x, p.y - 4, isCrit ? 12 : 8);
+    smoke(state.particles, p.x, p.y - 4, isCrit ? 9 : 5);
+    playSfx("shoot");
     if (side === "player") haptic("tap");
     if (isCrit) { flash("#fff8d4", 90); shake.trigger(4); }
   }
@@ -1121,15 +998,14 @@
     // Projectiles (still in ms units for compatibility with v1 ballistics)
     for (let i = state.projectiles.length - 1; i >= 0; i -= 1) {
       const p = state.projectiles[i];
-      const prevX = p.x;
-      const prevY = p.y;
       p.age += dtMs;
-      const next = projectilePositionAt(p, p.age);
-      p.x = next.x;
-      p.y = next.y;
-      p.rotation = Math.atan2(p.y - prevY || 0.0001, p.x - prevX || 0.0001);
+      p.vy += p.gravity * dtMs;
+      p.x += p.vx * dtMs;
+      p.y += p.vy * dtMs;
+      p.rotation = Math.atan2(p.vy, p.vx);
+      const trailCount = p.isCrit ? 2 : 1;
       const trailColor = p.isCrit ? "#ffd24a" : p.type.color;
-      spawnTrail(state.particles, p.x - Math.sign(p.vx || 1) * 6, p.y, trailColor, p.trailCount, p.trailSize);
+      spawnTrail(state.particles, p.x - Math.sign(p.vx) * 6, p.y, trailColor, trailCount, p.isCrit ? 7 : 5);
       const targetSide = p.side === "player" ? "enemy" : "player";
       const box = hitbox(targetSide);
       const inAabb = p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h;
@@ -1141,10 +1017,15 @@
         : true);
       if (didHit) {
         applyHit(targetSide, p);
-        settleProjectile(i, p, "hit");
+        state.projectiles.splice(i, 1);
+        state.activeProjectile = null;
+        window.setTimeout(advanceTurn, 360);
       } else if (p.x < -80 || p.x > WORLD_W + 80 || p.y > 690 || p.age > 2900) {
         if (p.y < 690) smoke(state.particles, p.x, Math.min(p.y, 685), 8);
-        settleProjectile(i, p, "miss");
+        if (p.side === "player") state.combo = 0;
+        state.projectiles.splice(i, 1);
+        state.activeProjectile = null;
+        window.setTimeout(advanceTurn, 260);
       }
     }
 
@@ -1217,12 +1098,11 @@
 
   function applyHit(side, projectile) {
     const isPlayerShot = projectile.side === "player";
-    const volley = state.activeVolley;
     let damage;
     if (isPlayerShot) {
-      damage = (projectile.isCrit ? PLAYER_DAMAGE_CRIT : PLAYER_DAMAGE_NORMAL) * projectile.damageScale;
+      damage = projectile.isCrit ? PLAYER_DAMAGE_CRIT : PLAYER_DAMAGE_NORMAL;
     } else {
-      damage = (Math.random() < ENEMY_GLANCE_RATE ? 0 : ENEMY_DAMAGE) * projectile.damageScale;
+      damage = Math.random() < ENEMY_GLANCE_RATE ? 0 : ENEMY_DAMAGE;
     }
 
     const prevHp = side === "player" ? state.playerHp : state.enemyHp;
@@ -1230,20 +1110,11 @@
     if (side === "player") state.playerHp = newHp; else state.enemyHp = newHp;
     state.impactSide = side;
 
-    let comboAwarded = false;
     if (isPlayerShot && damage > 0) {
-      if (volley && volley.side === "player") {
-        if (!volley.hitRegistered) {
-          volley.hitRegistered = true;
-          comboAwarded = true;
-          state.combo += 1;
-          if (state.combo > state.bestCombo) state.bestCombo = state.combo;
-        }
-      } else {
-        comboAwarded = true;
-        state.combo += 1;
-        if (state.combo > state.bestCombo) state.bestCombo = state.combo;
-      }
+      state.combo += 1;
+      if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+    } else if (isPlayerShot) {
+      state.combo = 0;
     }
 
     // Live destructible explosion + debris
@@ -1269,26 +1140,23 @@
         ? "CRIT!"
         : `-${Math.round(damage * 10) / 10}%`;
       const dmgColor = isCrit ? "#ffd24a" : tier.color;
-      const feedbackScale = projectile.feedbackScale || 1;
-      const burstCount = Math.max(10, Math.round((isCrit ? 56 : 28) * feedbackScale));
-      const burstSpeed = (isCrit ? 0.30 : 0.18) * (0.85 + feedbackScale * 0.25);
-      const shakeAmp = Math.max(4, Math.round((isCrit ? 22 : 10) * feedbackScale));
-      const stopMs = Math.max(16, Math.round((isCrit ? HIT_STOP_CRIT_MS : HIT_STOP_MS) * feedbackScale));
+      const burstCount = isCrit ? 56 : 28;
+      const burstSpeed = isCrit ? 0.30 : 0.18;
+      const shakeAmp = isCrit ? 22 : 10;
+      const stopMs = isCrit ? HIT_STOP_CRIT_MS : HIT_STOP_MS;
       shake.trigger(shakeAmp);
       burst(state.particles, projectile.x, projectile.y, projectile.type.color, burstCount, burstSpeed);
-      if (isCrit) burst(state.particles, projectile.x, projectile.y, "#ffd24a", Math.max(12, Math.round(32 * feedbackScale)), 0.22);
+      if (isCrit) burst(state.particles, projectile.x, projectile.y, "#ffd24a", 32, 0.22);
       spawnFloat(state.floats, projectile.x, projectile.y - 24, dmgLabel, dmgColor, isCrit ? 1100 : 850);
-      if (isPlayerShot && comboAwarded && state.combo >= 2) {
+      if (isPlayerShot && state.combo >= 2) {
         spawnFloat(state.floats, projectile.x, projectile.y - 60, `x${state.combo} COMBO`, tier.color, 900);
       }
       playSfx("hit");
-      if (!projectile.isRocket) playSfx("destroy");
+      playSfx("destroy");
       state.hitStopUntil = performance.now() + stopMs;
       if (isCrit) flash("#ffffff", 120);
-      if (!projectile.isRocket || comboAwarded || (volley && volley.pending <= 1)) {
-        if (isPlayerShot) haptic(isCrit ? "crit" : "hit");
-        else              haptic("hit");
-      }
+      if (isPlayerShot) haptic(isCrit ? "crit" : "hit");
+      else              haptic("hit");
     }
   }
 
@@ -1543,32 +1411,26 @@
     const d = state.drag;
     const pullX = Math.max(26, Math.min(135, d.startX - d.x));
     const pullY = Math.max(-85, Math.min(105, d.startY - d.y));
-    const vx = 0.24 + pullX * 0.0038;
-    const vy = -0.27 + pullY * 0.0027;
+    let x = d.startX, y = d.startY;
+    let vx = 0.24 + pullX * 0.0038;
+    let vy = -0.27 + pullY * 0.0027;
     const critNext = ((state.playerShotsFired + 1) % PLAYER_CRIT_INTERVAL) === 0;
     const FILL = critNext ? "rgba(255,210,74,0.85)" : "rgba(255,255,255,0.85)";
     const STROKE = critNext ? "rgba(120,80,0,0.95)" : "rgba(28,38,56,0.92)";
-    const t = activeTurn();
-    const previews = buildShotProjectiles(t.side, t.slot, vx, vy, critNext);
     ctx.save();
     const STEP = 96;
     const COUNT = 9;
-    for (let j = 0; j < previews.length; j += 1) {
-      const preview = previews[j];
-      const radius = preview.isRocket ? (critNext ? 5.4 : 4.6) : (critNext ? 9.5 : 8.5);
-      const previewAlpha = previews.length > 1 ? (preview.leadBias === 0.5 ? 0.78 : 0.48) : 1;
-      for (let i = 0; i < COUNT; i += 1) {
-        const age = STEP * (i + 1);
-        const point = projectilePositionAt(preview, age);
-        const alpha = Math.max(0.16, (1 - i * 0.10) * previewAlpha);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = STROKE;
-        ctx.beginPath(); ctx.arc(point.x, point.y, radius + 1.5, 0, TAU); ctx.fill();
-        ctx.fillStyle = FILL;
-        ctx.beginPath(); ctx.arc(point.x, point.y, radius, 0, TAU); ctx.fill();
-        ctx.fillStyle = "rgba(255,255,255,0.55)";
-        ctx.beginPath(); ctx.arc(point.x - radius * 0.32, point.y - radius * 0.32, radius * 0.45, 0, TAU); ctx.fill();
-      }
+    const RADIUS = critNext ? 9.5 : 8.5;
+    for (let i = 0; i < COUNT; i += 1) {
+      x += vx * STEP; y += vy * STEP; vy += 0.00078 * STEP;
+      const alpha = Math.max(0.22, 1 - i * 0.10);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = STROKE;
+      ctx.beginPath(); ctx.arc(x, y, RADIUS + 1.5, 0, TAU); ctx.fill();
+      ctx.fillStyle = FILL;
+      ctx.beginPath(); ctx.arc(x, y, RADIUS, 0, TAU); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.beginPath(); ctx.arc(x - RADIUS * 0.32, y - RADIUS * 0.32, RADIUS * 0.45, 0, TAU); ctx.fill();
     }
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -1579,8 +1441,8 @@
       ctx.save();
       ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
       ctx.shadowColor = p.isCrit ? "#ffd24a" : p.type.color;
-      ctx.shadowBlur = p.isRocket ? (p.isCrit ? 22 : 14) : (p.isCrit ? 28 : 16);
-      if (img) drawContain(img, -p.drawW / 2, -p.drawH / 2, p.drawW, p.drawH);
+      ctx.shadowBlur = p.isCrit ? 28 : 16;
+      if (img) drawContain(img, -18, -18, 36, 36);
       ctx.restore();
     }
   }
@@ -1605,7 +1467,7 @@
     const leftIconX = 10, rightIconX = Wt - 10 - iconW;
     drawHudIcon(images.iconCastleBlue, leftIconX  + iconW / 2, iconY + iconH / 2, iconW, iconH, 0);
     drawHudIcon(images.iconCastleRed,  rightIconX + iconW / 2, iconY + iconH / 2, iconW, iconH, 0);
-    const hpTextY = iconY + iconH + 22 - H * 0.00;
+    const hpTextY = iconY + iconH + 22 - H * 0.05;
     drawHudPct(playerHpPct + "%", leftIconX  + iconW / 2, hpTextY, 26);
     drawHudPct(enemyHpPct  + "%", rightIconX + iconW / 2, hpTextY, 26);
     ctx.restore();
