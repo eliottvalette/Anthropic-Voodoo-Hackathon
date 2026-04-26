@@ -153,7 +153,7 @@ export default function UtilsView() {
       <div className="flex-1 overflow-auto pb-4">
         <p className="text-[11px] text-gray-400 mb-3">{current.description}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {visibleItems.map(item => (
             <UtilCard
               key={`${item._source}/${item.name}`}
@@ -180,13 +180,14 @@ export default function UtilsView() {
 function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () => void }) {
   const is3D = item._source === 'utils-3d'
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all overflow-hidden flex flex-col relative">
-      {is3D && (
-        <span className="absolute top-2 right-2 z-10 text-[8.5px] font-black px-1.5 py-0.5 rounded bg-[#0055FF] text-white tracking-widest">
-          3D
-        </span>
-      )}
-      <div className="bg-[#F6F9FC] aspect-[3/4] relative overflow-hidden border-b border-gray-100">
+    <div className="flex flex-col gap-2.5 self-start">
+      {/* Preview = the card. No white wrapper, no separate panel. Full bleed. */}
+      <div className="relative bg-[#F6F9FC] aspect-[3/4] rounded-2xl overflow-hidden ring-1 ring-gray-100/80 hover:ring-gray-200 transition-shadow">
+        {is3D && (
+          <span className="absolute top-2 right-2 z-10 text-[8.5px] font-black px-1.5 py-0.5 rounded bg-[#0055FF] text-white tracking-widest">
+            3D
+          </span>
+        )}
         {item.kind === '3d' && item.builder ? (
           <Library3DCard builder={item.builder} />
         ) : item.kind === '2d-mock' && item.preview ? (
@@ -194,7 +195,7 @@ function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () 
         ) : item.demo ? (
           <iframe
             src={(item._source === 'utils-3d' ? '/utils-3d/' : '/utils/') + item.demo}
-            className="w-full h-full border-0 block"
+            className="absolute inset-0 w-full h-full border-0 block"
             scrolling="no"
             sandbox="allow-scripts allow-same-origin"
             loading="lazy"
@@ -202,7 +203,8 @@ function UtilCard({ item, onViewSource }: { item: CatalogItem; onViewSource: () 
         ) : null}
       </div>
 
-      <div className="p-3.5 flex flex-col gap-1.5">
+      {/* Caption sits under the preview, no chrome */}
+      <div className="px-1 flex flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-bold text-[#0F141C] text-sm leading-tight">{item.name}</h3>
           {item.file && (

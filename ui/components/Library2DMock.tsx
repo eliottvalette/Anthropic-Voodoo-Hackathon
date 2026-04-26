@@ -29,7 +29,7 @@ function CoinCounter() {
     return () => clearInterval(id)
   }, [])
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#3a8a30] to-[#234d18]">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#bfe3ff] to-[#e8f4ff]">
       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0F141C]/70 border border-[#ffce56]/40 text-white font-extrabold text-base tabular-nums">
         <span className="w-[18px] h-[18px] rounded-full inline-flex items-center justify-center text-[9px] font-black text-[#7a5800]" style={{ background: 'radial-gradient(circle at 35% 30%,#fff7c0,#f5c43c 70%,#a07c00)' }}>$</span>
         {n}
@@ -50,7 +50,7 @@ function Speedometer() {
   }, [])
   const arc = (v / 120) * 170
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#3a8a30] to-[#234d18]">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#bfe3ff] to-[#e8f4ff]">
       <div className="relative w-[78px] h-[78px] rounded-full bg-[#0F141C]/70 border-[2px] border-white/20 flex flex-col items-center justify-center">
         <svg viewBox="0 0 64 64" className="absolute inset-0 w-full h-full">
           <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="2" />
@@ -65,7 +65,7 @@ function Speedometer() {
 
 function ShopMock() {
   return (
-    <div className="w-full h-full flex items-end justify-center pb-4 bg-gradient-to-br from-[#3a8a30] to-[#234d18]">
+    <div className="w-full h-full flex items-end justify-center pb-4 bg-gradient-to-b from-[#bfe3ff] to-[#e8f4ff]">
       <div className="flex gap-1">
         <div className="bg-white/90 border border-white rounded-lg px-2 py-1 text-center">
           <div className="text-[7px] font-bold tracking-widest text-[#0F141C]">BODY</div>
@@ -92,7 +92,7 @@ function ShopMock() {
 
 function CtaMock() {
   return (
-    <div className="w-full h-full flex items-end justify-center pb-6 bg-gradient-to-br from-[#3a8a30] to-[#234d18]">
+    <div className="w-full h-full flex items-end justify-center pb-6 bg-gradient-to-b from-[#bfe3ff] to-[#e8f4ff]">
       <button
         className="px-5 py-3 rounded-xl text-white font-black text-[12px] tracking-widest uppercase inline-flex items-center gap-2"
         style={{
@@ -111,8 +111,8 @@ function CtaMock() {
 
 function TitleMock() {
   return (
-    <div className="w-full h-full flex items-start justify-start p-4 bg-gradient-to-br from-[#3a8a30] to-[#234d18]">
-      <div className="text-white font-bold text-[13px] tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,.45)' }}>
+    <div className="w-full h-full flex items-center justify-center p-4 bg-gradient-to-b from-[#bfe3ff] to-[#e8f4ff]">
+      <div className="text-[#0F141C] font-bold text-base tracking-wide">
         <span className="font-extrabold">Airplane</span> Evolution
       </div>
     </div>

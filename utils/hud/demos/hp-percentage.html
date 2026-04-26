@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>hp-percentage demo</title>
 <style>
-  html,body{margin:0;height:100%;overflow:hidden;background:#F6F9FC;display:flex;align-items:center;justify-content:center;font-family:Arial}
-  canvas{background:#F6F9FC;border-radius:8px}
-  .label{position:fixed;top:10px;left:10px;color:#9aa3b8;font-size:11px;letter-spacing:.1em}
+  html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(180deg,#bfe3ff,#e8f4ff);display:flex;align-items:center;justify-content:center;font-family:Arial}
+  canvas{background:transparent}
 </style>
 </head>
 <body>
 
-<canvas id="c" width="360" height="640"></canvas>
+<canvas id="c" width="360" height="240"></canvas>
 <script src="../hp-percentage.js"></script>
 <script>
 const cv = document.getElementById('c');
@@ -30,18 +29,18 @@ function loop() {
   const a = (Math.sin(t) + 1) / 2;
   const b = (Math.sin(t*1.4) + 1) / 2;
   ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#0F141C';
   ctx.font = '900 14px Arial';
   ctx.textAlign = 'left';
 
-  ctx.fillText('Player', 30, 200);
-  drawHpPercentage(ctx, 30, 210, 300, 26, { pct: a, color: colorFor(a) });
+  ctx.fillText('Player', 30, 22);
+  drawHpPercentage(ctx, 30, 30, 300, 26, { pct: a, color: colorFor(a) });
 
-  ctx.fillText('Enemy', 30, 290);
-  drawHpPercentage(ctx, 30, 300, 300, 26, { pct: b, color: colorFor(b) });
+  ctx.fillText('Enemy', 30, 100);
+  drawHpPercentage(ctx, 30, 108, 300, 26, { pct: b, color: colorFor(b) });
 
-  ctx.fillText('No label:', 30, 380);
-  drawHpPercentage(ctx, 30, 390, 300, 14, { pct: a, color: '#27a8ff', showLabel: false });
+  ctx.fillText('No label:', 30, 178);
+  drawHpPercentage(ctx, 30, 186, 300, 14, { pct: a, color: '#27a8ff', showLabel: false });
 
   requestAnimationFrame(loop);
 }
