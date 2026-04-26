@@ -10,7 +10,8 @@ export async function runP3Aggregator(
   videoAnalysis: VideoAnalysis,
   assetMapping: AssetMapping,
   variant: string,
-  onProgress: P3Progress
+  onProgress: P3Progress,
+  userBrief?: string
 ): Promise<{ gameSpec: GameSpec; subCalls: SubCallEvent[] }> {
   const calls: SubCallEvent[] = [
     { id: '3_aggregate', label: 'Aggregate to GameSpec', status: 'idle' },
@@ -25,8 +26,14 @@ export async function runP3Aggregator(
   start()
   const sys = await loadPrompt(variant, '3_aggregator.md')
   const t = performance.now()
+  const payload: Record<string, unknown> = {
+    video: videoAnalysis.merged,
+    alternate: videoAnalysis.alternate,
+    assets: assetMapping,
+  }
+  if (userBrief && userBrief.trim()) payload.user_brief = userBrief.trim()
   const res = await generateContent<GameSpec>(
-    [{ text: JSON.stringify({ video: videoAnalysis.merged, alternate: videoAnalysis.alternate, assets: assetMapping }) }],
+    [{ text: JSON.stringify(payload) }],
     { systemInstruction: sys, responseMimeType: 'application/json' }
   )
   done(performance.now() - t, res.tokensIn, res.tokensOut)

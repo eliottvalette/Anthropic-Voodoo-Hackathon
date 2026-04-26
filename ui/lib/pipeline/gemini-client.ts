@@ -107,6 +107,12 @@ export type UploadedFile = {
   state?: string
 }
 
+// Next.js route handlers buffer the request body up to ~10 MiB before the
+// stream is forwarded upstream, so we send the file in chunks below that bound
+// using Gemini's resumable-upload protocol (one POST per chunk, "finalize" on
+// the last one).
+const UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024
+
 export async function uploadFile(file: Blob, displayName: string): Promise<UploadedFile> {
   const startRes = await fetch(proxyUrl('/upload/v1beta/files'), {
     method: 'POST',
@@ -128,19 +134,34 @@ export async function uploadFile(file: Blob, displayName: string): Promise<Uploa
   const uploadQuery: Record<string, string> = {}
   new URL(uploadUrl).searchParams.forEach((v, k) => { uploadQuery[k] = v })
 
-  const finRes = await fetch(proxyUrl(uploadPath, uploadQuery), {
-    method: 'POST',
-    headers: {
-      'content-type': file.type || 'application/octet-stream',
-      'x-goog-upload-command': 'upload, finalize',
-      'x-goog-upload-offset': '0',
-    },
-    body: file,
-  })
-  if (!finRes.ok) {
-    throw new Error(`Files upload finalize failed: ${finRes.status} ${await finRes.text()}`)
+  const contentType = file.type || 'application/octet-stream'
+  let offset = 0
+  let lastResponse: Response | null = null
+
+  while (offset < file.size || file.size === 0) {
+    const end = Math.min(offset + UPLOAD_CHUNK_SIZE, file.size)
+    const isLast = end >= file.size
+    const chunk = file.slice(offset, end)
+
+    const res = await fetch(proxyUrl(uploadPath, uploadQuery), {
+      method: 'POST',
+      headers: {
+        'content-type': contentType,
+        'x-goog-upload-command': isLast ? 'upload, finalize' : 'upload',
+        'x-goog-upload-offset': String(offset),
+      },
+      body: chunk,
+    })
+    if (!res.ok) {
+      throw new Error(`Files upload chunk @${offset} failed: ${res.status} ${await res.text()}`)
+    }
+    lastResponse = res
+    offset = end
+    if (isLast) break
   }
-  const json = await finRes.json()
+
+  if (!lastResponse) throw new Error('Files upload: no chunk was sent')
+  const json = await lastResponse.json()
   const f = json.file
   return { uri: f.uri, mimeType: f.mimeType, name: f.name, sizeBytes: Number(f.sizeBytes ?? file.size), state: f.state }
 }

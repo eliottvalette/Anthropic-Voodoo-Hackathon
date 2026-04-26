@@ -22,6 +22,7 @@ export type RunInput = {
   videoFile: File
   assetFiles: File[]
   variant?: string
+  userBrief?: string
 }
 
 export type RunCallbacks = {
@@ -110,7 +111,7 @@ export async function runPipeline(input: RunInput, cbs: RunCallbacks = {}): Prom
   let gameSpec: GameSpec
   try {
     while (true) {
-      const r = await runP3Aggregator(videoAnalysis!, assetMapping!, variant, subs => progress('gameSpec', subs))
+      const r = await runP3Aggregator(videoAnalysis!, assetMapping!, variant, subs => progress('gameSpec', subs), input.userBrief)
       gameSpec = r.gameSpec
       meta.gameSpec = gameSpec
       done('gameSpec', gameSpec)

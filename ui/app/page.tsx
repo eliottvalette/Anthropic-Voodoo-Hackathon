@@ -12,6 +12,7 @@ import GameSpecCard, { GameSpecLite } from '@/components/GameSpecCard'
 import VerifyReportCard, { VerifyReportLite } from '@/components/VerifyReportCard'
 import MultiPassStepper, { SubCall } from '@/components/MultiPassStepper'
 import RoleTable from '@/components/RoleTable'
+import MicCapture from '@/components/MicCapture'
 import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { saveRun } from '@/lib/runs/store'
@@ -217,6 +218,7 @@ export default function Home() {
     probe: [], video: [], assets: [], gameSpec: [], codegen: [],
   })
   const [errorMsg, setErrorMsg]           = useState<string | null>(null)
+  const [userBrief, setUserBrief]         = useState<string>('')
 
   const autoModeRef       = useRef(false)
   const mockModeRef       = useRef(true)
@@ -536,7 +538,7 @@ export default function Home() {
 
     try {
       const meta = await runPipeline(
-        { videoFile, assetFiles, variant: '_default' },
+        { videoFile, assetFiles, variant: '_default', userBrief: userBrief.trim() || undefined },
         {
           onStageStart: (s) => activateStep(s),
           onStageProgress: (s, subs) => setSubCallsByStage(prev => ({ ...prev, [s]: subs })),
@@ -601,7 +603,7 @@ export default function Home() {
       const msg = e instanceof Error ? e.message : String(e)
       setErrorMsg(msg)
     }
-  }, [videoFiles, assetFiles, activateStep, completeStep, errorStep, updateStep, waitForReview, acceptStep])
+  }, [videoFiles, assetFiles, userBrief, activateStep, completeStep, errorStep, updateStep, waitForReview, acceptStep])
 
   const handleRun = useCallback(async () => {
     if (!videoFiles.length || !assetFiles.length || isRunning) return
@@ -648,6 +650,9 @@ export default function Home() {
           files={assetFiles}
           icon={<AssetsIcon />}
         />
+      </div>
+      <div className="mt-3">
+        <MicCapture value={userBrief} onChange={setUserBrief} />
       </div>
       <button
         onClick={handleRun}
