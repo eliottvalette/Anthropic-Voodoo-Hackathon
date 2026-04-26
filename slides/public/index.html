@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Castle Clashers — v2 (promax)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="stage" aria-label="Castle Clashers playable">
+      <canvas id="game" width="360" height="640"></canvas>
+      <div id="pull-hint" class="hidden">PULL BACK<br>TO SHOOT</div>
+      <div id="download-cta" role="button" tabindex="0" aria-label="Download Castle Busters">
+        <div class="top">DOWNLOAD</div>
+        <div class="bot">CASTLE BUSTERS</div>
+      </div>
+    </main>
+    <script>
+      window.CC_ASSET_MANIFEST_URL = "./assets.json";
+    </script>
+    <!-- Bank utilities -->
+    <script src="../../../../utils/vfx/particles.js"></script>
+    <script src="../../../../utils/vfx/smoke.js"></script>
+    <script src="../../../../utils/vfx/burst.js"></script>
+    <script src="../../../../utils/vfx/trail.js"></script>
+    <script src="../../../../utils/vfx/shake.js"></script>
+    <script src="../../../../utils/vfx/float-text.js"></script>
+    <script src="../../../../utils/vfx/debris.js"></script>
+    <script src="../../../../utils/vfx/section-destroy.js"></script>
+    <script src="../../../../utils/hud/vs-bar-top.js"></script>
+    <script src="../../../../utils/end-screens/game-lost.js"></script>
+    <script src="../../../../utils/end-screens/game-won.js"></script>
+    <script src="../../../../utils/end-screens/win-effect.js"></script>
+    <script src="../../../../utils/end-screens/game-over-effect.js"></script>
+    <script src="../../../../utils/mechanics/cta-trigger.js"></script>
+    <script src="../../../../utils/mechanics/audio.js"></script>
+    <script src="../../../../utils/mechanics/haptics.js"></script>
+    <script src="../../../../utils/mechanics/tutorial-hand.js"></script>
+    <script>
+      // Override the synth-bassline startMusic/stopMusic with an actual track.
+      (function () {
+        const MUSIC_SRC = "../../../../ressources/Castle Clashers/Assets/Music.ogg";
+        const el = new Audio(MUSIC_SRC);
+        el.loop = true;
+        el.volume = 0.35;
+        el.preload = "auto";
+        let started = false;
+        window.startMusic = function () {
+          if (started) return;
+          started = true;
+          const p = el.play();
+          if (p && typeof p.catch === "function") p.catch(() => { started = false; });
+        };
+        window.stopMusic = function () {
+          started = false;
+          try { el.pause(); el.currentTime = 0; } catch (e) {}
+        };
+        window.setMusicVolume = function (v) {
+          el.volume = Math.max(0, Math.min(1, v));
+        };
+      })();
+    </script>
+    <script>
+      // Override procedural SFX with local Castle Clashers audio clips.
+      (function () {
+        const fallbackPlaySfx = window.playSfx;
+        const asset = (key, fallback) => (window.CC_ASSETS && window.CC_ASSETS[key]) || fallback;
+        const SFX = {
+          shoot: [asset("sfxCanonWhistle", "./best_assets/canon_whistle.mp3")],
+          hit: [asset("sfxCanonHitCastle", "./best_assets/canon_hit_castle.mp3")],
+          win: [asset("sfxTriomph", "./best_assets/triomph.mp3"), asset("sfxTriomphAlt", "./best_assets/trioph 2.mp3")],
+          lose: [asset("sfxLose", "./best_assets/loose.mp3")],
+        };
+        const pools = {};
+        const nextIndex = {};
+
+        Object.keys(SFX).forEach((kind) => {
+          pools[kind] = SFX[kind].map((src) => {
+            const audio = new Audio(src);
+            audio.preload = "auto";
+            audio.volume = kind === "shoot" ? 0.62 : 0.78;
+            return audio;
+          });
+          nextIndex[kind] = 0;
+        });
+
+        window.playSfx = function (kind) {
+          if (kind === "destroy") return;
+          const pool = pools[kind];
+          if (!pool) {
+            if (typeof fallbackPlaySfx === "function") fallbackPlaySfx(kind);
+            return;
+          }
+          const base = pool[nextIndex[kind] % pool.length];
+          nextIndex[kind] += 1;
+          const audio = base.cloneNode();
+          audio.volume = base.volume;
+          const play = audio.play();
+          if (play && typeof play.catch === "function") {
+            play.catch(() => {
+              if (typeof fallbackPlaySfx === "function") fallbackPlaySfx(kind);
+            });
+          }
+        };
+      })();
+    </script>
+    <script src="./game.js"></script>
+  </body>
+</html>

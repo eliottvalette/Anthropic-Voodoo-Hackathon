@@ -67,7 +67,7 @@ function PlayablePreview() {
         aria-hidden
       />
       <div className="h-[94%] w-[94%] translate-x-[1cm]">
-        <PhoneFrame src="/castle-clashers.html" title="Castle Clashers playable" />
+        <PhoneFrame src="/index.html" title="Castle Clashers playable" />
       </div>
     </div>
   )
