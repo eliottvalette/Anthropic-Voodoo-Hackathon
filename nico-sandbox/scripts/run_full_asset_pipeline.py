@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import sys
 import threading
+import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -182,30 +184,19 @@ def process_assets(args: argparse.Namespace, run_dir: Path, items: list[dict[str
         checkpoint_lock = threading.Lock()
         completed_so_far = 0
         first_error: Exception | None = None
+        per_asset_timeout_s = float(args.per_asset_timeout_s)
+        # Overall wall-clock deadline. Sized to give every batch room to
+        # finish: ceil(N/workers) batches × per_asset timeout × 1.5 buffer.
+        n_batches = (len(pending) + max_workers - 1) // max_workers
+        overall_deadline = time.time() + per_asset_timeout_s * n_batches * 1.5
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             future_to_item = {pool.submit(_process, item): item for item in pending}
-            for future in as_completed(future_to_item):
-                item = future_to_item[future]
+            remaining = set(future_to_item.keys())
+
+            def _record(item: dict[str, Any], result: dict[str, Any]) -> None:
+                nonlocal completed_so_far, first_error, results
                 asset_id = str(item.get("asset_id"))
                 route = asset_factories.route_for_item(item)
-                if future.cancelled():
-                    # Future was cancelled by pool.shutdown(cancel_futures=True)
-                    # in a previous iteration after stop-on-error fired. Skip
-                    # silently — the original error is already captured in
-                    # first_error and will be raised below.
-                    continue
-                try:
-                    result = future.result()
-                except Exception as exc:  # CancelledError or unhandled bug in _process
-                    result = {
-                        "asset_id": asset_id,
-                        "name": item.get("name"),
-                        "category": item.get("category"),
-                        "route": route,
-                        "source_crop": item.get("crop_path"),
-                        "error": f"{type(exc).__name__}: {exc}",
-                        "traceback": traceback.format_exc(),
-                    }
                 with checkpoint_lock:
                     results = merge_result(results, result)
                     completed_so_far += 1
@@ -219,10 +210,6 @@ def process_assets(args: argparse.Namespace, run_dir: Path, items: list[dict[str
                             first_error = RuntimeError(
                                 f"asset {asset_id} failed: {result['error']}"
                             )
-                            # Cancel any not-yet-started futures so we don't keep dispatching
-                            # new Scenario jobs after deciding to abort. In-flight HTTP
-                            # requests can't be aborted (no AbortController in `requests`),
-                            # but no new ones will be issued.
                             pool.shutdown(wait=False, cancel_futures=True)
                     else:
                         completed_ids.add(asset_id)
@@ -238,6 +225,52 @@ def process_assets(args: argparse.Namespace, run_dir: Path, items: list[dict[str
                         results=results,
                         status="failed" if (first_error and args.stop_on_error) else "running",
                     )
+
+            try:
+                wait_budget = max(1.0, overall_deadline - time.time())
+                for future in as_completed(future_to_item, timeout=wait_budget):
+                    remaining.discard(future)
+                    item = future_to_item[future]
+                    if future.cancelled():
+                        continue
+                    try:
+                        result = future.result(timeout=per_asset_timeout_s)
+                    except concurrent.futures.TimeoutError:
+                        result = {
+                            "asset_id": str(item.get("asset_id")),
+                            "name": item.get("name"),
+                            "category": item.get("category"),
+                            "route": asset_factories.route_for_item(item),
+                            "source_crop": item.get("crop_path"),
+                            "error": f"per-asset timeout ({per_asset_timeout_s}s) exceeded — Scenario job likely stuck in queue",
+                        }
+                    except Exception as exc:
+                        result = {
+                            "asset_id": str(item.get("asset_id")),
+                            "name": item.get("name"),
+                            "category": item.get("category"),
+                            "route": asset_factories.route_for_item(item),
+                            "source_crop": item.get("crop_path"),
+                            "error": f"{type(exc).__name__}: {exc}",
+                            "traceback": traceback.format_exc(),
+                        }
+                    _record(item, result)
+            except concurrent.futures.TimeoutError:
+                # Overall wall-clock blew up. Mark anything still pending as
+                # failed and bail. In-flight HTTP requests in `requests` can't
+                # be aborted (no AbortController) but no new ones will dispatch.
+                pool.shutdown(wait=False, cancel_futures=True)
+                for future in remaining:
+                    item = future_to_item[future]
+                    result = {
+                        "asset_id": str(item.get("asset_id")),
+                        "name": item.get("name"),
+                        "category": item.get("category"),
+                        "route": asset_factories.route_for_item(item),
+                        "source_crop": item.get("crop_path"),
+                        "error": "overall pipeline wall-clock exceeded — asset never started or never finished",
+                    }
+                    _record(item, result)
         if first_error is not None:
             raise first_error
 
@@ -274,10 +307,20 @@ def main() -> None:
     parser.add_argument(
         "--max-workers",
         type=int,
-        default=32,
-        help="Maximum concurrent Scenario jobs. Defaults to 32 so a typical "
-        "20–30-asset run fires entirely in parallel (proven 5.94x speedup at "
-        "8 workers; >8 untested but expected to scale similarly).",
+        default=8,
+        help="Maximum concurrent Scenario jobs. Default 8 (empirically clean "
+        "with 5.94x speedup; values above can hit Scenario's per-account "
+        "concurrency cap and leave the slowest job queued server-side, "
+        "causing 'stuck on last asset' symptoms).",
+    )
+    parser.add_argument(
+        "--per-asset-timeout-s",
+        type=int,
+        default=300,
+        help="Wall-clock cap per asset future in the parallel loop. After "
+        "this, the slow future is marked failed and the loop moves on. "
+        "Default 5 min — enough for character rigs, well below the 600s "
+        "Scenario poll deadline.",
     )
     args = parser.parse_args()
 
