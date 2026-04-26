@@ -4,7 +4,7 @@ import { SlideChrome } from './SlideChrome'
 type Metric = { label: string; value: string; sub?: string }
 
 const METRICS: Metric[] = [
-  { label: 'Bundle', value: '4.6', sub: 'MB · single file' },
+  { label: 'Bundle', value: '2.03', sub: 'MB · single file' },
   { label: 'End-to-end', value: '~2', sub: 'minutes' },
   { label: 'Compliance', value: 'MRAID', sub: '2.0' },
 ]
@@ -67,7 +67,7 @@ function PlayablePreview() {
         aria-hidden
       />
       <div className="h-[94%] w-[94%] translate-x-[1cm]">
-        <PhoneFrame src="/index.html" title="Castle Clashers playable" />
+        <PhoneFrame src="/castle_clashers.html" title="Castle Clashers playable" />
       </div>
     </div>
   )

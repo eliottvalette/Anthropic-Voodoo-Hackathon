@@ -53,10 +53,11 @@ at the root path.
 
 ## Castle Clashers playable source
 
-`public/castle-clashers.html` is a copy of
-`proto-pipeline-e/targets/castle_clashers_gold/dist/playable.html` (4.6 MB).
+`public/castle_clashers.html` is a copy of
+`proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/applovin_playable.html`
+(2.03 MB).
 If a newer playable is generated, refresh with:
 
 ```bash
-cp ../proto-pipeline-e/targets/castle_clashers_gold/dist/playable.html public/castle-clashers.html
+cp ../proto-pipeline-e/targets/castle_clashers_gold/source_v2/dist/applovin_playable.html public/castle_clashers.html
 ```
