@@ -2,6 +2,7 @@
   "background": "../../../../ressources/Castle Clashers/Assets/Background.png",
   "castlePlayer": "../../../../ressources/Castle Clashers/Assets/Blue Castle.png",
   "castleEnemy": "../../../../ressources/Castle Clashers/Assets/Red Castle.png",
+  "castleInside": "../../../../ressources/Castle Clashers/Assets/inside.png",
   "unitFire": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_cyclops_red.png",
   "unitMissile": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_ninja.png",
   "unitPoison": "../../../../nico-sandbox/runs/B11/scenario/transparent-png/char_goblin_green.png",
