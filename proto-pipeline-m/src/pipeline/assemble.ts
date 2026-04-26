@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import type { GameSpec } from "../schemas/gameSpec.ts";
+import type { ProbeReport } from "../schemas/probe.ts";
 
 const MIME_BY_EXT: Record<string, string> = {
   ".png": "image/png",
@@ -15,24 +16,69 @@ const MIME_BY_EXT: Record<string, string> = {
   ".aac": "audio/aac",
 };
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 16 * 1024 * 1024;
+
+export type FilenameResolver = (filename: string) => string | null;
+
+export function buildFilenameResolver(probe: ProbeReport): FilenameResolver {
+  const map = new Map<string, string>();
+  const collisions = new Map<string, string[]>();
+  for (const a of probe.assets) {
+    const existing = map.get(a.filename);
+    if (existing && existing !== a.relpath) {
+      const arr = collisions.get(a.filename) ?? [existing];
+      if (!arr.includes(a.relpath)) arr.push(a.relpath);
+      collisions.set(a.filename, arr);
+    } else {
+      map.set(a.filename, a.relpath);
+    }
+  }
+  if (collisions.size > 0) {
+    const summary = Array.from(collisions.entries())
+      .slice(0, 8)
+      .map(([fn, paths]) => `  - ${fn}: ${paths.join(", ")}`)
+      .join("\n");
+    console.warn(
+      `[assemble] ${collisions.size} filename collision(s) — using first match for each:\n${summary}`,
+    );
+  }
+  return (filename: string) => map.get(filename) ?? null;
+}
 
 export async function buildAssetsBlock(
   assetsDir: string,
   assetRoleMap: GameSpec["asset_role_map"],
+  resolver: FilenameResolver,
 ): Promise<string> {
   const entries: string[] = [];
+  const skipped: string[] = [];
   for (const [role, filename] of Object.entries(assetRoleMap)) {
     if (!filename) continue;
     const ext = extname(filename).toLowerCase();
     const mime = MIME_BY_EXT[ext];
     if (!mime) {
-      console.warn(`[assemble] skipping ${role}: unknown ext ${ext}`);
+      skipped.push(`${role}=${filename} (unknown ext ${ext})`);
       continue;
     }
-    const buf = await readFile(join(assetsDir, filename));
-    const b64 = buf.toString("base64");
-    entries.push(`  ${JSON.stringify(role)}: "data:${mime};base64,${b64}"`);
+    const relpath = resolver(filename);
+    if (!relpath) {
+      skipped.push(`${role}=${filename} (not found under assets dir)`);
+      continue;
+    }
+    try {
+      const buf = await readFile(join(assetsDir, relpath));
+      const b64 = buf.toString("base64");
+      entries.push(`  ${JSON.stringify(role)}: "data:${mime};base64,${b64}"`);
+    } catch (e) {
+      skipped.push(
+        `${role}=${filename} (read failed: ${(e as Error).message.slice(0, 80)})`,
+      );
+    }
+  }
+  if (skipped.length > 0) {
+    console.warn(
+      `[assemble] skipped ${skipped.length} role(s) (model will draw fallback rects):\n  - ${skipped.join("\n  - ")}`,
+    );
   }
   return `const A = {\n${entries.join(",\n")}\n};`;
 }

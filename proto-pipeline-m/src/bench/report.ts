@@ -41,7 +41,7 @@ function aggregate(rows: CsvRow[]): Agg[] {
       if (!r.mraid_ok) fails.mraid_ok!++;
       if (!r.mechanic_string_match) fails.mechanic_string_match!++;
       if (!r.interaction_state_change) fails.interaction_state_change!++;
-      if (r.size_bytes > 5 * 1024 * 1024) fails.size_ok!++;
+      if (r.size_bytes > 16 * 1024 * 1024) fails.size_ok!++;
     }
     out.push({
       variant,
