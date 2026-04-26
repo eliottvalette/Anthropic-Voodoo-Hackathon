@@ -63,6 +63,50 @@
         };
       })();
     </script>
+    <script>
+      // Override procedural SFX with local Castle Clashers audio clips.
+      (function () {
+        const fallbackPlaySfx = window.playSfx;
+        const asset = (key, fallback) => (window.CC_ASSETS && window.CC_ASSETS[key]) || fallback;
+        const SFX = {
+          shoot: [asset("sfxCanonWhistle", "./best_assets/canon_whistle.mp3")],
+          hit: [asset("sfxCanonHitCastle", "./best_assets/canon_hit_castle.mp3")],
+          win: [asset("sfxTriomph", "./best_assets/triomph.mp3"), asset("sfxTriomphAlt", "./best_assets/trioph 2.mp3")],
+          lose: [asset("sfxLose", "./best_assets/loose.mp3")],
+        };
+        const pools = {};
+        const nextIndex = {};
+
+        Object.keys(SFX).forEach((kind) => {
+          pools[kind] = SFX[kind].map((src) => {
+            const audio = new Audio(src);
+            audio.preload = "auto";
+            audio.volume = kind === "shoot" ? 0.62 : 0.78;
+            return audio;
+          });
+          nextIndex[kind] = 0;
+        });
+
+        window.playSfx = function (kind) {
+          if (kind === "destroy") return;
+          const pool = pools[kind];
+          if (!pool) {
+            if (typeof fallbackPlaySfx === "function") fallbackPlaySfx(kind);
+            return;
+          }
+          const base = pool[nextIndex[kind] % pool.length];
+          nextIndex[kind] += 1;
+          const audio = base.cloneNode();
+          audio.volume = base.volume;
+          const play = audio.play();
+          if (play && typeof play.catch === "function") {
+            play.catch(() => {
+              if (typeof fallbackPlaySfx === "function") fallbackPlaySfx(kind);
+            });
+          }
+        };
+      })();
+    </script>
     <script src="./game.js"></script>
   </body>
 </html>

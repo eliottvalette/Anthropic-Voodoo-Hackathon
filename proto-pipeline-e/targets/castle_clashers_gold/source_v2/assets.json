@@ -4,8 +4,8 @@
   "castleEnemy":  "../../../../nico-sandbox/runs/B11/final-assets-v1/props/castle_enemy.png",
   "castleInside": "../../../../ressources/Castle Clashers/Assets/inside.png",
   "castleInsideBottom": "./best_assets/tiltedbottom.png",
-  "iconCastleBlue": "./best_assets/castle_blue_tilted_right.png",
-  "iconCastleRed":  "./best_assets/castle_red_tilted_right.png",
+  "iconCastleBlue": "../../../../ressources/Castle Clashers/Assets/Blue Castle.png",
+  "iconCastleRed":  "../../../../ressources/Castle Clashers/Assets/Red Castle.png",
   "castlePlayer_impact":     "./assets/destruction/Blue_Castle_01_impact.png",
   "castlePlayer_break":      "./assets/destruction/Blue_Castle_02_break.png",
   "castlePlayer_destroyed":  "./assets/destruction/Blue_Castle_03_destroyed.png",
@@ -17,5 +17,10 @@
   "unitMissile": "../../../../nico-sandbox/runs/B11/final-assets/characters/purple_ninja_character/full.png",
   "projFire": "./assets/destruction/fireball.png",
   "projMissile": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_missile.png",
-  "projPoison": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png"
+  "projPoison": "../../../../nico-sandbox/runs/B11/final-assets-v1/projectiles/proj_poison.png",
+  "sfxCanonWhistle": "./best_assets/canon_whistle.mp3",
+  "sfxCanonHitCastle": "./best_assets/canon_hit_castle.mp3",
+  "sfxLose": "./best_assets/loose.mp3",
+  "sfxTriomph": "./best_assets/triomph.mp3",
+  "sfxTriomphAlt": "./best_assets/trioph 2.mp3"
 }
