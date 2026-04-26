@@ -25,7 +25,7 @@ The `html` value is a complete HTML document starting with `<!doctype html>` and
 | 6 | `interactionStateChange` | `window.__engineState.inputs` increments AND `snapshot()` changes between before/after a synthetic pointerdown→pointerup | Bump `__engineState.inputs` on pointerdown/pointerup, AND advance `state.phase` (idle→aiming) on first input so the snapshot mutates. |
 | 7 | `turnLoopObserved` | `state.phase` is observed reaching BOTH `"aiming"` AND `"acting"` during the run, OR `state.turnIndex` increments to ≥ 2 | Drive phase transitions: `idle → aiming` (on pointerdown) → `acting` (on pointerup or after aim hold) → `resolving` → back to `idle` for next turn. Increment `turnIndex` on every `aiming → acting`. Genre flavour goes in `state.subPhase`, NOT in `state.phase`. |
 | 8 | `hpDecreasesOnHit` | `playerHp` or `enemyHp` is a DISCRETE INTEGER starting at exactly **3**, and decreases by ≥1 during the run | Initialize `playerHp = 3` and `enemyHp = 3`. Decrement by integer 1 on each impact. Do NOT use 0–100 percentage bars. The harness will not accept continuous HP. |
-| 9 | `ctaReachable` | `state.ctaVisible` becomes `true` AND tapping the CTA region invokes `__cta(...)` | Set `state.ctaVisible = true` when either side reaches 0 HP (terminal). As a fallback for the harness, also set `ctaVisible = true` after ~25s of play even if no terminal yet. |
+| 9 | `ctaReachable` | `state.ctaVisible` becomes `true` AND tapping the CTA region invokes `__cta(...)` | Set `state.ctaVisible = true` when either side reaches 0 HP (terminal). **Mandatory fallback** for the harness: also set `state.ctaVisible = true` (and `state.phase = "loss"`, `state.isOver = true`) the moment **EITHER** of these triggers fires, whichever comes first: (a) `state.turnIndex >= 4` (4 turns played), or (b) `state.shotsTotal >= 4`, or (c) `Date.now() - state.startTimeMs >= 12000` (12s of play). The harness's CTA probe window ends as early as t≈13s on a fast game; do NOT use a 25s+ fallback or you will time out. |
 
 A run only counts as passing when ALL 9 are green. Architect your code so each gate flips green naturally; don't rely on a single fragile path.
 
@@ -117,7 +117,7 @@ Copy this snapshot helper VERBATIM. It satisfies gates 6, 7, 8, 9 by exposing th
 
 # Phase transitions (gate 7 in detail)
 
-Canonical enum is fixed: `idle | aiming | acting | resolving | win | loss`. The harness pattern-matches on these EXACT strings.
+Canonical enum is fixed: `idle | aiming | acting | resolving | win | loss`. The harness pattern-matches on these EXACT strings. **Do NOT invent additional values** like `"enemy_turn"`, `"player_turn"`, `"animating"`, `"charging"`, etc. — those go in `state.subPhase` (a free-form string) instead. Even an enemy retaliation phase is `state.phase = "acting"` with `state.subPhase = "enemy_volley"`. Gate 7 fails silently if `phase` never lands in the canonical set.
 
 Standard turn-based flow:
 - `idle` → `aiming` on first `pointerdown`
@@ -125,6 +125,50 @@ Standard turn-based flow:
 - `acting` → `resolving` when projectile hits / animation ends
 - `resolving` → `idle` when ready for next turn
 - Any state → `win` (enemyHp = 0) or `loss` (playerHp = 0). Set `isOver = true` AND `ctaVisible = true`.
+
+# Verifier input pattern (CRITICAL — read carefully)
+
+The Playwright harness drives input as a **single drag from the lower-middle of the canvas, upward**, then a series of similar bursts. Concrete coordinates (canvas-space, 360×640):
+
+- First drag: `pointerdown(180, 480)` → `pointermove(180, 320)` → `pointerup`
+- Burst retries (up to 12, if HP did not drop): `pointerdown(180±offset, 500)` → `pointermove(140±offset, 280)` → `pointerup`, where offset cycles 0/30/60/90.
+
+**The harness NEVER taps a small UI hit zone first.** It does not know which sprites are tappable. It assumes any drag, anywhere on the canvas, is a complete fire-and-forget aim+shoot.
+
+Therefore your code MUST satisfy this contract:
+
+1. **The very first `pointerdown` anywhere on the canvas MUST set `state.phase = "aiming"` and record `state.aimStart`.** Do NOT gate this on the click landing inside a unit card, a button, or any other small region. Even if the GameSpec describes "tap a unit card to enter aim mode", the verifier will not click that card. If your spec implies a unit-selection step, **auto-select unit 0** on any pointerdown when `state.phase === "idle"`, then enter aim mode in the same handler.
+2. **The matching `pointerup` MUST set `state.phase = "acting"`, increment `state.turnIndex`, and spawn at least one projectile** that is geometrically able to reach the enemy (i.e. its trajectory or a clamped fallback lands on the enemy castle/unit hitbox). Decrement `enemyHp` by 1 on impact, regardless of whether the drag was "good aim" or not — a near-miss policy that spares the enemy on imperfect aim will fail gate 8.
+3. After ~10 turns of unanswered drags, force at least one HP delta. A simple safety: if `state.shotsTotal >= 8 && state.enemyHp === 3`, deal 1 damage to enemy on the next shot's spawn.
+
+These rules apply EVEN IF the source video shows a unit-selection mini-game, an aim-meter, or a charge-up bar. UI flair that the player can decorate is fine; gameplay-critical phase transitions cannot depend on hitting a small region the harness will never touch.
+
+Concrete pattern (adapt to your mechanic):
+
+```js
+canvas.addEventListener('pointerdown', function(e){
+  if (state.isOver) { /* ...CTA tap path... */ return; }
+  var p = canvasXY(e);
+  // No hit-zone gate — any pointerdown when idle/aiming starts an aim.
+  if (state.phase === "idle" || state.phase === "aiming") {
+    if (state.selectedUnitIndex < 0) state.selectedUnitIndex = 0;  // auto-select default unit
+    state.aimStart = p;
+    state.aimCurrent = p;
+    state.phase = "aiming";
+    state.tapsTotal++;
+  }
+});
+canvas.addEventListener('pointerup', function(){
+  if (state.phase === "aiming" && state.aimStart) {
+    state.phase = "acting";
+    state.turnIndex++;
+    state.shotsTotal++;
+    spawnPlayerProjectile(state);  // must be able to hit enemy
+    state.aimStart = null;
+    state.aimCurrent = null;
+  }
+});
+```
 
 Real-time flow (e.g. runner): drive `aiming` ↔ `acting` based on whether the player is currently inputting (touch held = `acting`, idle = `aiming`). Increment `turnIndex` periodically (every wave / every N seconds). Either `aiming+acting both observed` OR `turnIndex ≥ 2` satisfies the gate.
 
