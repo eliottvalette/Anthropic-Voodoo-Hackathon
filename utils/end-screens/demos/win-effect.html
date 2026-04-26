@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>win-effect demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #F6F9FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial
+        }
+
+        canvas {
+            background: linear-gradient(160deg, #7da45c, #9fb978);
+            border-radius: 8px;
+            cursor: pointer;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c" width="360" height="640"></canvas>
+    <script src="../win-effect.js"></script>
+    <script src="../game-won.js"></script>
+    <script>
+        const cv = document.getElementById('c');
+        const ctx = cv.getContext('2d');
+        const W = cv.width, H = cv.height;
+
+        const variants = [
+            { headline: "VICTORY!", subhead: "YOU WIN" },
+            { headline: "YOU WIN!", subhead: null },
+            { headline: "PERFECT!", subhead: "ALL CLEARED" },
+            { headline: "★ WIN ★", subhead: "LEVEL UP" },
+        ];
+        let vi = 0;
+        let fx = createWinEffect({ W, H, ...variants[0] });
+
+        // Stationary game scene to overlay the effect on top of.
+        function paintScene() {
+            ctx.fillStyle = "#0F141C";
+            ctx.beginPath();
+            ctx.moveTo(40, 180); ctx.lineTo(70, 140); ctx.lineTo(100, 180);
+            ctx.lineTo(130, 140); ctx.lineTo(160, 180); ctx.lineTo(190, 140); ctx.lineTo(220, 180);
+            ctx.lineTo(220, 440); ctx.lineTo(40, 440); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = "#27a8ff";
+            ctx.fillRect(70, 260, 40, 60);
+            ctx.fillStyle = "rgba(0,0,0,0.20)";
+            ctx.fillRect(0, 480, W, H - 480);
+        }
+
+        let last = 0;
+        let postSettle = 0;     // seconds after fx.done before swapping to static end-screen
+        let endScreenShown = 0; // seconds end-screen has been on
+        function loop(now) {
+            const dt = last ? Math.min(34, now - last) : 16;
+            last = now;
+            fx.update(dt);
+
+            ctx.clearRect(0, 0, W, H);
+            paintScene();
+            fx.draw(ctx);
+
+            if (fx.done) {
+                postSettle += dt / 1000;
+                endScreenShown += dt / 1000;
+                // After a brief beat, fade in the static end-screen
+                if (postSettle > 0.30) {
+                    const a = Math.min(1, (postSettle - 0.30) / 0.40);
+                    ctx.save();
+                    ctx.globalAlpha = a;
+                    drawGameWon(ctx, W, H, {
+                        primary: "BATTLE",
+                        secondary: "WON",
+                        cta: "PLAY NOW",
+                    });
+                    ctx.restore();
+                }
+                // Cycle to next variant after showing the full end-screen
+                if (endScreenShown > 2.4) {
+                    vi = (vi + 1) % variants.length;
+                    fx = createWinEffect({ W, H, ...variants[vi] });
+                    postSettle = 0;
+                    endScreenShown = 0;
+                }
+            }
+            requestAnimationFrame(loop);
+        }
+
+        cv.addEventListener('pointerdown', () => {
+            vi = (vi + 1) % variants.length;
+            fx = createWinEffect({ W, H, ...variants[vi] });
+            postSettle = 0;
+            endScreenShown = 0;
+        });
+
+        document.fonts.ready.then(() => requestAnimationFrame(loop));
+    </script>
+</body>
+
+</html>
