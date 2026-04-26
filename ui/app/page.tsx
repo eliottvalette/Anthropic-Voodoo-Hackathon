@@ -182,23 +182,23 @@ function VideoAnalysisView({
   }
 
   return (
-    <div className="space-y-5">
-      <header className="space-y-1">
+    <div className="space-y-5 min-w-0">
+      <header className="space-y-1 min-w-0">
         <h2 className="text-2xl font-bold text-[#0F141C] leading-tight">Video analysis</h2>
         <p className="text-sm text-gray-500">Merged summary across all passes</p>
       </header>
 
       {merged?.defining_hook && (
-        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5">
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5 min-w-0">
           <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Defining hook</div>
-          <p className="text-sm text-[#0F141C] leading-relaxed">{merged.defining_hook}</p>
+          <p className="text-sm text-[#0F141C] leading-relaxed min-w-0 break-words">{merged.defining_hook}</p>
         </div>
       )}
 
       {merged?.summary_one_sentence && (
-        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5">
+        <div className="rounded-xl bg-[#F6F9FC] border border-gray-100 p-3.5 min-w-0">
           <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Summary</div>
-          <p className="text-sm text-[#0F141C] leading-relaxed">{merged.summary_one_sentence}</p>
+          <p className="text-sm text-[#0F141C] leading-relaxed min-w-0 break-words">{merged.summary_one_sentence}</p>
         </div>
       )}
 
@@ -213,9 +213,9 @@ function VideoAnalysisView({
       )}
 
       {alternate?.fits_evidence_better && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5">
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 min-w-0">
           <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-widest mb-1">Alternate genre proposal</div>
-          <p className="text-sm text-amber-900 leading-relaxed">
+          <p className="text-sm text-amber-900 leading-relaxed min-w-0 break-words">
             <span className="font-mono font-semibold">{alternate.alternate_genre}</span> — {alternate.rationale}
           </p>
         </div>
@@ -960,8 +960,8 @@ export default function Home() {
               )}
 
               {hasRun && !fullscreen && (
-                <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0">
+                <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
+                  <div className="lg:overflow-auto space-y-4 pb-4 lg:pb-0 min-w-0">
                     {uploadCard}
                     {pipelineCard}
                   </div>
@@ -1003,7 +1003,11 @@ function summarizeStage(s: StageId, payload: unknown): React.ReactNode {
   if (s === 'video') {
     const v = payload as VideoAnalysis
     const m = v.merged as { defining_hook?: string }
-    return <span className="truncate">{m?.defining_hook ?? 'Video analyzed'}</span>
+    return (
+      <span className="block min-w-0 break-words text-[#0F141C]">
+        {m?.defining_hook ?? 'Video analyzed'}
+      </span>
+    )
   }
   if (s === 'assets') {
     const m = payload as AssetMapping
