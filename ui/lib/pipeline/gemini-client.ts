@@ -43,7 +43,7 @@ function proxyUrl(path: string, query: Record<string, string> = {}): string {
 // Useful when Gemini is degraded — we've seen Files API responses go
 // 50s+ then return 503 on the very next chunk during outage windows.
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
-async function fetchWithRetry(input: string, init: RequestInit, attempts = 4): Promise<Response> {
+async function fetchWithRetry(input: string, init: RequestInit, attempts = 6): Promise<Response> {
   let backoff = 1000
   let lastErr: unknown
   for (let i = 0; i < attempts; i++) {
