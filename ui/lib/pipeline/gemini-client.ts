@@ -39,6 +39,34 @@ function proxyUrl(path: string, query: Record<string, string> = {}): string {
   return `/api/gemini?${sp.toString()}`
 }
 
+// Retry transient upstream failures (5xx + 429) with exponential backoff.
+// Useful when Gemini is degraded — we've seen Files API responses go
+// 50s+ then return 503 on the very next chunk during outage windows.
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
+async function fetchWithRetry(input: string, init: RequestInit, attempts = 4): Promise<Response> {
+  let backoff = 1000
+  let lastErr: unknown
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(input, init)
+      if (res.ok || !RETRYABLE_STATUSES.has(res.status) || i === attempts - 1) return res
+      // Honor Retry-After if present and parsable
+      const retryAfter = res.headers.get('retry-after')
+      const retryAfterMs = retryAfter && !Number.isNaN(Number(retryAfter)) ? Number(retryAfter) * 1000 : null
+      const waitMs = Math.min(retryAfterMs ?? backoff, 30_000)
+      await new Promise(r => setTimeout(r, waitMs))
+      backoff *= 2
+    } catch (err) {
+      lastErr = err
+      if (i === attempts - 1) throw err
+      await new Promise(r => setTimeout(r, Math.min(backoff, 30_000)))
+      backoff *= 2
+    }
+  }
+  // Unreachable in practice: the loop either returns or throws.
+  throw lastErr ?? new Error('fetchWithRetry: exhausted retries')
+}
+
 export async function generateContent<T = unknown>(
   parts: ContentPart[],
   opts: GenerateOptions = {}
@@ -61,7 +89,7 @@ export async function generateContent<T = unknown>(
   }
 
   const t0 = performance.now()
-  const res = await fetch(proxyUrl(path), {
+  const res = await fetchWithRetry(proxyUrl(path), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
@@ -114,7 +142,7 @@ export type UploadedFile = {
 const UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024
 
 export async function uploadFile(file: Blob, displayName: string): Promise<UploadedFile> {
-  const startRes = await fetch(proxyUrl('/upload/v1beta/files'), {
+  const startRes = await fetchWithRetry(proxyUrl('/upload/v1beta/files'), {
     method: 'POST',
     headers: {
       'x-goog-upload-protocol': 'resumable',
@@ -143,7 +171,7 @@ export async function uploadFile(file: Blob, displayName: string): Promise<Uploa
     const isLast = end >= file.size
     const chunk = file.slice(offset, end)
 
-    const res = await fetch(proxyUrl(uploadPath, uploadQuery), {
+    const res = await fetchWithRetry(proxyUrl(uploadPath, uploadQuery), {
       method: 'POST',
       headers: {
         'content-type': contentType,
