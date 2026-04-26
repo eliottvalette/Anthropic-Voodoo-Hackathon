@@ -185,7 +185,7 @@ async function callAggregator(
       if (e instanceof ScaffoldError) {
         reminder = `Your codegen_prompt was missing required sections (${e.missing.join(", ")}). Re-emit JSON with codegen_prompt that contains EVERY section header verbatim, in order: ${REQUIRED_SECTIONS.join(" / ")}.`;
       } else if (e instanceof HallucinationError) {
-        reminder = `Your codegen_prompt used mechanic words (${e.triggers.join(", ")}) that are NOT visible in the evidence (video.timeline / mechanics / defining_hook). Remove these claims. If the video does not show a special behavior, prefer a generic-but-correct description over an invented one.`;
+        reminder = `Your codegen_prompt used HARD-BLOCKED words (${e.triggers.join(", ")}). These words are blocked GLOBALLY regardless of evidence — they cannot appear in codegen_prompt, defining_hook, core_loop_one_sentence, first_5s_script, or not_this_game. Search-and-replace ALL occurrences with Canvas2D-implementable equivalents (e.g. "treads"→remove, "tilt"→"shake", "crumble"→"flash and lose HP", "physics-based"→"discrete HP decrement", "destructible"→"HP-driven"). If the merged defining_hook only makes sense with these words, set defining_hook=null and defining_hook_evidence_timestamps=[]. Re-emit the FULL JSON, not a patch.`;
       } else if (e instanceof AssetMapError) {
         const bullets = e.badEntries
           .map((b) => `  - "${b.role}": current value ${JSON.stringify(b.value)} — ${b.reason}`)
@@ -197,10 +197,22 @@ async function callAggregator(
         const issueBlock = issueSummary
           ? `\n\nValidation issues (fix EVERY ONE):\n${issueSummary}`
           : "";
+        const numericBoolHit = e instanceof z.ZodError && e.issues.some(
+          (iss) =>
+            iss.path[0] === "game_spec" &&
+            iss.path[1] === "numeric_params" &&
+            iss.code === "invalid_type" &&
+            (iss as { received?: string }).received === "boolean",
+        );
+        const numericBoolBlock = numericBoolHit
+          ? `\n\nCRITICAL: numeric_params is Record<string, number>. You emitted a boolean value. DROP that key entirely from numeric_params. Boolean feature flags do not belong here at all — do NOT convert true→1, just remove the key. If the behavior matters, describe it in the codegen_prompt's "# Required behaviour" section as English.`
+          : "";
         reminder =
           `The previous response failed schema validation. Re-emit ONLY a JSON object {"game_spec": ..., "codegen_prompt": "..."} that exactly matches the schema. snake_case mechanic_name. No markdown fences.` +
           issueBlock +
+          numericBoolBlock +
           `\n\nReminders:\n` +
+          `  - numeric_params values are NUMBERS only. No booleans, no strings, no nulls. Drop boolean keys entirely.\n` +
           `  - All timestamps in defining_hook_evidence_timestamps and tutorial_loss_evidence_timestamps MUST be strings formatted "MM:SS-MM:SS" (e.g. "00:03-00:07"). Never numbers.\n` +
           `  - If defining_hook is non-null, defining_hook_evidence_timestamps must contain at least one such string.\n` +
           `  - If defining_hook is null, defining_hook_evidence_timestamps must be the empty array [].\n` +
