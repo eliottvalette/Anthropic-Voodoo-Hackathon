@@ -1,59 +1,58 @@
-// Client-side hand-tutorial splicer. Mirrors lib/polishInjection.ts
-// (server) but runs entirely in the browser, bypassing Next.js's
-// ~10 MB Route Handler body cap which truncates large polished
-// playables (the demo HTML is ~13 MB).
+// Server-side helpers that build the "<script>/<style>" injection
+// block spliced into a playable HTML so it carries hand-tutorial
+// gestures + auto-dismiss matchers + fade-out.
 //
-// Both paths produce IDENTICAL output for the same gestures + source.
-// The server path is kept for smaller real-pipeline outputs and any
-// non-browser caller; the client path is used by PolishPanel.
+// The shape of the injected block must stay aligned with the
+// standalone editor at nico-sandbox/prettifier/hand_editor.html so
+// behavior is identical: same matcher tolerances, same fade timing,
+// same click-hand renderer + pulse, same swipe path via TutorialHand.
 
-import type { Gesture } from './polishTypes'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+import type { Gesture } from '@/utils/polishTypes'
 
-const CLICK_RADIUS_FRAC = 0.12
-const SWIPE_START_RADIUS_FRAC = 0.20
-const SWIPE_MIN_LENGTH_FRAC = 0.40
-const SWIPE_DIRECTION_DOT = 0.5
-const FADE_MS = 360
+// --- Auto-dismiss tolerances (must match the runtime constants) ---
+export const CLICK_RADIUS_FRAC = 0.12
+export const SWIPE_START_RADIUS_FRAC = 0.20
+export const SWIPE_MIN_LENGTH_FRAC = 0.40
+export const SWIPE_DIRECTION_DOT = 0.5
+export const FADE_MS = 360
+
+const PUBLIC_PRETTIFIER_DIR = path.resolve(process.cwd(), 'public', 'prettifier')
 
 let cachedRuntime: string | null = null
 let cachedHandDataUrl: string | null = null
 
-async function fetchRuntime(): Promise<string> {
-  if (cachedRuntime) return cachedRuntime
-  const res = await fetch('/prettifier/runtime.js', { cache: 'force-cache' })
-  if (!res.ok) throw new Error(`Could not load /prettifier/runtime.js: ${res.status}`)
-  cachedRuntime = await res.text()
-  return cachedRuntime
-}
-
-async function fetchHandDataUrl(): Promise<string> {
-  if (cachedHandDataUrl) return cachedHandDataUrl
-  const res = await fetch('/prettifier/hand.png', { cache: 'force-cache' })
-  if (!res.ok) throw new Error(`Could not load /prettifier/hand.png: ${res.status}`)
-  const blob = await res.blob()
-  // Read as base64 via FileReader so we never have to b64-encode bytes
-  // manually (avoids the chunked btoa dance).
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('FileReader failed on hand.png'))
-    reader.readAsDataURL(blob)
-  })
-  cachedHandDataUrl = dataUrl
-  return cachedHandDataUrl
+export async function loadAssets(): Promise<{ runtimeSource: string; handImgDataUrl: string }> {
+  if (!cachedRuntime) {
+    cachedRuntime = await readFile(path.join(PUBLIC_PRETTIFIER_DIR, 'runtime.js'), 'utf8')
+  }
+  if (!cachedHandDataUrl) {
+    const buf = await readFile(path.join(PUBLIC_PRETTIFIER_DIR, 'hand.png'))
+    cachedHandDataUrl = 'data:image/png;base64,' + buf.toString('base64')
+  }
+  return { runtimeSource: cachedRuntime, handImgDataUrl: cachedHandDataUrl }
 }
 
 function projectGesture(g: Gesture) {
+  // Strip any incidental fields; only ship the canonical shape.
   const base = { id: g.id, name: g.name, mode: g.mode, delay: g.delay, duration: g.duration, repeat: g.repeat }
   if (g.mode === 'click') return { ...base, at: g.at, angle: g.angle ?? 20 }
   return { ...base, from: g.from, to: g.to, ...(g.angle !== undefined ? { angle: g.angle } : {}) }
 }
 
-function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataUrl: string): string {
-  const safeGestures = gestures.map(projectGesture)
+export function buildInjection(args: {
+  runtimeSource: string
+  gestures: Gesture[]
+  handImgDataUrl: string
+  fadeMs?: number
+}): string {
+  const safeGestures = args.gestures.map(projectGesture)
+  const fadeMs = args.fadeMs ?? FADE_MS
+
   return `
-<!-- Tutorial hand runtime injected client-side by PolishPanel -->
-<script>${runtimeSource}</script>
+<!-- Tutorial hand runtime injected by /api/polish -->
+<script>${args.runtimeSource}</script>
 <style>
 .editor-click-hand {
   position: absolute;
@@ -95,12 +94,12 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
 <script>
 (function () {
   var GESTURES = ${JSON.stringify(safeGestures, null, 2)};
-  var HAND_IMG = ${JSON.stringify(handImgDataUrl)};
+  var HAND_IMG = ${JSON.stringify(args.handImgDataUrl)};
   var CLICK_RADIUS_FRAC = ${CLICK_RADIUS_FRAC};
   var SWIPE_START_RADIUS_FRAC = ${SWIPE_START_RADIUS_FRAC};
   var SWIPE_MIN_LENGTH_FRAC = ${SWIPE_MIN_LENGTH_FRAC};
   var SWIPE_DIRECTION_DOT = ${SWIPE_DIRECTION_DOT};
-  var FADE_MS = ${FADE_MS};
+  var FADE_MS = ${fadeMs};
 
   function pctToPx(p, rect) { return { x: p.x * rect.width / 100, y: p.y * rect.height / 100 }; }
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
@@ -146,6 +145,7 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
     var container = document.getElementById("GameDiv") || document.body;
     if (getComputedStyle(container).position === "static") container.style.position = "relative";
     var slots = [];
+
     function rect() { return container.getBoundingClientRect(); }
 
     function showSlot(slot) {
@@ -160,10 +160,16 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
         return;
       }
       var opts = {
-        container: container, mode: g.mode,
-        coordinateSize: { width: r.width, height: r.height }, fit: "stretch",
-        delay: g.delay, duration: g.duration, repeat: g.repeat,
-        from: pctToPx(g.from, r), to: pctToPx(g.to, r), handSrc: HAND_IMG
+        container: container,
+        mode: g.mode,
+        coordinateSize: { width: r.width, height: r.height },
+        fit: "stretch",
+        delay: g.delay,
+        duration: g.duration,
+        repeat: g.repeat,
+        from: pctToPx(g.from, r),
+        to: pctToPx(g.to, r),
+        handSrc: HAND_IMG
       };
       if (typeof g.angle === "number") opts.angle = g.angle * Math.PI / 180;
       try { slot.handle = window.TutorialHand.show(opts); }
@@ -173,7 +179,8 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
     function dismissSlot(slot) {
       if (slot.dismissed) return;
       slot.dismissed = true;
-      var h = slot.handle; slot.handle = null;
+      var h = slot.handle;
+      slot.handle = null;
       if (!h) return;
       try {
         if (typeof h.fadeRemove === "function") {
@@ -190,6 +197,7 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
     }
 
     function showAll() { slots.forEach(showSlot); }
+
     GESTURES.forEach(function (g) { slots.push({ gesture: g, handle: null, dismissed: false }); });
     showAll();
 
@@ -209,6 +217,7 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
         if (dist(p, target) <= maxDim * CLICK_RADIUS_FRAC) dismissSlot(slot);
       });
     }
+
     function tryMatchSwipe(downP, upP, r) {
       var maxDim = Math.max(r.width, r.height);
       slots.forEach(function (slot) {
@@ -223,17 +232,20 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
         if (dot >= SWIPE_DIRECTION_DOT) dismissSlot(slot);
       });
     }
+
     document.addEventListener("pointerdown", function (ev) {
       var r = rect(); var p = relPoint(ev, r);
       pending = { down: p, rect: r, time: Date.now() };
       tryMatchClick(ev);
     }, true);
+
     document.addEventListener("pointerup", function (ev) {
       if (!pending) return;
       var r = pending.rect; var up = relPoint(ev, r);
       tryMatchSwipe(pending.down, up, r);
       pending = null;
     }, true);
+
     document.addEventListener("pointercancel", function () { pending = null; }, true);
   }
 
@@ -247,18 +259,9 @@ function buildInjection(runtimeSource: string, gestures: Gesture[], handImgDataU
 `
 }
 
-function splicePlayable(playableSource: string, injection: string): string {
+export function splicePlayable(playableSource: string, injection: string): string {
   if (/<\/body>/i.test(playableSource)) {
     return playableSource.replace(/<\/body>/i, injection + '</body>')
   }
   return playableSource + injection
-}
-
-export async function polishPlayableClientSide(
-  playableSource: string,
-  gestures: Gesture[],
-): Promise<string> {
-  const [runtime, handDataUrl] = await Promise.all([fetchRuntime(), fetchHandDataUrl()])
-  const injection = buildInjection(runtime, gestures, handDataUrl)
-  return splicePlayable(playableSource, injection)
 }

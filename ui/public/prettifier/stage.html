@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polish Stage</title>
+<style>
+  :root {
+    --hand-img: url("hand.png");
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #14171c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: #fff; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+
+  .stage {
+    position: relative;
+    width: 430px; height: 820px;
+    background: #000;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    flex: 0 0 auto;
+  }
+  .stage iframe.playable {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000;
+    z-index: 1;
+  }
+
+  .preview-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .marker-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+  .editor-click-hand {
+    position: absolute;
+    left: var(--anchor-x); top: var(--anchor-y);
+    width: 96px; height: 108px;
+    background-image: var(--hand-img); background-size: contain; background-repeat: no-repeat;
+    transform-origin: 12% 8%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: editor-click-tap 1800ms cubic-bezier(.18,.9,.18,1) var(--delay, 0ms) var(--iter, infinite);
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,.4));
+  }
+  .editor-click-pulse {
+    position: absolute;
+    left: var(--pulse-x); top: var(--pulse-y);
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.96);
+    box-shadow: 0 0 14px rgba(255,255,255,.7), 0 0 26px rgba(86,202,255,.45);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(.4);
+    opacity: 0;
+    animation: editor-click-pulse 1800ms ease-out var(--delay, 0ms) var(--iter, infinite);
+  }
+  @keyframes editor-click-tap {
+    0%, 13%   { opacity: 0; transform: rotate(var(--hand-angle, 20deg)) scale(.74); }
+    28%       { opacity: 1; transform: rotate(var(--hand-angle, 20deg)) scale(1.05); }
+    46%       { opacity: 1; transform: rotate(var(--hand-angle, 20deg)) scale(.9); }
+    64%       { opacity: 1; transform: rotate(var(--hand-angle, 20deg)) scale(1.03); }
+    86%, 100% { opacity: 0; transform: rotate(var(--hand-angle, 20deg)) scale(.8); }
+  }
+  @keyframes editor-click-pulse {
+    0%, 33%   { opacity: 0; transform: translate(-50%, -50%) scale(.25); }
+    43%       { opacity: 1; transform: translate(-50%, -50%) scale(.62); }
+    78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(4.2); }
+  }
+
+  .anchor-dot {
+    position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    border-radius: 50%; background: #ffd400;
+    border: 2px solid rgba(0,0,0,0.55);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .anchor-dot.end { background: #ff6b6b; }
+  .anchor-line {
+    position: absolute; height: 2px; background: rgba(255,212,0,0.85);
+    transform-origin: 0 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .anchor-label {
+    position: absolute; transform: translate(8px, -22px);
+    background: rgba(20, 23, 28, 0.92); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    white-space: nowrap; letter-spacing: 0.04em;
+  }
+
+  .capture-layer {
+    position: absolute; inset: 0; z-index: 3;
+    cursor: crosshair; background: transparent;
+  }
+  .capture-marker {
+    position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border: 2px solid #ffd400; border-radius: 50%;
+    background: rgba(255,212,0,0.18);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+  .capture-line {
+    position: absolute; height: 3px; background: #ffd400;
+    transform-origin: 0 50%;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  }
+
+  .empty-hint {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5); font-size: 12px; pointer-events: none; z-index: 4;
+    text-align: center; padding: 20px;
+  }
+  .empty-hint.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <iframe class="playable" id="game-frame" sandbox="allow-scripts allow-same-origin" allow="autoplay"></iframe>
+  <div class="preview-layer" id="preview-layer"></div>
+  <div class="marker-layer" id="marker-layer"></div>
+  <div class="capture-layer" id="capture-layer"></div>
+  <div class="empty-hint" id="empty-hint">
+    Loading playable…
+  </div>
+</div>
+<script src="runtime.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>

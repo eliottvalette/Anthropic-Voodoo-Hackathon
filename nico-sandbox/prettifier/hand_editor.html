@@ -460,7 +460,7 @@
     });
   }
 
-  const HAND_IMG_URL = new URL("../runs/B11/final-assets-v1/ui/ui_hand_cursor.png", location.href).href;
+  const HAND_IMG_URL = new URL("../../ui/public/prettifier/hand.png", location.href).href;
 
   function renderClickHand(rect, g) {
     const p = pctToPx(g.at, rect);
@@ -504,7 +504,8 @@
         duration: g.duration,
         repeat: !!g.repeat,
         from: pctToPx(g.from, rect),
-        to: pctToPx(g.to, rect)
+        to: pctToPx(g.to, rect),
+        handSrc: HAND_IMG_URL
       };
       try {
         const h = window.TutorialHand.show(opts);
