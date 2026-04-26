@@ -182,5 +182,24 @@ export async function generateJson<T = unknown>(
 
 export const MODELS = {
   flash: "gemini-3-flash-preview",
-  pro: "gemini-3.1-pro-preview",
+  pro: "gemini-pro-latest",
+  proFallback: "gemini-2.5-pro",
 } as const;
+
+export async function generateJsonProWithFallback<T = unknown>(
+  systemInstruction: string,
+  userParts: ContentPart[],
+  options: GenerateOptions = {},
+): Promise<GenerateResult<T>> {
+  try {
+    return await generateJson<T>(MODELS.pro, systemInstruction, userParts, options);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const transient = /\b(429|500|502|503|504)\b/.test(msg) || /quota/i.test(msg);
+    if (!transient) throw e;
+    console.warn(
+      `[gemini] ${MODELS.pro} failed (${msg.slice(0, 200)}); falling back to ${MODELS.proFallback}`,
+    );
+    return await generateJson<T>(MODELS.proFallback, systemInstruction, userParts, options);
+  }
+}
