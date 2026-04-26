@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start -p 3001"
+    "start": "next start -p 3001",
+    "verify:castle-clashers": "node scripts/verify-castle-clashers-ground-truth.mjs"
   },
   "dependencies": {
     "next": "^15.3.0",
