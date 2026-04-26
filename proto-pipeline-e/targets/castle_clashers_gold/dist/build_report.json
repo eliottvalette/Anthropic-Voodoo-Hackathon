@@ -1,10 +1,11 @@
 {
   "output": "playable.html",
-  "bytes": 3066546,
+  "bytes": 4574474,
   "assets": [
     "background",
     "castlePlayer",
     "castleEnemy",
+    "castleInside",
     "unitFire",
     "unitMissile",
     "unitPoison",
@@ -27,5 +28,5 @@
     "mechanics/cta-trigger.js",
     "mechanics/audio.js"
   ],
-  "generated_at": "2026-04-26T04:24:19.483Z"
+  "generated_at": "2026-04-26T04:35:54.570Z"
 }

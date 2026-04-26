@@ -306,7 +306,7 @@
     const revealActive =
       !state.ctaVisible &&
       (state.phase === "aiming" || state.phase === "enemy_wait");
-    const target = revealActive ? 177 : 0;
+    const target = revealActive ? 130 : 0;
     const t = Math.min(1, dt / 280);
     state.revealRadius += (target - state.revealRadius) * t;
   }
@@ -497,14 +497,14 @@
     const reveal = revealForSide(side);
 
     if (reveal && hp > 0) {
-      // Behind layer: a darkened duplicate of the same castle PNG, drawn
-      // in place. Becomes visible only through the cut-out in the front layer.
-      ctx.save();
-      ctx.filter =
-        "brightness(0.34) sepia(0.85) saturate(1.5) hue-rotate(-10deg)";
-      for (let i = 0; i < hp; i += 1) drawSection(ctx, img, c, SECTION_POLYS[i]);
-      ctx.filter = "none";
-      ctx.restore();
+      // Behind layer: the dedicated interior PNG, masked by the same section
+      // polys so it occupies exactly where the castle still stands.
+      const inside = images.castleInside;
+      if (inside) {
+        for (let i = 0; i < hp; i += 1) {
+          drawSection(ctx, inside, c, SECTION_POLYS[i]);
+        }
+      }
 
       // Front layer: same PNG, with an even-odd clip so the circle is a
       // real hole — no overlay disc, the darkened layer shows through.
