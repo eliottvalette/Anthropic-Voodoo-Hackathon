@@ -7,7 +7,6 @@ import {
   type AnthropicContent,
 } from "./anthropic.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
-import { AssetMappingSchema, type AssetMapping } from "../schemas/assets.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import {
   buildAssetsBlock,
@@ -91,6 +90,25 @@ async function loadDescribedAssets(runId: string): Promise<unknown[]> {
   }
 }
 
+type DroppedRoleNote = { role: string; relpath: string | null; reason: string };
+
+async function loadDroppedRoles(runId: string): Promise<DroppedRoleNote[]> {
+  const outDir = resolve("outputs", runId);
+  try {
+    const raw = await readFile(join(outDir, "03_role_sanitizer_notes.json"), "utf8");
+    const parsed = JSON.parse(raw) as { dropped?: unknown };
+    if (Array.isArray(parsed.dropped)) {
+      return parsed.dropped.filter(
+        (d): d is DroppedRoleNote =>
+          !!d && typeof (d as DroppedRoleNote).role === "string",
+      );
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 async function loadReference(
   referenceDir: string | null,
 ): Promise<unknown | null> {
@@ -112,19 +130,22 @@ async function loadReference(
   }
 }
 
-function buildAssetsContext(
-  mapping: AssetMapping,
-  describedAssets: unknown[],
-): Array<{
+type AssetContextEntry = {
   role: string;
   filename: string | null;
   category?: string;
   description?: string;
   orientation?: string;
   dominant_colors_hex?: string[];
-}> {
+};
+
+function buildAssetsContext(
+  assetRoleMap: GameSpec["asset_role_map"],
+  describedAssets: unknown[],
+): AssetContextEntry[] {
   type DescribedAsset = {
     filename?: string;
+    relpath?: string;
     description?: {
       description?: string;
       category?: string;
@@ -132,22 +153,15 @@ function buildAssetsContext(
       dominant_colors_hex?: string[];
     } | null;
   };
-  const byFilename = new Map<string, DescribedAsset>();
+  const byRelpath = new Map<string, DescribedAsset>();
   for (const a of describedAssets) {
     const da = a as DescribedAsset;
-    if (typeof da.filename === "string") byFilename.set(da.filename, da);
+    if (typeof da.relpath === "string") byRelpath.set(da.relpath, da);
   }
-  return mapping.roles.map((r) => {
-    const out: {
-      role: string;
-      filename: string | null;
-      category?: string;
-      description?: string;
-      orientation?: string;
-      dominant_colors_hex?: string[];
-    } = { role: r.role, filename: r.filename };
-    if (r.filename) {
-      const d = byFilename.get(r.filename);
+  return Object.entries(assetRoleMap).map(([role, value]) => {
+    const out: AssetContextEntry = { role, filename: value };
+    if (value) {
+      const d = byRelpath.get(value);
       const desc = d?.description;
       if (desc) {
         if (desc.category) out.category = desc.category;
@@ -176,19 +190,24 @@ export async function runP4Monolithic(
     join(outDir, "03_codegen_prompt.txt"),
     "utf8",
   );
-  const assetMapping: AssetMapping = AssetMappingSchema.parse(
-    JSON.parse(await readFile(join(outDir, "02_assets.json"), "utf8")),
-  );
   const describedAssets = await loadDescribedAssets(runId);
   const reference = await loadReference(referenceDir);
+  const droppedRoles = await loadDroppedRoles(runId);
 
   const systemBase = await loadPrompt(variant);
   const userPayload: Record<string, unknown> = {
     game_spec: gameSpec,
     codegen_prompt: codegenPrompt,
-    assets: buildAssetsContext(assetMapping, describedAssets),
+    assets: buildAssetsContext(gameSpec.asset_role_map, describedAssets),
   };
   if (reference) userPayload.reference = reference;
+  if (droppedRoles.length > 0) {
+    userPayload.dropped_roles_notes = {
+      message:
+        "These roles were requested by the spec but have no usable file in the runtime A object. Draw them as colored rectangles using dominant_colors_hex if listed, or your own choice.",
+      roles: droppedRoles,
+    };
+  }
 
   const userParts: AnthropicContent[] = [
     { type: "text", text: JSON.stringify(userPayload, null, 2) },
@@ -246,7 +265,7 @@ export async function runP4Monolithic(
 
 export async function writeP4Monolithic(
   runId: string,
-  assetsDir: string,
+  _assetsDir: string,
   variant = "_default",
   referenceDir: string | null = null,
 ): Promise<{ htmlPath: string; bytes: number; output: P4MonoOutput }> {
@@ -261,11 +280,32 @@ export async function writeP4Monolithic(
     JSON.parse(await readFile(join(outDir, "00_probe.json"), "utf8")),
   );
   const resolver = buildFilenameResolver(probe);
-  const assetsBlock = await buildAssetsBlock(
-    assetsDir,
+  const { block: assetsBlock, dropped: assembleDropped } = await buildAssetsBlock(
     gameSpec.asset_role_map,
     resolver,
   );
+
+  if (assembleDropped.length > 0) {
+    const notesPath = join(outDir, "03_role_sanitizer_notes.json");
+    let existing: { dropped: DroppedRoleNote[] } = { dropped: [] };
+    try {
+      existing = JSON.parse(await readFile(notesPath, "utf8")) as {
+        dropped: DroppedRoleNote[];
+      };
+      if (!Array.isArray(existing.dropped)) existing = { dropped: [] };
+    } catch {
+      existing = { dropped: [] };
+    }
+    const seen = new Set(existing.dropped.map((d) => d.role));
+    for (const d of assembleDropped) {
+      if (!seen.has(d.role)) {
+        existing.dropped.push(d);
+        seen.add(d.role);
+      }
+    }
+    await writeFile(notesPath, JSON.stringify(existing, null, 2), "utf8");
+  }
+
   const finalHtml = injectAssets(output.html, assetsBlock);
   assertSize(finalHtml);
   const htmlPath = join(outDir, "playable.html");

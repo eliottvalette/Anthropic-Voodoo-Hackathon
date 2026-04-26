@@ -120,6 +120,7 @@ export async function runPipeline(
   variant = "_default",
   maxRetries = 4,
   referenceDir: string | null = null,
+  bankDir: string | null = null,
 ): Promise<RunMeta> {
   const runId = await stampRunId(requestedRunId);
   console.log(`[run] runId "${requestedRunId}" stamped → "${runId}"`);
@@ -132,7 +133,7 @@ export async function runPipeline(
 
   console.log(`[run] stage 0: probe`);
   const probeT = Date.now();
-  await writeProbe(runId, videoPath, assetsDir);
+  await writeProbe(runId, videoPath, assetsDir, bankDir);
   stages.push({
     step: "0_probe",
     model: "ffprobe",
@@ -164,25 +165,32 @@ export async function runPipeline(
     );
     const resolver = buildFilenameResolver(probe);
     const before = { ...gameSpec.asset_role_map };
-    const dropped: string[] = [];
+    const dropped: Array<{ role: string; relpath: string | null; reason: string }> = [];
     const cleanedRoleMap: Record<string, string | null> = {};
-    for (const [role, filename] of Object.entries(before)) {
-      if (filename === null) {
+    let promoted = 0;
+    for (const [role, value] of Object.entries(before)) {
+      if (value === null) {
         cleanedRoleMap[role] = null;
         continue;
       }
-      const relpath = resolver(filename);
-      if (relpath) {
-        cleanedRoleMap[role] = filename;
+      const resolved = resolver(value);
+      if (resolved) {
+        if (resolved.relpath !== value) promoted++;
+        cleanedRoleMap[role] = resolved.relpath;
       } else {
         cleanedRoleMap[role] = null;
-        dropped.push(`${role}=${filename}`);
+        dropped.push({ role, relpath: value, reason: "not found in probe" });
       }
     }
-    if (dropped.length > 0) {
-      console.warn(
-        `[run] sanitized asset_role_map: ${dropped.length} role(s) had filenames not on disk → set to null:\n  - ${dropped.join("\n  - ")}`,
-      );
+    if (dropped.length > 0 || promoted > 0) {
+      if (dropped.length > 0) {
+        console.warn(
+          `[run] sanitized asset_role_map: ${dropped.length} role(s) had no probe match → set to null:\n  - ${dropped.map((d) => `${d.role}=${d.relpath}`).join("\n  - ")}`,
+        );
+      }
+      if (promoted > 0) {
+        console.log(`[run] sanitizer auto-promoted ${promoted} basename(s) to relpath.`);
+      }
       gameSpec = { ...gameSpec, asset_role_map: cleanedRoleMap };
       await writeFile(
         join(outDir, "03_game_spec.json"),
@@ -190,6 +198,11 @@ export async function runPipeline(
         "utf8",
       );
     }
+    await writeFile(
+      join(outDir, "03_role_sanitizer_notes.json"),
+      JSON.stringify({ dropped, promoted }, null, 2),
+      "utf8",
+    );
   } catch (e) {
     console.warn(
       `[run] could not sanitize asset_role_map against probe: ${(e as Error).message.slice(0, 200)}`,

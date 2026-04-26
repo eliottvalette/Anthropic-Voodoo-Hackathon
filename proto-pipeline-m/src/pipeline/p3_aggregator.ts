@@ -72,7 +72,7 @@ class AssetMapError extends Error {
 
 function validateAssetRoleMap(
   spec: GameSpec,
-  knownFilenames: Set<string>,
+  knownRelpaths: Set<string>,
 ): void {
   const bad: Array<{ role: string; value: string; reason: string }> = [];
   for (const [role, value] of Object.entries(spec.asset_role_map)) {
@@ -85,8 +85,8 @@ function validateAssetRoleMap(
       bad.push({ role, value, reason: "contains parenthetical or descriptive suffix" });
       continue;
     }
-    if (!knownFilenames.has(value)) {
-      bad.push({ role, value, reason: "filename not in evidence.assets.roles[].filename" });
+    if (!knownRelpaths.has(value)) {
+      bad.push({ role, value, reason: "value not in evidence.assets.roles[].filename (must be exact relpath)" });
     }
   }
   if (bad.length > 0) throw new AssetMapError(bad);
@@ -193,7 +193,7 @@ async function callAggregator(
           .map((b) => `  - "${b.role}": current value ${JSON.stringify(b.value)} — ${b.reason}`)
           .join("\n");
         const sample = Array.from(knownFilenames).slice(0, 8).join(", ");
-        reminder = `Your asset_role_map contains invalid entries:\n${bullets}\n\nValues MUST be EXACT bare filenames from evidence.assets.roles[].filename — examples: ${sample}. No parentheticals, no descriptions, no quotes-inside-string, no annotations. If a role has no asset, the value is null.`;
+        reminder = `Your asset_role_map contains invalid entries:\n${bullets}\n\nValues MUST be EXACT strings from evidence.assets.roles[].filename — examples: ${sample}. These are RELPATHS (may contain slashes, e.g. characters/purple_ninja/full.png), not bare basenames. No parentheticals, no descriptions, no quotes-inside-string, no annotations. If a role has no asset, the value is null.`;
       } else {
         const issueSummary = summarizeZodIssues(e);
         const issueBlock = issueSummary
