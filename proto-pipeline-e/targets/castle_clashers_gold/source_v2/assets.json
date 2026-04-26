@@ -3,6 +3,7 @@
   "castlePlayer": "../../../../nico-sandbox/runs/B11/final-assets-v1/props/castle_player.png",
   "castleEnemy":  "../../../../nico-sandbox/runs/B11/final-assets-v1/props/castle_enemy.png",
   "castleInside": "../../../../ressources/Castle Clashers/Assets/inside.png",
+  "castleInsideBottom": "./best_assets/tiltedbottom.png",
   "iconCastleBlue": "./best_assets/castle_blue_tilted_right.png",
   "iconCastleRed":  "./best_assets/castle_red_tilted_right.png",
   "castlePlayer_impact":     "./assets/destruction/Blue_Castle_01_impact.png",

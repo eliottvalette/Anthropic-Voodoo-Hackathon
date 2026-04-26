@@ -67,50 +67,6 @@
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); triggerCta(); }
     });
   }
-  // ── Live tuning panel (top-right sliders, temporary while we dial in) ──
-  // Defined now (no `state` access at parse time); invoked from boot() once
-  // `state` is initialized.
-  function bindTuningPanel() {
-    const panel    = document.getElementById("tuning-panel");
-    const toggle   = document.getElementById("tuning-toggle");
-    const positionControls = [
-      { side: "player", slot: 0, axis: "x", input: document.getElementById("t-p0-x"), output: document.getElementById("t-p0-x-out") },
-      { side: "player", slot: 0, axis: "y", input: document.getElementById("t-p0-y"), output: document.getElementById("t-p0-y-out") },
-      { side: "player", slot: 1, axis: "x", input: document.getElementById("t-p1-x"), output: document.getElementById("t-p1-x-out") },
-      { side: "player", slot: 1, axis: "y", input: document.getElementById("t-p1-y"), output: document.getElementById("t-p1-y-out") },
-      { side: "player", slot: 2, axis: "x", input: document.getElementById("t-p2-x"), output: document.getElementById("t-p2-x-out") },
-      { side: "player", slot: 2, axis: "y", input: document.getElementById("t-p2-y"), output: document.getElementById("t-p2-y-out") },
-      { side: "enemy", slot: 0, axis: "x", input: document.getElementById("t-e0-x"), output: document.getElementById("t-e0-x-out") },
-      { side: "enemy", slot: 0, axis: "y", input: document.getElementById("t-e0-y"), output: document.getElementById("t-e0-y-out") },
-      { side: "enemy", slot: 1, axis: "x", input: document.getElementById("t-e1-x"), output: document.getElementById("t-e1-x-out") },
-      { side: "enemy", slot: 1, axis: "y", input: document.getElementById("t-e1-y"), output: document.getElementById("t-e1-y-out") },
-      { side: "enemy", slot: 2, axis: "x", input: document.getElementById("t-e2-x"), output: document.getElementById("t-e2-x-out") },
-      { side: "enemy", slot: 2, axis: "y", input: document.getElementById("t-e2-y"), output: document.getElementById("t-e2-y-out") },
-    ];
-    if (!panel || !toggle) return;
-    if (positionControls.some(c => !c.input || !c.output)) return;
-    positionControls.forEach((control) => {
-      control.input.value = String(unitSlots[control.side][control.slot][control.axis]);
-    });
-
-    function applyAll() {
-      positionControls.forEach((control) => {
-        const value = Number(control.input.value);
-        unitSlots[control.side][control.slot][control.axis] = value;
-        control.output.textContent = String(Math.round(value));
-      });
-      state.tuning.unitPositions = {
-        player: unitSlots.player.map(p => ({ x: p.x, y: p.y })),
-        enemy: unitSlots.enemy.map(p => ({ x: p.x, y: p.y })),
-      };
-    }
-
-    positionControls.map(c => c.input)
-      .forEach(el => el.addEventListener("input", applyAll));
-    toggle.addEventListener("click", () => panel.classList.toggle("collapsed"));
-    applyAll();
-  }
-
   function syncOverlays() {
     if (!elPullHint || !elDownloadCta) return;
     // PULL BACK hint visible while the player has not yet thrown a shot:
@@ -856,12 +812,14 @@
         insideScale: 0.86,          // inside PNG width relative to outside box
         insideTopRel: 0.02,         // inside PNG top offset (×box.h, +down/-up)
         insideLeftRel: 0.02,        // inside PNG x offset (×box.w, +right/-left)
+        insideBottomScale: 1.55,    // bottom PNG width relative to outside box
+        insideBottomTopRel: -0.31,  // bottom PNG top offset (×box.h, +down/-up)
+        insideBottomLeftRel: 0.02,  // bottom PNG x offset (×box.w, +right/-left)
+        insideBottomRotationDeg: -11.0,
+        insideBottomAlpha: 1.00,
       };
       state.castles.player.tiltRad = (state.tuning.tiltBlueDeg * Math.PI) / 180;
       state.castles.enemy.tiltRad  = (state.tuning.tiltRedDeg  * Math.PI) / 180;
-
-      // Wire the live tuning sliders now that castles + state.tuning exist.
-      bindTuningPanel();
 
       state.phase = "aiming";
       showTutorialHandIfNeeded();
@@ -884,6 +842,7 @@
     const slotScreenY = (slot.y - camY) * camZoom + H / 2;
     const onScreenStart = { x: slotScreenX,        y: slotScreenY - 6 };
     const onScreenEnd   = { x: slotScreenX - 78,   y: slotScreenY + 78 };
+    const pathAngle = Math.atan2(onScreenEnd.y - onScreenStart.y, onScreenEnd.x - onScreenStart.x || 1);
     state.tutorialHandle = TutorialHand.show({
       container: "#stage",
       coordinateSize: { width: W, height: H },
@@ -892,6 +851,7 @@
       from: onScreenStart, to: onScreenEnd,
       handSrc: HAND_CURSOR_SRC,
       handSize: 88,
+      angle: pathAngle - 0.35 - Math.PI / 2,
       duration: 1450,
       repeat: true,
     });
@@ -1331,22 +1291,45 @@
 
     const reveal = revealForSide(side);
     const inside = images.castleInside;
+    const bottom = images.castleInsideBottom;
 
     if (reveal && hp > 0 && inside) {
       // The inside PNG stays UPRIGHT (no tilt). Same width as outside, anchored
       // by its top to the outside top + a tunable vertical offset.
-      const t = state.tuning || { insideScale: 1, insideTopRel: 0, insideLeftRel: 0 };
+      const t = state.tuning || {
+        insideScale: 1,
+        insideTopRel: 0,
+        insideLeftRel: 0,
+        insideBottomScale: 1,
+        insideBottomTopRel: 0,
+        insideBottomLeftRel: 0,
+        insideBottomRotationDeg: 0,
+        insideBottomAlpha: 1,
+      };
       const insideW = c.w * t.insideScale;
       const insideH = insideW * (inside.naturalHeight / inside.naturalWidth);
       const insideX = c.x + (c.w - insideW) * 0.5 + c.w * (t.insideLeftRel || 0);
       const insideY = c.y + c.h * t.insideTopRel;
 
-      // 1) Inside layer (no tilt), clipped to the reveal circle.
+      // 1) Inside layers, clipped to the reveal circle.
       ctx.save();
       ctx.beginPath();
       ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, TAU);
       ctx.clip();
       ctx.drawImage(inside, insideX, insideY, insideW, insideH);
+      if (bottom) {
+        const bottomW = c.w * (t.insideBottomScale || 1);
+        const bottomH = bottomW * (bottom.naturalHeight / bottom.naturalWidth);
+        const bottomX = c.x + (c.w - bottomW) * 0.5 + c.w * (t.insideBottomLeftRel || 0);
+        const bottomY = c.y + c.h * (t.insideBottomTopRel || 0);
+        const bottomRot = ((t.insideBottomRotationDeg || 0) * Math.PI) / 180;
+        ctx.save();
+        ctx.globalAlpha = t.insideBottomAlpha == null ? 1 : t.insideBottomAlpha;
+        ctx.translate(bottomX + bottomW * 0.5, bottomY + bottomH * 0.5);
+        ctx.rotate(bottomRot);
+        ctx.drawImage(bottom, -bottomW * 0.5, -bottomH * 0.5, bottomW, bottomH);
+        ctx.restore();
+      }
       ctx.restore();
     }
   }
