@@ -43,11 +43,35 @@ type Props = {
 
 const FIXTURE_BASE = '/demo-fixtures/blockblast'
 
-// Total deterministic generation wall-clock once Generate is clicked. The
-// N assets complete at evenly-spaced offsets within this window, so the
-// last card lands exactly at GENERATION_TOTAL_MS. Demo-script driven —
-// not randomized.
-const GENERATION_TOTAL_MS = 32_000
+// Hand-tuned, deterministic schedule: each entry is the index of an asset
+// in manifest.assets (0..17) and the wall-clock offset (ms) at which it
+// flips to "done". Order and gaps are intentionally chaotic — long initial
+// wait before the first card lands (~5.6s), bursts of 2-3 in a row, lulls
+// between bursts, last card lands at ~42s. Mimics the irregular cadence
+// of real Scenario job completions where some routes finish fast and
+// others (background plates, character rigs) lag.
+const GENERATION_SCHEDULE: Array<{ idx: number; t: number }> = [
+  { idx: 7,  t: 5_600 },
+  { idx: 1,  t: 7_100 },
+  { idx: 12, t: 7_800 },
+  { idx: 4,  t: 10_200 },
+  { idx: 15, t: 12_400 },
+  { idx: 2,  t: 13_100 },
+  { idx: 9,  t: 16_300 },
+  { idx: 6,  t: 18_700 },
+  { idx: 13, t: 19_400 },
+  { idx: 17, t: 22_900 },
+  { idx: 3,  t: 25_500 },
+  { idx: 10, t: 27_100 },
+  { idx: 5,  t: 27_900 },
+  { idx: 14, t: 31_800 },
+  { idx: 8,  t: 35_400 },
+  { idx: 16, t: 37_600 },
+  { idx: 11, t: 40_200 },
+  { idx: 0,  t: 42_300 },
+]
+
+const GENERATION_TOTAL_MS = GENERATION_SCHEDULE[GENERATION_SCHEDULE.length - 1].t
 
 export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: Props) {
   const [states, setStates] = useState<Record<string, AssetState>>(() =>
@@ -65,18 +89,32 @@ export default function BlockBlastFakePanel({ manifest, autoMode, onComplete }: 
   const startGeneration = useCallback(() => {
     if (generationKickedOff) return
     setGenerationKickedOff(true)
-    // Mark all pending → running, then schedule each asset's completion
-    // at evenly-spaced offsets across GENERATION_TOTAL_MS. Last asset
-    // lands exactly on the deadline; first asset lands at total/N.
+    // Flip every card to "running" first (pulse animation engages), then
+    // schedule individual completions per the hand-tuned chaotic schedule.
+    // If the manifest has fewer/more assets than the schedule, fall back
+    // to evenly-spaced completion for any extras.
     setStates(prev => Object.fromEntries(Object.keys(prev).map(k => [k, 'running' as AssetState])))
     const N = manifest.assets.length
-    const slot = GENERATION_TOTAL_MS / N
-    manifest.assets.forEach((asset, i) => {
-      const completeAt = Math.round(slot * (i + 1))
+    for (const { idx, t } of GENERATION_SCHEDULE) {
+      const asset = manifest.assets[idx]
+      if (!asset) continue
       setTimeout(() => {
         setStates(prev => ({ ...prev, [asset.asset_id]: 'done' }))
-      }, completeAt)
-    })
+      }, t)
+    }
+    // Cover any tail beyond the schedule's coverage with even spacing.
+    const scheduledIdx = new Set(GENERATION_SCHEDULE.map(e => e.idx))
+    const tailIndices = Array.from({ length: N }, (_, i) => i).filter(i => !scheduledIdx.has(i))
+    if (tailIndices.length > 0) {
+      const tailStart = GENERATION_TOTAL_MS + 800
+      const tailSlot = 1_500
+      tailIndices.forEach((i, k) => {
+        const asset = manifest.assets[i]
+        setTimeout(() => {
+          setStates(prev => ({ ...prev, [asset.asset_id]: 'done' }))
+        }, tailStart + tailSlot * k)
+      })
+    }
   }, [generationKickedOff, manifest.assets])
 
   // Auto-mode kickoff: fire Generate as soon as we mount.
