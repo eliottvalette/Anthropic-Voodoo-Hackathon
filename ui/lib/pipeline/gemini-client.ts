@@ -43,27 +43,34 @@ function proxyUrl(path: string, query: Record<string, string> = {}): string {
 // Useful when Gemini is degraded — we've seen Files API responses go
 // 50s+ then return 503 on the very next chunk during outage windows.
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
+// Hard ceiling per individual fetch attempt. During Gemini outages we've
+// observed single requests hanging 80+ seconds before returning a 5xx —
+// 6 retries × 80s = 8 minutes of demo-killing wait. Aborting at 30s lets
+// the retry loop move on and total time becomes bounded.
+const PER_ATTEMPT_TIMEOUT_MS = 30_000
 async function fetchWithRetry(input: string, init: RequestInit, attempts = 6): Promise<Response> {
   let backoff = 1000
   let lastErr: unknown
   for (let i = 0; i < attempts; i++) {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), PER_ATTEMPT_TIMEOUT_MS)
     try {
-      const res = await fetch(input, init)
+      const res = await fetch(input, { ...init, signal: ctrl.signal })
+      clearTimeout(timer)
       if (res.ok || !RETRYABLE_STATUSES.has(res.status) || i === attempts - 1) return res
-      // Honor Retry-After if present and parsable
       const retryAfter = res.headers.get('retry-after')
       const retryAfterMs = retryAfter && !Number.isNaN(Number(retryAfter)) ? Number(retryAfter) * 1000 : null
       const waitMs = Math.min(retryAfterMs ?? backoff, 30_000)
       await new Promise(r => setTimeout(r, waitMs))
       backoff *= 2
     } catch (err) {
+      clearTimeout(timer)
       lastErr = err
       if (i === attempts - 1) throw err
       await new Promise(r => setTimeout(r, Math.min(backoff, 30_000)))
       backoff *= 2
     }
   }
-  // Unreachable in practice: the loop either returns or throws.
   throw lastErr ?? new Error('fetchWithRetry: exhausted retries')
 }
 
