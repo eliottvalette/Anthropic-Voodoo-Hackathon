@@ -225,7 +225,8 @@ export default function Home() {
   }, [])
 
   const handleRun = useCallback(async () => {
-    if (!videoFiles.length && !runId && isRunning) return
+    if (isRunning) return
+    if (!videoFiles.length && !runId) return
 
     setIsRunning(true)
     setHasRun(true)
@@ -284,9 +285,21 @@ export default function Home() {
       ),
     })
 
-    // Don't await review — keep the step in 'awaiting' so the panel stays
-    // visible. AssetReviewPanel polls + runs coverage / regen / generate on
-    // its own. setIsRunning(false) lets the user start another run.
+    // Hold isRunning=true until analysis lands assets, otherwise the button
+    // re-enables instantly and the user can spam Generate while the server is
+    // still working. The panel is already mounted above so the stage tracker
+    // shows live progress during this wait.
+    if (videoFile) {
+      try {
+        await waitForAnalysisManifest(activeRunId)
+      } catch (err) {
+        updateStep('assets', {
+          status: 'error' as StepStatus,
+          doneAt: Date.now(),
+          output: <span className="text-red-600">{err instanceof Error ? err.message : 'Analysis timed out'}</span>,
+        })
+      }
+    }
     setIsRunning(false)
   }, [runId, videoFiles, assetFiles, isRunning, autoMode, activateStep, awaitStep, updateStep])
 

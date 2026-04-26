@@ -57,6 +57,7 @@ export type SandboxCoverageMatch = {
   name?: string
   category?: string
   coverage: 'provided' | 'missing'
+  matched_kind?: 'import' | 'library' | null
   matched_file: string | null
   confidence: number
   reasoning: string

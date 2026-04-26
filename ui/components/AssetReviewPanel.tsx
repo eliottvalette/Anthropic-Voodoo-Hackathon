@@ -67,11 +67,19 @@ function deriveStages(args: {
   const coverageJob = latestByKind('coverage')
   const generateJob = latestByKind('generate')
 
-  const elapsed = (j?: SandboxJob): number | undefined => {
-    if (!j) return undefined
-    const end = j.finished_at ?? Date.now() / 1000
-    return Math.max(0, (end - j.started_at) * 1000)
+  // For done/error rows we ONLY want the locked-in duration. If finished_at
+  // hasn't propagated yet, return undefined so the UI hides the number rather
+  // than briefly showing a wall-clock number that overshoots the real value.
+  const elapsedRunning = (j?: SandboxJob): number | undefined => {
+    if (!j || j.status !== 'running') return undefined
+    return Math.max(0, (Date.now() / 1000 - j.started_at) * 1000)
   }
+  const elapsedFinal = (j?: SandboxJob): number | undefined => {
+    if (!j || !j.finished_at) return undefined
+    return Math.max(0, (j.finished_at - j.started_at) * 1000)
+  }
+  const elapsed = (j?: SandboxJob): number | undefined =>
+    j?.status === 'running' ? elapsedRunning(j) : elapsedFinal(j)
 
   // Stage 1: analysis
   let analyzeState: StageState = 'idle'
@@ -181,10 +189,16 @@ function statusClass(status: SandboxAsset['status'], isRunning: boolean): string
   return 'bg-gray-50 text-gray-500 border-gray-100'
 }
 
-function coverageClass(coverage: AssetCoverageItem['coverage']): string {
-  return coverage === 'provided'
-    ? 'bg-[#0F141C] text-white border-[#0F141C]'
-    : 'bg-amber-50 text-amber-700 border-amber-100'
+function coverageClass(coverage: AssetCoverageItem['coverage'], kind?: 'import' | 'library' | null): string {
+  if (coverage === 'missing') return 'bg-amber-50 text-amber-700 border-amber-100'
+  if (kind === 'library') return 'bg-indigo-50 text-indigo-700 border-indigo-100'
+  return 'bg-[#0F141C] text-white border-[#0F141C]'
+}
+
+function coverageLabel(coverage: AssetCoverageItem['coverage'], kind?: 'import' | 'library' | null): string {
+  if (coverage === 'missing') return 'missing'
+  if (kind === 'library') return 'built-in'
+  return 'imported'
 }
 
 function buildLexicalCoverage(
@@ -200,6 +214,10 @@ function buildLexicalCoverage(
   }
 }
 
+type CoverageItemEx = AssetCoverageItem & {
+  matchedKind?: 'import' | 'library' | null
+}
+
 function buildGeminiCoverage(report: SandboxCoverageReport, assets: SandboxAsset[]): CoverageInfo {
   const reportById = new Map(report.matches.map(match => [match.asset_id, match]))
   const byId = new Map<string, AssetCoverageItem>()
@@ -208,13 +226,15 @@ function buildGeminiCoverage(report: SandboxCoverageReport, assets: SandboxAsset
     const match = reportById.get(asset.asset_id)
     if (match && match.matched_file) {
       provided += 1
-      byId.set(asset.asset_id, {
+      const item: CoverageItemEx = {
         asset,
         coverage: 'provided',
         importedFile: { name: match.matched_file, relativePath: match.matched_file },
         score: match.confidence ?? 1,
         matchReason: match.reasoning || 'Gemini match',
-      })
+        matchedKind: match.matched_kind ?? 'import',
+      }
+      byId.set(asset.asset_id, item)
     } else {
       byId.set(asset.asset_id, {
         asset,
@@ -349,6 +369,19 @@ function AssetRow({
   const showingSource = !asset.final_url && !!asset.crop_url
   const status = isRunning ? 'running' : asset.status
   const matchedLabel = coverage.importedFile?.relativePath || coverage.importedFile?.name
+  // Verb of the primary action button:
+  //   - never generated yet → "Generate"
+  //   - already done OR provided by import/library → "Regenerate" (let user override)
+  //   - error → "Retry"
+  const hasArtifact = !!asset.final_url
+  const hasImport = coverage.coverage === 'provided'
+  const actionLabel = isRunning
+    ? 'Running…'
+    : asset.status === 'error'
+      ? 'Retry'
+      : hasArtifact || hasImport
+        ? 'Regenerate'
+        : 'Generate'
 
   return (
     <div className={`grid grid-cols-[24px_64px_minmax(0,1fr)] items-start gap-3 rounded-xl border bg-white p-2.5 shadow-sm transition-colors ${selected ? 'border-[#0055FF]' : 'border-gray-100'}`}>
@@ -394,8 +427,8 @@ function AssetRow({
         <div className="mt-2 flex flex-wrap gap-1.5">
           {asset.category && <span className="rounded-full border border-gray-100 bg-[#F6F9FC] px-2 py-0.5 text-[10px] font-semibold text-gray-500">{asset.category}</span>}
           {asset.route && <span className="rounded-full border border-gray-100 bg-[#F6F9FC] px-2 py-0.5 text-[10px] font-semibold text-gray-500">{asset.route}</span>}
-          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${coverageClass(coverage.coverage)}`}>
-            {coverage.coverage === 'provided' ? 'imported' : 'missing import'}
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${coverageClass(coverage.coverage, (coverage as CoverageItemEx).matchedKind)}`}>
+            {coverageLabel(coverage.coverage, (coverage as CoverageItemEx).matchedKind)}
           </span>
         </div>
         {matchedLabel && (
@@ -407,7 +440,7 @@ function AssetRow({
         {asset.error && <p className="mt-1 truncate text-[10px] text-red-500" title={asset.error}>{asset.error}</p>}
         <div className="mt-2 flex gap-2">
           <button onClick={() => onRegenerate(asset)} disabled={isRunning} className="rounded-lg bg-[#0F141C] px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-[#1e2a3a] disabled:cursor-not-allowed disabled:opacity-40">
-            {isRunning ? 'Running…' : 'Regenerate'}
+            {actionLabel}
           </button>
           <button onClick={() => onPrompt(asset)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-all hover:bg-gray-50">
             Prompt
@@ -769,33 +802,51 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
 
         {autoMode && missingAssetIds.length > 0 && !generationKickedOff && (
           <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
-            Auto mode will generate {missingAssetIds.length} missing asset(s) once coverage is ready.
+            <span className="font-bold">⚠ Auto mode active</span> · will generate{' '}
+            <span className="font-bold">{missingAssetIds.length}</span> missing asset(s) once coverage is ready.
+            Switch to manual mode now to pick a subset.
+          </div>
+        )}
+        {generationKickedOff && (
+          <div className="mt-3 rounded-lg border border-[#0055FF1F] bg-[#0055FF08] px-3 py-2 text-xs font-medium text-[#0055FF]">
+            Generation kicked off · Scenario is processing the queue. Watch the cards flip from{' '}
+            <span className="font-mono">pending</span> → <span className="font-mono">running</span> → <span className="font-mono">done</span>.
           </div>
         )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto pr-1">
         <div className="grid gap-3 xl:grid-cols-2">
-          {manifest.assets.map(asset => {
-            const assetCoverage = coverage.byId.get(asset.asset_id) ?? {
-              asset,
-              coverage: 'missing' as const,
-              score: 0,
-            }
-            return (
-              <AssetRow
-                key={asset.asset_id}
-                asset={asset}
-                coverage={assetCoverage}
-                isRunning={runningIds.has(asset.asset_id)}
-                selectable={selectable}
-                selected={selected.has(asset.asset_id)}
-                onToggleSelect={toggleSelect}
-                onPrompt={setPromptAsset}
-                onRegenerate={setRegenAsset}
-              />
-            )
-          })}
+          {[...manifest.assets]
+            .sort((a, b) => {
+              // Missing assets float to the top so the user sees what still
+              // needs generation first; provided ones (imported / library)
+              // sink to the bottom.
+              const ca = coverage.byId.get(a.asset_id)?.coverage ?? 'missing'
+              const cb = coverage.byId.get(b.asset_id)?.coverage ?? 'missing'
+              if (ca !== cb) return ca === 'missing' ? -1 : 1
+              return a.asset_id.localeCompare(b.asset_id)
+            })
+            .map(asset => {
+              const assetCoverage = coverage.byId.get(asset.asset_id) ?? {
+                asset,
+                coverage: 'missing' as const,
+                score: 0,
+              }
+              return (
+                <AssetRow
+                  key={asset.asset_id}
+                  asset={asset}
+                  coverage={assetCoverage}
+                  isRunning={runningIds.has(asset.asset_id)}
+                  selectable={selectable}
+                  selected={selected.has(asset.asset_id)}
+                  onToggleSelect={toggleSelect}
+                  onPrompt={setPromptAsset}
+                  onRegenerate={setRegenAsset}
+                />
+              )
+            })}
         </div>
       </div>
 

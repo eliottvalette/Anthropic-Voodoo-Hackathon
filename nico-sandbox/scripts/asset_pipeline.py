@@ -639,7 +639,10 @@ def generate_manifest(video_path: Path, output_dir: Path, fps: float = 5.0) -> d
         responseJsonSchema=MANIFEST_SCHEMA,
         mediaResolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
         temperature=0.1,
-        maxOutputTokens=16000,
+        # Each asset entry is ~500 tokens with the new schema (animated_parts,
+        # rich descriptions, fallback timestamps). 32k gives headroom for
+        # 50+ assets without truncation killing the JSON mid-stream.
+        maxOutputTokens=32000,
     )
     # Gemini occasionally returns a "successful" response whose `.parsed` is
     # None and whose `.text` is malformed JSON (truncated mid-stream). Retry
