@@ -622,22 +622,47 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
     handleGenerate(missingAssetIds)
   }, [autoMode, coverageStatus, handleGenerate, manifest, missingAssetIds, rawImportedFiles])
 
-  // Continue gate: every required asset must be either provided (imported /
-  // library) or generated (status === 'done'). Pending / running / errored
-  // assets block the gate; the user resolves them via regenerate or by
-  // switching to manual mode and re-picking.
-  const isReady = useMemo(() => {
-    if (!manifest || manifest.assets.length === 0) return false
-    if (coverageStatus === 'matching') return false
+  // Two derived gates:
+  //   isReady   — every asset is provided or generated (no errors). Drives
+  //               the manual Continue button — manual users should see and
+  //               handle errors themselves.
+  //   isSettled — every asset has reached a TERMINAL state (provided / done
+  //               / error) and nothing is currently running. Drives the
+  //               auto-mode auto-Continue. We tolerate per-asset errors in
+  //               auto mode because a hands-off run would otherwise hang
+  //               forever on a single Scenario failure (content-policy,
+  //               transient 500, etc.); the downstream pipeline already
+  //               degrades gracefully when a role's filename is missing.
+  const gateBase = useMemo(() => {
+    if (!manifest || manifest.assets.length === 0) return null
+    if (coverageStatus === 'matching') return null
     const hasGenRunning = (generationJob?.status === 'running') || isGenerating
     const hasReanalyzeRunning = (reanalyzeJob?.status === 'running') || isReanalyzing
-    if (hasGenRunning || hasReanalyzeRunning) return false
-    return manifest.assets.every(asset => {
+    if (hasGenRunning || hasReanalyzeRunning) return null
+    // In auto mode, also wait for the auto-generate kickoff to have fired —
+    // otherwise we could fire Continue between manifest-landed and
+    // autoGenStartedRef flipping true, with all assets still 'pending'.
+    if (autoMode && missingAssetIds.length > 0 && !generationKickedOff) return null
+    return manifest
+  }, [manifest, coverageStatus, generationJob, isGenerating, reanalyzeJob, isReanalyzing, autoMode, missingAssetIds, generationKickedOff])
+
+  const isReady = useMemo(() => {
+    if (!gateBase) return false
+    return gateBase.assets.every(asset => {
       const cov = coverage.byId.get(asset.asset_id)?.coverage
       if (cov === 'provided') return true
       return asset.status === 'done'
     })
-  }, [manifest, coverage, coverageStatus, generationJob, isGenerating, reanalyzeJob, isReanalyzing])
+  }, [gateBase, coverage])
+
+  const isSettled = useMemo(() => {
+    if (!gateBase) return false
+    return gateBase.assets.every(asset => {
+      const cov = coverage.byId.get(asset.asset_id)?.coverage
+      if (cov === 'provided') return true
+      return asset.status === 'done' || asset.status === 'error'
+    })
+  }, [gateBase, coverage])
 
   const handleContinue = useCallback(() => {
     if (completeFiredRef.current) return
@@ -645,12 +670,15 @@ export default function AssetReviewPanel({ runId, importedFiles, rawImportedFile
     onComplete?.()
   }, [onComplete])
 
-  // Auto-mode: once the gate is open, fire onComplete automatically.
+  // Auto-mode: once every asset has settled (success OR failure), fire
+  // onComplete automatically. We use isSettled instead of isReady so a
+  // single Scenario failure doesn't hang the pipeline waiting for a user
+  // who walked away.
   useEffect(() => {
     if (!autoMode) return
-    if (!isReady) return
+    if (!isSettled) return
     handleContinue()
-  }, [autoMode, isReady, handleContinue])
+  }, [autoMode, isSettled, handleContinue])
 
   const handleRegenerate = useCallback(async (asset: SandboxAsset, additionalPrompt: string) => {
     if (!runId) return
