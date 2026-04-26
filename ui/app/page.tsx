@@ -16,6 +16,7 @@ import MicCapture from '@/components/MicCapture'
 import AssetReviewPanel from '@/components/AssetReviewPanel'
 import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
+import { runP1Video } from '@/lib/pipeline/p1-video'
 import { saveRun } from '@/lib/runs/store'
 import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, StageId } from '@/lib/pipeline/types'
 import type { ImportedAssetFile } from '@/utils/assetCoverage'
@@ -614,14 +615,14 @@ export default function Home() {
   }, [videoFiles, assetFiles, activateStep, completeStep, awaitStep, acceptStep, waitForReview])
 
   // ── Real run ────────────────────────────────────────────────────────────────
-  const runReal = useCallback(async (overrideAssets?: File[]) => {
+  const runReal = useCallback(async (overrideAssets?: File[], precomputedVideoAnalysis?: VideoAnalysis) => {
     const videoFile = videoFiles[0]
     const effectiveAssets = overrideAssets ?? assetFiles
     setErrorMsg(null)
 
     try {
       const meta = await runPipeline(
-        { videoFile, assetFiles: effectiveAssets, variant: '_default', userBrief: userBrief.trim() || undefined },
+        { videoFile, assetFiles: effectiveAssets, variant: '_default', userBrief: userBrief.trim() || undefined, precomputedVideoAnalysis },
         {
           onStageStart: (s) => activateStep(s),
           onStageProgress: (s, subs) => setSubCallsByStage(prev => ({ ...prev, [s]: subs })),
@@ -738,6 +739,23 @@ export default function Home() {
         </div>
       ))
 
+      // Kick off P1 (their video analysis) NOW, in parallel with our asset
+      // generation + user review. By the time the user clicks Continue we
+      // hand the cached result to runPipeline via precomputedVideoAnalysis,
+      // and the orchestrator skips the actual P1 call.
+      const videoAnalysisPromise: Promise<VideoAnalysis | undefined> = mockModeRef.current
+        ? Promise.resolve(undefined)
+        : runP1Video(videoFile, '_default', subs => {
+            setSubCallsByStage(prev => ({ ...prev, video: subs }))
+          })
+            .then(r => r.analysis)
+            .catch(err => {
+              // Non-fatal here — the pipeline can still run P1 itself when
+              // we don't supply precomputedVideoAnalysis.
+              console.warn('[parallel P1] failed, will fall back to in-pipeline P1:', err)
+              return undefined
+            })
+
       // Mount AssetReviewPanel and wait for the user (or auto-mode) to confirm.
       const assetStageDone = new Promise<void>(resolve => {
         setReviewContent(prev => ({
@@ -786,8 +804,16 @@ export default function Home() {
       }
 
       // Stage 1+ — coworker's pipeline picks up with the now-complete asset set.
-      if (mockModeRef.current) await runMock(pipelineAssets)
-      else await runReal(pipelineAssets)
+      if (mockModeRef.current) {
+        await runMock(pipelineAssets)
+      } else {
+        // Wait for the parallel P1 we kicked off after upload. If it landed
+        // before Continue, this resolves immediately; otherwise we wait the
+        // remaining seconds. If P1 errored we pass undefined and the
+        // orchestrator falls back to running it itself.
+        const precomputedVideoAnalysis = await videoAnalysisPromise
+        await runReal(pipelineAssets, precomputedVideoAnalysis)
+      }
     } finally {
       setIsRunning(false)
     }

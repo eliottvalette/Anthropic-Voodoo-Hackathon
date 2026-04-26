@@ -23,6 +23,11 @@ export type RunInput = {
   assetFiles: File[]
   variant?: string
   userBrief?: string
+  // If provided, the P1 video analysis stage is skipped and this value is
+  // used directly. Lets callers run P1 in parallel with an upstream stage
+  // (e.g. our nico-sandbox asset-generation step) and feed the result in
+  // here, so the user's wait covers both rather than running them serially.
+  precomputedVideoAnalysis?: VideoAnalysis
 }
 
 export type RunCallbacks = {
@@ -72,21 +77,35 @@ export async function runPipeline(input: RunInput, cbs: RunCallbacks = {}): Prom
   announce('video')
   let videoAnalysis: VideoAnalysis
   try {
-    let lastSubs: SubCallEvent[] = []
-    while (true) {
-      const r = await runP1Video(input.videoFile, variant, subs => { lastSubs = subs; progress('video', subs) })
-      videoAnalysis = r.analysis
+    if (input.precomputedVideoAnalysis) {
+      // Caller already ran P1 in parallel with an upstream stage. Use the
+      // cached result and skip the actual call.
+      videoAnalysis = input.precomputedVideoAnalysis
       meta.videoAnalysis = videoAnalysis
       done('video', videoAnalysis)
-      if (!cbs.onAwaitReview) break
-      const dec = await cbs.onAwaitReview('video', videoAnalysis)
-      if (dec === 'accept') break
-      if (dec === 'retry') continue
-      // 'correct' — feed correction text on the next iteration via variant override (out of V1 scope; loop without)
-      break
+      if (cbs.onAwaitReview) {
+        const dec = await cbs.onAwaitReview('video', videoAnalysis)
+        // Retry/correct on a precomputed analysis isn't well-defined; treat
+        // anything other than 'accept' as accept for now.
+        void dec
+      }
+    } else {
+      let lastSubs: SubCallEvent[] = []
+      while (true) {
+        const r = await runP1Video(input.videoFile, variant, subs => { lastSubs = subs; progress('video', subs) })
+        videoAnalysis = r.analysis
+        meta.videoAnalysis = videoAnalysis
+        done('video', videoAnalysis)
+        if (!cbs.onAwaitReview) break
+        const dec = await cbs.onAwaitReview('video', videoAnalysis)
+        if (dec === 'accept') break
+        if (dec === 'retry') continue
+        // 'correct' — feed correction text on the next iteration via variant override (out of V1 scope; loop without)
+        break
+      }
+      meta.totalTokensIn += sumTokens(meta.videoAnalysis ? lastSubs : [], 'in')
+      meta.totalTokensOut += sumTokens(meta.videoAnalysis ? lastSubs : [], 'out')
     }
-    meta.totalTokensIn += sumTokens(meta.videoAnalysis ? lastSubs : [], 'in')
-    meta.totalTokensOut += sumTokens(meta.videoAnalysis ? lastSubs : [], 'out')
   } catch (e) { fail('video', e); throw e }
 
   // ── Stage 2: P2 assets ──────────────────────────────────────────────────────
