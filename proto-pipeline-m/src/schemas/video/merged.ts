@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ScreenLayoutSchema } from "./description.ts";
 
 const ResolvedContradictionSchema = z
   .object({
@@ -18,6 +19,7 @@ export const MergedVideoSchema = z
       .passthrough(),
     win_condition: z.string(),
     loss_condition: z.string(),
+    screen_layout: ScreenLayoutSchema.optional(),
     tempo: z.enum(["real_time", "turn_based", "async"]),
     art_style: z.enum([
       "cartoon_2d",
