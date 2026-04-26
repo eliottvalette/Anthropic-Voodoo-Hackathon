@@ -1,6 +1,6 @@
 {
   "output": "playable.html",
-  "bytes": 3062418,
+  "bytes": 3066546,
   "assets": [
     "background",
     "castlePlayer",
@@ -27,5 +27,5 @@
     "mechanics/cta-trigger.js",
     "mechanics/audio.js"
   ],
-  "generated_at": "2026-04-25T23:07:28.448Z"
+  "generated_at": "2026-04-26T04:24:19.483Z"
 }
