@@ -708,7 +708,16 @@ export default function Home() {
 
       let activeRunId: string
       try {
-        activeRunId = await uploadVideoForAnalysis(videoFile)
+        activeRunId = await uploadVideoForAnalysis(videoFile, (bytes, total) => {
+          const pct = total > 0 ? Math.round((bytes / total) * 100) : 0
+          const mb = (bytes / 1024 / 1024).toFixed(1)
+          const totalMb = (total / 1024 / 1024).toFixed(1)
+          updateStep('assetsGen', {
+            output: (
+              <span>Uploading {mb}/{totalMb} MB · {pct}%</span>
+            ),
+          })
+        })
         setRunId(activeRunId)
       } catch (err) {
         updateStep('assetsGen', {
