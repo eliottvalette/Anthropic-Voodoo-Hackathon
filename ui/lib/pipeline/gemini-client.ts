@@ -181,7 +181,14 @@ export async function waitUntilActive(
     const res = await fetch(proxyUrl(path))
     if (!res.ok) throw new Error(`Files get failed: ${res.status}`)
     const j = await res.json()
-    current = { ...current, state: j.state }
+    let nextState = j.state as string | undefined
+    // Images are typically ACTIVE on first response; if Gemini omits the
+    // state field for an image, treat it as active to avoid hanging on
+    // the 5-minute timeout.
+    if (!nextState && (current.mimeType ?? '').startsWith('image/')) {
+      nextState = 'ACTIVE'
+    }
+    current = { ...current, state: nextState }
   }
   return current
 }

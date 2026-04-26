@@ -49,12 +49,12 @@ export async function buildAssetsBlock(
   assets: File[],
 ): Promise<string> {
   const byName = new Map<string, File>()
-  for (const f of assets) byName.set(f.name, f)
+  for (const f of assets) byName.set(f.name.toLowerCase(), f)
 
   const entries: string[] = []
   for (const [role, filename] of Object.entries(assetRoleMap)) {
     if (!filename) continue
-    const file = byName.get(filename)
+    const file = byName.get(filename.toLowerCase())
     if (!file) {
       console.warn(`[assemble] role ${role}: file ${filename} not in assets[]`)
       continue
@@ -66,25 +66,39 @@ export async function buildAssetsBlock(
   return `const A = {\n${entries.join(',\n')}\n};`
 }
 
+function findMatchingBrace(src: string, openIdx: number): number {
+  let depth = 0
+  let inStr: string | null = null
+  for (let i = openIdx; i < src.length; i++) {
+    const c = src[i]
+    if (inStr) {
+      if (c === '\\') { i++; continue }
+      if (c === inStr) inStr = null
+      continue
+    }
+    if (c === '"' || c === "'" || c === '`') { inStr = c; continue }
+    if (c === '{') depth++
+    else if (c === '}') { depth--; if (depth === 0) return i }
+  }
+  return -1
+}
+
 const MARKER_PAT = /\/\*\s*ASSETS_BASE64\s*\*\//
-const CONST_A_PAT = /const\s+A\s*=\s*\{[\s\S]*?\};?/m
+const CONST_A_OPEN = /const\s+A\s*=\s*\{/
 
 export function injectAssets(html: string, assetsBlock: string): string {
-  let out = html
-  if (MARKER_PAT.test(out)) {
-    out = out.replace(MARKER_PAT, assetsBlock)
-    while (CONST_A_PAT.test(out.replace(assetsBlock, ''))) {
-      const without = out.replace(assetsBlock, '__ASSETS_PLACEHOLDER__')
-      const stripped = without.replace(CONST_A_PAT, '')
-      out = stripped.replace('__ASSETS_PLACEHOLDER__', assetsBlock)
+  if (MARKER_PAT.test(html)) return html.replace(MARKER_PAT, () => assetsBlock)
+  const m = CONST_A_OPEN.exec(html)
+  if (m) {
+    const openIdx = m.index + m[0].length - 1
+    const closeIdx = findMatchingBrace(html, openIdx)
+    if (closeIdx > openIdx) {
+      let endIdx = closeIdx + 1
+      if (html[endIdx] === ';') endIdx++
+      return html.slice(0, m.index) + assetsBlock + html.slice(endIdx)
     }
-    return out
   }
-  if (CONST_A_PAT.test(out)) return out.replace(CONST_A_PAT, assetsBlock)
-  return out.replace(
-    /(<script>)/i,
-    `$1\n/* assets injected by runtime */\n${assetsBlock}\n`,
-  )
+  return html.replace(/(<script>)/i, `$1\n/* assets injected by runtime */\n${assetsBlock}\n`)
 }
 
 export function assertSize(html: string): void {
