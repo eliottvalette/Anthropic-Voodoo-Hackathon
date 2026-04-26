@@ -18,7 +18,7 @@ import { createClient } from '@/utils/supabase/client'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { runP1Video } from '@/lib/pipeline/p1-video'
 import { saveRun } from '@/lib/runs/store'
-import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, StageId } from '@/lib/pipeline/types'
+import type { ProbeReport, VideoAnalysis, AssetMapping, GameSpec, CodegenResult, RunMeta, StageId } from '@/lib/pipeline/types'
 import type { ImportedAssetFile } from '@/utils/assetCoverage'
 import { fetchGeneratedAssetFiles, mergeAssetFiles } from '@/utils/sandboxAssets'
 import type { SandboxManifest } from '@/utils/sandboxTypes'
@@ -682,10 +682,94 @@ export default function Home() {
             meta,
           })
         } catch (e) { console.warn('saveRun failed', e) }
+
+        // Snapshot this successful run as the demo-cache fallback. If a
+        // future run crashes (Gemini outage, etc.) we replay this one
+        // instead of dead-ending. Only save if verify passed — we don't
+        // want to enshrine a broken playable.
+        if (meta.codegen.verify.runs) {
+          try {
+            await fetch('/api/demo-cache', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ html: meta.codegen.html, meta }),
+            })
+          } catch (e) { console.warn('demo-cache save failed', e) }
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      setErrorMsg(msg)
+      // Live pipeline crashed (Gemini outage, OpenRouter blip, P4 verify
+      // exhausted, etc.) — try the demo cache fallback. If a known-good
+      // run was previously saved via /api/demo-cache, we replay its
+      // stages with simulated timing and surface the cached HTML so the
+      // demo doesn't dead-end on infrastructure failures.
+      try {
+        const cacheRes = await fetch('/api/demo-cache', { cache: 'no-store' })
+        if (!cacheRes.ok) throw new Error('no-cache')
+        const { html, meta } = await cacheRes.json() as { html: string; meta: RunMeta }
+        setErrorMsg(`Live pipeline failed (${msg.slice(0, 100)}). Replaying last cached run.`)
+
+        // Replay each stage with realistic timing. Mirrors the runReal
+        // onStageDone wiring so the UI looks identical to a live run.
+        const replayStage = async (
+          id: StageId,
+          payload: unknown,
+          renderer: () => React.ReactNode,
+          summary: React.ReactNode,
+          delayMs: number,
+        ) => {
+          activateStep(id)
+          await delay(delayMs)
+          setReviewContent(prev => ({ ...prev, [id]: renderer() }))
+          completeStep(id, summary)
+          void payload
+        }
+        if (meta.probe) {
+          await replayStage('probe', meta.probe, () => renderProbe(meta.probe!),
+            <span>video {Math.round(meta.probe.video.durationSec)}s · {meta.probe.assets.length} assets</span>,
+            500)
+        }
+        if (meta.videoAnalysis) {
+          await replayStage('video', meta.videoAnalysis, () => renderVideoAnalysis(meta.videoAnalysis!),
+            <span className="block min-w-0 break-words text-[#0F141C]">
+              {(meta.videoAnalysis.merged as { defining_hook?: string })?.defining_hook ?? 'Video analyzed'}
+            </span>,
+            1200)
+        }
+        if (meta.assetMapping) {
+          const matched = meta.assetMapping.roles.filter(r => r.filename).length
+          await replayStage('assets', meta.assetMapping, () => renderAssetMapping(meta.assetMapping!),
+            <span>{matched}/{meta.assetMapping.roles.length} roles matched</span>,
+            900)
+        }
+        if (meta.gameSpec) {
+          await replayStage('gameSpec', meta.gameSpec, () => <GameSpecCard spec={meta.gameSpec as GameSpecLite} />,
+            <span>
+              mechanic <span className="font-mono font-semibold text-[#0F141C]">{meta.gameSpec.mechanic_name}</span>
+            </span>,
+            800)
+        }
+        if (meta.codegen) {
+          activateStep('codegen')
+          await delay(1500)
+          setPlayableHtml(html)
+          setReviewContent(prev => ({ ...prev, codegen: renderCodegen(meta.codegen!) }))
+          completeStep('codegen', (
+            <div className="flex flex-wrap gap-x-6 gap-y-1">
+              <span>verify <span className="font-semibold text-emerald-600">PASS (cached)</span></span>
+              <span>retries <span className="font-semibold text-[#0F141C]">{meta.codegen.retries}</span></span>
+            </div>
+          ))
+        } else {
+          // No codegen in the cached meta — just surface the HTML directly
+          setPlayableHtml(html)
+        }
+      } catch {
+        // No demo cache available, or replay itself failed. Surface the
+        // original error.
+        setErrorMsg(msg)
+      }
     }
   }, [videoFiles, assetFiles, userBrief, activateStep, completeStep, errorStep, updateStep, waitForReview, acceptStep])
 

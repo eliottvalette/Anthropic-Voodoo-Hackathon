@@ -32,6 +32,32 @@ export type AnthropicResult<T = unknown> = {
 const SYSTEM_JSON_SUFFIX =
   '\n\nReturn ONLY a single JSON object that matches the schema described above. No markdown fences, no prose, no commentary.'
 
+// Mirror of gemini-client's fetchWithRetry. OpenRouter occasionally
+// returns 502/503 during upstream Anthropic blips; without retry a
+// single transient failure aborts the whole pipeline.
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
+async function anthropicFetchWithRetry(input: string, init: RequestInit, attempts = 6): Promise<Response> {
+  let backoff = 1000
+  let lastErr: unknown
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(input, init)
+      if (res.ok || !RETRYABLE_STATUSES.has(res.status) || i === attempts - 1) return res
+      const retryAfter = res.headers.get('retry-after')
+      const retryAfterMs = retryAfter && !Number.isNaN(Number(retryAfter)) ? Number(retryAfter) * 1000 : null
+      const waitMs = Math.min(retryAfterMs ?? backoff, 30_000)
+      await new Promise(r => setTimeout(r, waitMs))
+      backoff *= 2
+    } catch (err) {
+      lastErr = err
+      if (i === attempts - 1) throw err
+      await new Promise(r => setTimeout(r, Math.min(backoff, 30_000)))
+      backoff *= 2
+    }
+  }
+  throw lastErr ?? new Error('anthropicFetchWithRetry: exhausted retries')
+}
+
 function extractJson(text: string): string {
   const trimmed = text.trim()
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) return trimmed
@@ -66,7 +92,7 @@ export async function anthropicGenerate<T = unknown>(
   }
 
   const t0 = performance.now()
-  const res = await fetch('/api/anthropic', {
+  const res = await anthropicFetchWithRetry('/api/anthropic', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
