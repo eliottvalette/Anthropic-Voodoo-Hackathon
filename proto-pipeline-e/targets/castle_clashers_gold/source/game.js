@@ -27,7 +27,11 @@
     result: null,
     enemyQueuedAt: 0,
     lastTime: 0,
-    snapshot: {}
+    snapshot: {},
+    impactSide: null,
+    revealRadius: 0,
+    currentSide: "player",
+    teamSlot: { player: 0, enemy: 0 }
   };
 
   // Utilities from the bank.
@@ -36,14 +40,9 @@
 
   const camera = { x: WORLD_W / 2, y: 330, zoom: 0.72 };
 
-  const turnOrder = [
-    { side: "player", slot: 0 },
-    { side: "enemy", slot: 0 },
-    { side: "player", slot: 1 },
-    { side: "enemy", slot: 1 },
-    { side: "player", slot: 2 },
-    { side: "enemy", slot: 2 }
-  ];
+  // Each team has its own cursor through [0, 1, 2]. Sides alternate strictly:
+  // a dead slot on one team advances only that team's cursor, never burns a
+  // turn on the opposite team.
 
   const unitTypes = [
     { unit: "unitPoison", projectile: "projPoison", color: "#73f03f", damageText: "-44", label: "POISON" },
@@ -132,7 +131,7 @@
   }
 
   function activeTurn() {
-    return turnOrder[state.turnIndex % turnOrder.length];
+    return { side: state.currentSide, slot: state.teamSlot[state.currentSide] };
   }
 
   function activeSlot() {
@@ -298,24 +297,39 @@
     updateFloats(state.floats, dt);
     updateDyingSections(state.dyingSections, dt);
     shake.update(dt);
+    updateReveal(dt);
 
     makeSnapshot();
+  }
+
+  function updateReveal(dt) {
+    const revealActive =
+      !state.ctaVisible &&
+      (state.phase === "aiming" || state.phase === "enemy_wait");
+    const target = revealActive ? 177 : 0;
+    const t = Math.min(1, dt / 280);
+    state.revealRadius += (target - state.revealRadius) * t;
   }
 
   function updateCamera(dt) {
     let targetX = 170;
     let targetZoom = 1.34;
-    if (state.phase === "enemy_wait") {
-      targetX = 570;
-      targetZoom = 1.34;
-    } else if (state.phase === "projectile" && state.activeProjectile) {
+    if (state.phase === "projectile" && state.activeProjectile) {
       targetX = state.activeProjectile.x;
       targetZoom = 0.82;
+    } else if (state.phase === "projectile" && state.impactSide) {
+      // Post-impact window: focus the camera on the side that was just hit
+      // so the flow reads ally → projectile → enemy without snapping back.
+      targetX = state.impactSide === "player" ? 165 : 570;
+      targetZoom = 1.2;
     } else if (state.ctaVisible) {
       targetX = state.result === "victory" ? 590 : 150;
       targetZoom = 0.92;
-    } else if (state.phase === "aiming" && activeTurn().side === "player") {
-      targetX = 165;
+    } else if (state.phase === "enemy_wait") {
+      targetX = 570;
+      targetZoom = 1.34;
+    } else if (state.phase === "aiming") {
+      targetX = activeTurn().side === "player" ? 165 : 570;
       targetZoom = 1.28;
     }
 
@@ -330,6 +344,7 @@
     const prevHp = side === "player" ? state.playerHp : state.enemyHp;
     if (side === "player") state.playerHp = Math.max(0, state.playerHp - 1);
     else state.enemyHp = Math.max(0, state.enemyHp - 1);
+    state.impactSide = side;
 
     const sectionIndex = prevHp - 1;
     const c = castles[side];
@@ -354,8 +369,24 @@
       endGame(state.enemyHp <= 0 ? "victory" : "defeat");
       return;
     }
-    state.turnIndex = (state.turnIndex + 1) % turnOrder.length;
-    state.phase = activeTurn().side === "player" ? "aiming" : "enemy_wait";
+    state.impactSide = null;
+
+    // Move the outgoing team's cursor one step so its next turn starts on a
+    // fresh slot, then flip sides — exactly one step, every time.
+    const out = state.currentSide;
+    state.teamSlot[out] = (state.teamSlot[out] + 1) % 3;
+    state.currentSide = out === "player" ? "enemy" : "player";
+
+    // On the new side, advance only this team's cursor past dead slots.
+    const inHp = state.currentSide === "player" ? state.playerHp : state.enemyHp;
+    for (let i = 0; i < 3; i += 1) {
+      if (inHp >= 3 - state.teamSlot[state.currentSide]) break;
+      state.teamSlot[state.currentSide] =
+        (state.teamSlot[state.currentSide] + 1) % 3;
+    }
+
+    state.turnIndex += 1;
+    state.phase = state.currentSide === "player" ? "aiming" : "enemy_wait";
   }
 
   function endGame(result) {
@@ -462,11 +493,48 @@
 
     ctx.save();
     if (hp > 0) drawShadow(c.x + 20, c.y + c.h - 35, c.w - 40, 32);
-    for (let i = 0; i < hp; i++) drawSection(ctx, img, c, SECTION_POLYS[i]);
-    for (const d of state.dyingSections) {
-      if (d.side === side) drawDyingSection(ctx, img, c, d, SECTION_POLYS);
+
+    const reveal = revealForSide(side);
+
+    if (reveal && hp > 0) {
+      // Behind layer: a darkened duplicate of the same castle PNG, drawn
+      // in place. Becomes visible only through the cut-out in the front layer.
+      ctx.save();
+      ctx.filter =
+        "brightness(0.34) sepia(0.85) saturate(1.5) hue-rotate(-10deg)";
+      for (let i = 0; i < hp; i += 1) drawSection(ctx, img, c, SECTION_POLYS[i]);
+      ctx.filter = "none";
+      ctx.restore();
+
+      // Front layer: same PNG, with an even-odd clip so the circle is a
+      // real hole — no overlay disc, the darkened layer shows through.
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(c.x - 40, c.y - 40, c.w + 80, c.h + 80);
+      ctx.arc(reveal.cx, reveal.cy, reveal.r, 0, Math.PI * 2);
+      ctx.clip("evenodd");
+      for (let i = 0; i < hp; i += 1) drawSection(ctx, img, c, SECTION_POLYS[i]);
+      for (const d of state.dyingSections) {
+        if (d.side === side) drawDyingSection(ctx, img, c, d, SECTION_POLYS);
+      }
+      ctx.restore();
+    } else {
+      for (let i = 0; i < hp; i += 1) drawSection(ctx, img, c, SECTION_POLYS[i]);
+      for (const d of state.dyingSections) {
+        if (d.side === side) drawDyingSection(ctx, img, c, d, SECTION_POLYS);
+      }
     }
+
     ctx.restore();
+  }
+
+  function revealForSide(side) {
+    if (state.revealRadius < 1 || state.ctaVisible) return null;
+    if (state.phase !== "aiming" && state.phase !== "enemy_wait") return null;
+    const turn = activeTurn();
+    if (turn.side !== side) return null;
+    const slot = unitSlots[side][turn.slot];
+    return { cx: slot.x, cy: slot.y - 30, r: state.revealRadius };
   }
 
   function drawUnits(side) {
@@ -475,8 +543,54 @@
     // slot 2 = bottom section. Top falls first, bottom survives longest.
     for (let i = 0; i < 3; i += 1) {
       if (castleHp < 3 - i) continue;
+      const pos = unitSlots[side][i];
+      drawPlank(pos.x, pos.y);
+    }
+    for (let i = 0; i < 3; i += 1) {
+      if (castleHp < 3 - i) continue;
       drawUnit(side, i);
     }
+  }
+
+  function drawPlank(x, y) {
+    ctx.save();
+    // Ground shadow under the plank.
+    ctx.fillStyle = "rgba(0,0,0,0.28)";
+    ctx.beginPath();
+    ctx.ellipse(x, y + 7, 28, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Plank front face.
+    ctx.fillStyle = "#5a3414";
+    ctx.fillRect(x - 30, y, 60, 8);
+    // Top surface (lit).
+    ctx.fillStyle = "#a06d3a";
+    ctx.fillRect(x - 30, y - 3, 60, 4);
+    // Highlight strip.
+    ctx.fillStyle = "#c4904f";
+    ctx.fillRect(x - 30, y - 3, 60, 1);
+    // Wood grain.
+    ctx.strokeStyle = "rgba(50, 26, 8, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 26, y);
+    ctx.lineTo(x + 26, y);
+    ctx.moveTo(x - 20, y + 4);
+    ctx.lineTo(x + 20, y + 4);
+    ctx.stroke();
+    // Plank divisions.
+    ctx.strokeStyle = "rgba(28, 14, 4, 0.65)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 10, y - 3);
+    ctx.lineTo(x - 10, y + 8);
+    ctx.moveTo(x + 10, y - 3);
+    ctx.lineTo(x + 10, y + 8);
+    ctx.stroke();
+    // Outline.
+    ctx.strokeStyle = "#3a2008";
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(x - 30, y - 3, 60, 11);
+    ctx.restore();
   }
 
   function drawUnit(side, slot) {

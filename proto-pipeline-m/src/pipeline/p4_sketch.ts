@@ -1,6 +1,6 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
+import { generateJson, getActiveClaudeModel, type AnthropicContent } from "./anthropic.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
 import { P4PlanSchema, type P4Plan, SCENE_ELEMENT_NAMES, type SceneElementName } from "../schemas/p4Plan.ts";
 import { P4SketchSchema, type P4Sketch } from "../schemas/p4Sketch.ts";
@@ -111,7 +111,8 @@ async function callOneSketch(
   while (attempt < maxAttempts) {
     attempt++;
     try {
-      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, sys, userParts, {
         temperature: 0.4,
       });
       const sketch = P4SketchSchema.parse(r.data);
@@ -123,7 +124,7 @@ async function callOneSketch(
       staticChecks(element, sketch, plan, gameSpec);
       const meta: P4SketchMeta = {
         step: `4_sketch_${element}`,
-        model: CLAUDE_MODELS.sonnet,
+        model,
         tokensIn: r.tokensIn,
         tokensOut: r.tokensOut,
         latencyMs: Date.now() - t0,

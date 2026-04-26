@@ -1,7 +1,11 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
-import { AssetMappingSchema, type AssetMapping } from "../schemas/assets.ts";
+import { generateJson, getActiveClaudeModel, type AnthropicContent } from "./anthropic.ts";
+import {
+  AssetMappingSchema,
+  DEFAULT_CTA_URL,
+  type AssetMapping,
+} from "../schemas/assets.ts";
 import { ProbeReportSchema } from "../schemas/probe.ts";
 import { MergedVideoSchema, type MergedVideo } from "../schemas/video/merged.ts";
 import { describeAssets, type AssetDescribeMeta } from "./p2_describe.ts";
@@ -55,7 +59,7 @@ export async function runP2(
 
   const inventory = describedAssets.map((a) => {
     const base: Record<string, unknown> = {
-      filename: a.filename,
+      filename: a.relpath,
       kind: a.kind,
     };
     if (a.kind === "image") {
@@ -88,17 +92,37 @@ export async function runP2(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, sys, userParts, {
         temperature: 0.3,
       });
       const rawMapping = AssetMappingSchema.parse(r.data);
-      const validFilenames = new Set(probe.assets.map((a) => a.filename));
+      const validRelpaths = new Set(probe.assets.map((a) => a.relpath));
+      const basenameToRelpaths = new Map<string, string[]>();
+      for (const a of probe.assets) {
+        const arr = basenameToRelpaths.get(a.filename) ?? [];
+        arr.push(a.relpath);
+        basenameToRelpaths.set(a.filename, arr);
+      }
       for (const role of rawMapping.roles) {
-        if (role.filename && !validFilenames.has(role.filename)) {
+        if (!role.filename) continue;
+        if (validRelpaths.has(role.filename)) continue;
+        const candidates = basenameToRelpaths.get(role.filename);
+        if (candidates && candidates.length === 1) {
+          console.log(
+            `[p2] auto-promoted basename '${role.filename}' → '${candidates[0]}' (role=${role.role})`,
+          );
+          role.filename = candidates[0];
+          continue;
+        }
+        if (candidates && candidates.length > 1) {
           throw new Error(
-            `Hallucinated filename: ${role.filename} (role=${role.role})`,
+            `Ambiguous basename '${role.filename}' (role=${role.role}) — matches ${candidates.length} files: ${candidates.slice(0, 4).join(", ")}. Emit the full relpath.`,
           );
         }
+        throw new Error(
+          `Hallucinated filename: ${role.filename} (role=${role.role}). Must be a relpath from asset_inventory.filename.`,
+        );
       }
       const seenRoles = new Set<string>();
       const droppedReasons: string[] = [];
@@ -121,10 +145,49 @@ export async function runP2(
       if (droppedReasons.length > 0) {
         console.log(`[p2] pruned ${droppedReasons.length} weak role(s): ${droppedReasons.slice(0, 8).join("; ")}${droppedReasons.length > 8 ? " …" : ""}`);
       }
-      const mapping: AssetMapping = { ...rawMapping, roles: keptRoles };
+      const mapping: AssetMapping = {
+        ...rawMapping,
+        roles: keptRoles,
+        cta_url: rawMapping.cta_url ?? DEFAULT_CTA_URL,
+      };
+
+      const categoryByRelpath = new Map<string, string>();
+      for (const a of describedAssets) {
+        if (a.description?.category) {
+          categoryByRelpath.set(a.relpath, a.description.category);
+        }
+      }
+      const mappedRelpaths = keptRoles
+        .map((r) => r.filename)
+        .filter((f): f is string => typeof f === "string");
+      const mappedCategories = new Set(
+        mappedRelpaths
+          .map((f) => categoryByRelpath.get(f))
+          .filter((c): c is string => typeof c === "string"),
+      );
+      const hasCharacter = mappedCategories.has("character");
+      const hasProjectile = mappedCategories.has("projectile");
+      if (!hasCharacter && !hasProjectile) {
+        const inventoryCats = new Set(
+          inventory
+            .map((a) => (a as { category?: string }).category)
+            .filter((c): c is string => typeof c === "string"),
+        );
+        const inventoryHasCharacter = inventoryCats.has("character");
+        const inventoryHasProjectile = inventoryCats.has("projectile");
+        if (!inventoryHasCharacter && !inventoryHasProjectile) {
+          throw new Error(
+            `P2 produced no character or projectile assets, and the inventory itself contains neither. Asset bank has nothing renderable. Inventory had ${inventory.length} assets, categories: ${[...inventoryCats].join(",") || "none"}.`,
+          );
+        }
+        console.warn(
+          `[p2] WARNING: role-map points to no character/projectile assets, but inventory has ${inventoryHasCharacter ? "character " : ""}${inventoryHasProjectile ? "projectile " : ""}assets. Model under-mapped — continuing but downstream may fall back to procedural drawing.`,
+        );
+      }
+
       const meta: SubMeta = {
         step: "2_role_map",
-        model: CLAUDE_MODELS.sonnet,
+        model,
         tokensIn: r.tokensIn,
         tokensOut: r.tokensOut,
         latencyMs: r.latencyMs,
@@ -150,7 +213,7 @@ export async function runP2(
       if (attempt >= 2) break;
       sys =
         systemInstruction +
-        `\n\nThe previous response failed validation. Re-emit ONLY a JSON object exactly matching the schema. Use ONLY filenames from asset_inventory; never invent.`;
+        `\n\nThe previous response failed validation. Re-emit ONLY a JSON object exactly matching the schema. Use ONLY filenames from asset_inventory; never invent. Each filename must be the full relpath (e.g. characters/purple_ninja/full.png), not the bare basename.`;
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));

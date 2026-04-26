@@ -1,7 +1,7 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { z } from "zod";
-import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
+import { generateJson, getActiveClaudeModel, type AnthropicContent } from "./anthropic.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
 import {
   P4PlanSchema,
@@ -157,13 +157,14 @@ async function callRepair(
       ),
     },
   ];
-  const r = await generateJson(CLAUDE_MODELS.sonnet, systemBase, userParts, {
+  const model = getActiveClaudeModel();
+  const r = await generateJson(model, systemBase, userParts, {
     temperature: 0.2,
   });
   const parsed = RepairSchema.parse(r.data);
   const meta: P4FinalMeta = {
     step: "4_repair",
-    model: CLAUDE_MODELS.sonnet,
+    model,
     tokensIn: r.tokensIn,
     tokensOut: r.tokensOut,
     latencyMs: Date.now() - t0,

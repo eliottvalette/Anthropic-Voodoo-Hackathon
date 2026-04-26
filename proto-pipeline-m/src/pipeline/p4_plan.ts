@@ -1,6 +1,6 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { generateJson, CLAUDE_MODELS, type AnthropicContent } from "./anthropic.ts";
+import { generateJson, getActiveClaudeModel, type AnthropicContent } from "./anthropic.ts";
 import { GameSpecSchema, type GameSpec } from "../schemas/gameSpec.ts";
 import { P4PlanSchema, type P4Plan, SCENE_ELEMENT_NAMES } from "../schemas/p4Plan.ts";
 
@@ -27,6 +27,63 @@ function reconcileReadWriteIndex(raw: unknown): unknown {
     field.read_by = readers;
   }
   return raw;
+}
+
+const RESERVED = new Set(["phase", "subPhase", "turnIndex", "isOver"]);
+
+function pruneDeadState(plan: P4Plan): void {
+  const keep = plan.shared_state_shape.filter(
+    (f) => RESERVED.has(f.name) || f.read_by.length > 0,
+  );
+  const dropped = plan.shared_state_shape
+    .filter((f) => !RESERVED.has(f.name) && f.read_by.length === 0)
+    .map((f) => f.name);
+  if (dropped.length > 0) {
+    console.warn(
+      `[p4-plan] auto-pruned ${dropped.length} dead-state field(s): ${dropped.join(", ")}`,
+    );
+    plan.shared_state_shape = keep;
+    const surviving = new Set(keep.map((f) => f.name));
+    for (const el of [
+      "bg_ground",
+      "actors",
+      "projectiles",
+      "hud",
+      "end_card",
+    ] as const) {
+      const c = plan.scene_elements[el];
+      c.reads = c.reads.filter((r) => surviving.has(r));
+      c.writes = c.writes.filter((w) => surviving.has(w));
+    }
+  }
+}
+
+function warnReadsCap(plan: P4Plan): void {
+  for (const el of ["bg_ground", "actors", "projectiles", "hud", "end_card"] as const) {
+    const c = plan.scene_elements[el];
+    if (c.reads.length > 5) {
+      console.warn(
+        `[p4-plan] ${el}.reads has ${c.reads.length} entries (soft target ≤5); not blocking`,
+      );
+    }
+  }
+}
+
+function reconcileNumericParams(plan: P4Plan, gameSpec: GameSpec): void {
+  const specKeys = new Set(Object.keys(gameSpec.numeric_params));
+  const planKeys = Object.keys(plan.numeric_params);
+  const extras = planKeys.filter((k) => !specKeys.has(k));
+  if (extras.length > 0) {
+    console.warn(
+      `[p4-plan] numeric_params has keys not in GameSpec: ${extras.join(", ")} — dropping`,
+    );
+    for (const k of extras) delete plan.numeric_params[k];
+  }
+  for (const [k, v] of Object.entries(gameSpec.numeric_params)) {
+    if (plan.numeric_params[k] === undefined) {
+      plan.numeric_params[k] = v;
+    }
+  }
 }
 
 export type P4PlanMeta = {
@@ -101,7 +158,8 @@ export async function runP4Plan(
   while (attempt < maxAttempts) {
     attempt++;
     try {
-      const r = await generateJson(CLAUDE_MODELS.sonnet, sys, userParts, {
+      const model = getActiveClaudeModel();
+      const r = await generateJson(model, sys, userParts, {
         temperature: 0.3,
       });
       const reconciled = reconcileReadWriteIndex(r.data);
@@ -111,9 +169,12 @@ export async function runP4Plan(
           `plan.mechanic_name "${plan.mechanic_name}" != game_spec.mechanic_name "${gameSpec.mechanic_name}"`,
         );
       }
+      pruneDeadState(plan);
+      warnReadsCap(plan);
+      reconcileNumericParams(plan, gameSpec);
       const meta: P4PlanMeta = {
         step: "4_plan",
-        model: CLAUDE_MODELS.sonnet,
+        model,
         tokensIn: r.tokensIn,
         tokensOut: r.tokensOut,
         latencyMs: Date.now() - t0,

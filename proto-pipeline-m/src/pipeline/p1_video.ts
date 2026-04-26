@@ -14,7 +14,7 @@ import {
 import {
   generateJson as generateJsonClaude,
   imagePartFromPath,
-  CLAUDE_MODELS,
+  getActiveClaudeModel,
   type AnthropicContent,
 } from "./anthropic.ts";
 import { TimelineSchema, type Timeline } from "../schemas/video/timeline.ts";
@@ -111,13 +111,14 @@ async function runClaudeWithRetry<T>(
   while (attempt < 2) {
     attempt++;
     try {
-      const r = await generateJsonClaude(CLAUDE_MODELS.sonnet, sys, userParts, options);
+      const model = getActiveClaudeModel();
+      const r = await generateJsonClaude(model, sys, userParts, options);
       const parsed = schema.parse(r.data);
       return {
         data: parsed,
         meta: {
           step,
-          model: CLAUDE_MODELS.sonnet,
+          model,
           tokensIn: r.tokensIn,
           tokensOut: r.tokensOut,
           latencyMs: r.latencyMs,

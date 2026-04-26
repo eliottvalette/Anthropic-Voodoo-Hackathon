@@ -1,5 +1,13 @@
 const DEFAULT_VIDEO = "../ressources/Castle Clashers/Video Example/B11.mp4";
 const DEFAULT_BENCH_VIDEOS = "b11";
+const DEFAULT_BANK = "../nico-sandbox/runs/B11/final-assets";
+
+function resolveBank(args: string[]): string | null {
+  if (args.includes("--no-bank")) return null;
+  const flag = getFlag(args, "--include-bank");
+  if (flag !== undefined) return flag.trim() === "" ? null : flag;
+  return DEFAULT_BANK;
+}
 
 const HELP = `proto-pipeline-m
 
@@ -17,6 +25,11 @@ Usage:
 Defaults:
   --video defaults to ${DEFAULT_VIDEO} (B11). Pass --video to override.
   --videos defaults to "${DEFAULT_BENCH_VIDEOS}". Pass --videos to override.
+  --include-bank defaults to "${DEFAULT_BANK}". Pass --include-bank <dir> to override,
+                 --include-bank '' or --no-bank to disable. Probe walks both per-run
+                 --assets dir and the bank; per-run wins on relpath collision.
+  --model selects the Claude tier for ALL Claude calls (sonnet | haiku).
+          Default: sonnet. Equivalent to setting CLAUDE_TIER=haiku in env.
 `;
 
 async function listModels(): Promise<void> {
@@ -40,17 +53,19 @@ async function runProbeOnly(args: string[]): Promise<void> {
   const rawRunId = getFlag(args, "--run");
   const video = getFlag(args, "--video") ?? DEFAULT_VIDEO;
   const assets = getFlag(args, "--assets");
+  const bank = resolveBank(args);
   if (!rawRunId || !assets) {
     console.error(
-      "Usage: bun run pipeline --probe-only --run <id> [--video <path>] --assets <dir>",
+      "Usage: bun run pipeline --probe-only --run <id> [--video <path>] --assets <dir> [--include-bank <dir>|--no-bank]",
     );
     process.exit(1);
   }
   const { stampRunId } = await import("./pipeline/runId.ts");
   const runId = await stampRunId(rawRunId);
   console.log(`[cli] runId "${rawRunId}" stamped → "${runId}"`);
+  if (bank) console.log(`[cli] include-bank: ${bank}`);
   const { writeProbe } = await import("./pipeline/probe.ts");
-  const { outPath, report } = await writeProbe(runId, video, assets);
+  const { outPath, report } = await writeProbe(runId, video, assets, bank);
   console.log(`wrote ${outPath}`);
   console.log(
     JSON.stringify(
@@ -80,8 +95,9 @@ async function runP1Only(args: string[]): Promise<void> {
   const runId = await stampRunId(rawRunId);
   console.log(`[cli] runId "${rawRunId}" stamped → "${runId}"`);
   if (assets) {
+    const bank = resolveBank(args);
     const { writeProbe } = await import("./pipeline/probe.ts");
-    await writeProbe(runId, video, assets);
+    await writeProbe(runId, video, assets, bank);
   }
   const { writeP1 } = await import("./pipeline/p1_video.ts");
   const { outDir, output } = await writeP1(runId, video, variant);
@@ -184,14 +200,16 @@ async function runFull(args: string[]): Promise<void> {
   const retriesArg = getFlag(args, "--retries");
   const maxRetries = retriesArg !== undefined ? Number(retriesArg) : 4;
   const reference = getFlag(args, "--reference") ?? null;
+  const bank = resolveBank(args);
   if (!runId || !assets) {
     console.error(
-      "Usage: bun run pipeline --run <id> [--video <path>] --assets <dir> [--variant <id>] [--retries N] [--reference <gold-dir>]",
+      "Usage: bun run pipeline --run <id> [--video <path>] --assets <dir> [--variant <id>] [--retries N] [--reference <gold-dir>] [--include-bank <dir>|--no-bank]",
     );
     process.exit(1);
   }
+  if (bank) console.log(`[cli] include-bank: ${bank}`);
   const { runPipeline } = await import("./pipeline/run.ts");
-  const meta = await runPipeline(runId, video, assets, variant, maxRetries, reference);
+  const meta = await runPipeline(runId, video, assets, variant, maxRetries, reference, bank);
   console.log("--- summary ---");
   console.log(
     JSON.stringify(
@@ -293,6 +311,17 @@ async function main(): Promise<void> {
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(HELP);
     return;
+  }
+
+  const modelFlag = getFlag(args, "--model");
+  if (modelFlag !== undefined) {
+    const tier = modelFlag.trim().toLowerCase();
+    if (tier !== "sonnet" && tier !== "haiku") {
+      console.error(`invalid --model "${modelFlag}" (expected: sonnet | haiku)`);
+      process.exit(1);
+    }
+    process.env.CLAUDE_TIER = tier;
+    console.log(`[cli] CLAUDE_TIER=${tier}`);
   }
 
   if (args.includes("--list-models")) {

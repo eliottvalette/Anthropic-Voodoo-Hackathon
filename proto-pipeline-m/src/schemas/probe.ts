@@ -18,9 +18,13 @@ export const RigPartSchema = z.object({
 });
 export type RigPart = z.infer<typeof RigPartSchema>;
 
+export const AssetSourceSchema = z.enum(["primary", "bank"]);
+export type AssetSource = z.infer<typeof AssetSourceSchema>;
+
 export const ImageAssetSchema = z.object({
   filename: z.string(),
   relpath: z.string(),
+  source: AssetSourceSchema.default("primary"),
   kind: z.literal("image"),
   width: z.number().int().nonnegative(),
   height: z.number().int().nonnegative(),
@@ -40,6 +44,7 @@ export type ImageAsset = z.infer<typeof ImageAssetSchema>;
 export const AudioAssetSchema = z.object({
   filename: z.string(),
   relpath: z.string(),
+  source: AssetSourceSchema.default("primary"),
   kind: z.literal("audio"),
   durationSec: z.number().nonnegative(),
   bytes: z.number().int().nonnegative(),
@@ -55,6 +60,7 @@ export type Asset = z.infer<typeof AssetSchema>;
 export const ProbeReportSchema = z.object({
   video: VideoMetaSchema,
   assetsDir: z.string(),
+  bankDir: z.string().nullable().default(null),
   assets: z.array(AssetSchema),
   generatedAt: z.string(),
 });

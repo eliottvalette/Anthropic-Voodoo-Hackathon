@@ -102,7 +102,10 @@ async function loadRigForFolder(
   }
 }
 
-export async function probeAssets(assetsDir: string): Promise<Asset[]> {
+export async function probeAssets(
+  assetsDir: string,
+  source: "primary" | "bank" = "primary",
+): Promise<Asset[]> {
   const root = resolve(assetsDir);
   const files = await walk(root);
   const skipParts = new Set<string>();
@@ -142,14 +145,14 @@ export async function probeAssets(assetsDir: string): Promise<Asset[]> {
     if (IMAGE_EXT.has(ext)) {
       try {
         const { width, height } = await probeImage(abs);
-        const asset: Asset = { filename, relpath, kind: "image", width, height, bytes };
+        const asset: Asset = { filename, relpath, source, kind: "image", width, height, bytes };
         if (filename === "full.png") {
           const rig = rigFolders.get(dirname(abs));
           if (rig) asset.rig = rig;
         }
         out.push(asset);
       } catch {
-        const asset: Asset = { filename, relpath, kind: "image", width: 0, height: 0, bytes };
+        const asset: Asset = { filename, relpath, source, kind: "image", width: 0, height: 0, bytes };
         if (filename === "full.png") {
           const rig = rigFolders.get(dirname(abs));
           if (rig) asset.rig = rig;
@@ -159,9 +162,9 @@ export async function probeAssets(assetsDir: string): Promise<Asset[]> {
     } else if (AUDIO_EXT.has(ext)) {
       try {
         const durationSec = await probeAudio(abs);
-        out.push({ filename, relpath, kind: "audio", durationSec, bytes });
+        out.push({ filename, relpath, source, kind: "audio", durationSec, bytes });
       } catch {
-        out.push({ filename, relpath, kind: "audio", durationSec: 0, bytes });
+        out.push({ filename, relpath, source, kind: "audio", durationSec: 0, bytes });
       }
     }
   }
@@ -171,15 +174,49 @@ export async function probeAssets(assetsDir: string): Promise<Asset[]> {
 export async function probe(
   videoPath: string,
   assetsDir: string,
+  bankDir: string | null = null,
 ): Promise<ProbeReport> {
-  const [video, assets] = await Promise.all([
+  const primaryAbs = resolve(assetsDir);
+  const bankAbs = bankDir ? resolve(bankDir) : null;
+  const tasks: Array<Promise<unknown>> = [
     probeVideo(videoPath),
-    probeAssets(assetsDir),
-  ]);
+    probeAssets(assetsDir, "primary"),
+  ];
+  if (bankAbs && bankAbs !== primaryAbs) {
+    tasks.push(probeAssets(bankAbs, "bank"));
+  }
+  const results = await Promise.all(tasks);
+  const video = results[0] as VideoMeta;
+  const primary = results[1] as Asset[];
+  const bank = (results[2] as Asset[] | undefined) ?? [];
+
+  const seen = new Set(primary.map((a) => a.relpath));
+  const merged: Asset[] = [...primary];
+  const shadowed: string[] = [];
+  for (const b of bank) {
+    if (seen.has(b.relpath)) {
+      shadowed.push(b.relpath);
+    } else {
+      merged.push(b);
+      seen.add(b.relpath);
+    }
+  }
+  if (shadowed.length > 0) {
+    console.log(
+      `[probe] ${shadowed.length} bank asset(s) shadowed by primary (per-run wins): ${shadowed.slice(0, 5).join(", ")}${shadowed.length > 5 ? "..." : ""}`,
+    );
+  }
+  if (bankAbs && bankAbs !== primaryAbs) {
+    console.log(
+      `[probe] merged ${primary.length} primary + ${bank.length - shadowed.length} bank (${shadowed.length} shadowed)`,
+    );
+  }
+
   return ProbeReportSchema.parse({
     video,
-    assetsDir: resolve(assetsDir),
-    assets,
+    assetsDir: primaryAbs,
+    bankDir: bankAbs && bankAbs !== primaryAbs ? bankAbs : null,
+    assets: merged,
     generatedAt: new Date().toISOString(),
   });
 }
@@ -188,8 +225,9 @@ export async function writeProbe(
   runId: string,
   videoPath: string,
   assetsDir: string,
+  bankDir: string | null = null,
 ): Promise<{ outPath: string; report: ProbeReport }> {
-  const report = await probe(videoPath, assetsDir);
+  const report = await probe(videoPath, assetsDir, bankDir);
   const outDir = resolve("outputs", runId);
   await mkdir(outDir, { recursive: true });
   const outPath = join(outDir, "00_probe.json");

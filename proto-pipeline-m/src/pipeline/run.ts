@@ -7,8 +7,11 @@ import { writeP1 } from "./p1_video.ts";
 import { writeP2 } from "./p2_assets.ts";
 import { writeP3 } from "./p3_aggregator.ts";
 import { runP4 } from "./p4_codegen.ts";
-import { verify, buildRetryAddendum } from "./verify.ts";
+import { verify, buildRetryAddendum, type VerifyTempo } from "./verify.ts";
 import { GameSpecSchema } from "../schemas/gameSpec.ts";
+import { MergedVideoSchema } from "../schemas/video/merged.ts";
+import { ProbeReportSchema } from "../schemas/probe.ts";
+import { buildFilenameResolver } from "./assemble.ts";
 import type { VerifyReport } from "../schemas/verifyReport.ts";
 import {
   SCENE_ELEMENT_NAMES,
@@ -117,6 +120,7 @@ export async function runPipeline(
   variant = "_default",
   maxRetries = 4,
   referenceDir: string | null = null,
+  bankDir: string | null = null,
 ): Promise<RunMeta> {
   const runId = await stampRunId(requestedRunId);
   console.log(`[run] runId "${requestedRunId}" stamped → "${runId}"`);
@@ -129,7 +133,7 @@ export async function runPipeline(
 
   console.log(`[run] stage 0: probe`);
   const probeT = Date.now();
-  await writeProbe(runId, videoPath, assetsDir);
+  await writeProbe(runId, videoPath, assetsDir, bankDir);
   stages.push({
     step: "0_probe",
     model: "ffprobe",
@@ -151,9 +155,71 @@ export async function runPipeline(
   const p3 = await writeP3(runId, variant, referenceDir);
   stages.push(...p3.output.meta.subCalls);
 
-  const gameSpec = GameSpecSchema.parse(
+  let gameSpec = GameSpecSchema.parse(
     JSON.parse(await readFile(join(outDir, "03_game_spec.json"), "utf8")),
   );
+
+  try {
+    const probe = ProbeReportSchema.parse(
+      JSON.parse(await readFile(join(outDir, "00_probe.json"), "utf8")),
+    );
+    const resolver = buildFilenameResolver(probe);
+    const before = { ...gameSpec.asset_role_map };
+    const dropped: Array<{ role: string; relpath: string | null; reason: string }> = [];
+    const cleanedRoleMap: Record<string, string | null> = {};
+    let promoted = 0;
+    for (const [role, value] of Object.entries(before)) {
+      if (value === null) {
+        cleanedRoleMap[role] = null;
+        continue;
+      }
+      const resolved = resolver(value);
+      if (resolved) {
+        if (resolved.relpath !== value) promoted++;
+        cleanedRoleMap[role] = resolved.relpath;
+      } else {
+        cleanedRoleMap[role] = null;
+        dropped.push({ role, relpath: value, reason: "not found in probe" });
+      }
+    }
+    if (dropped.length > 0 || promoted > 0) {
+      if (dropped.length > 0) {
+        console.warn(
+          `[run] sanitized asset_role_map: ${dropped.length} role(s) had no probe match → set to null:\n  - ${dropped.map((d) => `${d.role}=${d.relpath}`).join("\n  - ")}`,
+        );
+      }
+      if (promoted > 0) {
+        console.log(`[run] sanitizer auto-promoted ${promoted} basename(s) to relpath.`);
+      }
+      gameSpec = { ...gameSpec, asset_role_map: cleanedRoleMap };
+      await writeFile(
+        join(outDir, "03_game_spec.json"),
+        JSON.stringify(gameSpec, null, 2),
+        "utf8",
+      );
+    }
+    await writeFile(
+      join(outDir, "03_role_sanitizer_notes.json"),
+      JSON.stringify({ dropped, promoted }, null, 2),
+      "utf8",
+    );
+  } catch (e) {
+    console.warn(
+      `[run] could not sanitize asset_role_map against probe: ${(e as Error).message.slice(0, 200)}`,
+    );
+  }
+
+  let verifyTempo: VerifyTempo = "real_time";
+  try {
+    const merged = MergedVideoSchema.parse(
+      JSON.parse(await readFile(join(outDir, "01_video.json"), "utf8")),
+    );
+    if (merged.tempo === "turn_based" || merged.tempo === "async") {
+      verifyTempo = merged.tempo;
+    }
+  } catch {
+    /* default to real_time */
+  }
 
   const elementFailCounts: Record<SceneElementName, number> = {
     bg_ground: 0,
@@ -169,7 +235,7 @@ export async function runPipeline(
   let repaired = p4.meta.repaired;
 
   console.log(`[run] verifying...`);
-  let report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+  let report = await verify(p4.htmlPath, gameSpec.mechanic_name, verifyTempo);
   let retries = 0;
 
   const writeFailureSummary = async (r: typeof report, attempt: number) => {
@@ -228,7 +294,7 @@ export async function runPipeline(
     }
     stages.push(...p4.meta.subCalls.map((m) => ({ ...m, attempt: retries + 1 })));
     repaired = repaired || p4.meta.repaired;
-    report = await verify(p4.htmlPath, gameSpec.mechanic_name);
+    report = await verify(p4.htmlPath, gameSpec.mechanic_name, verifyTempo);
     await writeFailureSummary(report, retries);
   }
 
