@@ -128,10 +128,12 @@ export async function runPipeline(input: RunInput, cbs: RunCallbacks = {}): Prom
   // ── Stage 3: P3 game spec ──────────────────────────────────────────────────
   announce('gameSpec')
   let gameSpec: GameSpec
+  let codegenPrompt: string | undefined
   try {
     while (true) {
       const r = await runP3Aggregator(videoAnalysis!, assetMapping!, variant, subs => progress('gameSpec', subs), input.userBrief)
       gameSpec = r.gameSpec
+      codegenPrompt = r.codegenPrompt
       meta.gameSpec = gameSpec
       done('gameSpec', gameSpec)
       if (!cbs.onAwaitReview) break
@@ -146,7 +148,7 @@ export async function runPipeline(input: RunInput, cbs: RunCallbacks = {}): Prom
   announce('codegen')
   let codegen: CodegenResult
   try {
-    codegen = await runP4Codegen(gameSpec!, input.assetFiles, variant, subs => progress('codegen', subs))
+    codegen = await runP4Codegen(gameSpec!, codegenPrompt, input.assetFiles, variant, subs => progress('codegen', subs))
     meta.codegen = codegen
     done('codegen', codegen)
   } catch (e) { fail('codegen', e); throw e }

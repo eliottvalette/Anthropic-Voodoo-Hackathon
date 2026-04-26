@@ -19,6 +19,7 @@ const MAX_RETRIES = 2
 
 export async function runP4Codegen(
   gameSpec: GameSpec,
+  codegenPrompt: string | undefined,
   assets: File[],
   variant: string,
   onProgress: P4Progress
@@ -74,11 +75,22 @@ export async function runP4Codegen(
 
     startCall('4_codegen')
     const tC = performance.now()
-    const userPayload = JSON.stringify({
-      game_spec: gameSpec,
-      retry_attempt: attempt,
-      previous_failures: attempt > 1 ? buildFailureContext(report) : undefined,
-    })
+    // Use the codegen scaffold P3 produced — it has the exact section
+    // headers (# Mechanic name, # Assets, # Required behaviour, …) that
+    // 4_codegen_legacy.md is written against. Falling back to raw JSON
+    // (the previous behaviour) makes Gemini emit empty shells because
+    // it's not what the system prompt expects.
+    const baseUserMessage = codegenPrompt && codegenPrompt.trim()
+      ? codegenPrompt
+      : JSON.stringify({ game_spec: gameSpec })
+    const retryAddendum = attempt > 1
+      ? `\n\n# Retry context (attempt ${attempt})\nThe previous output failed verification. Fix:\n${
+          Object.entries(buildFailureContext(report))
+            .map(([k, v]) => `- ${k}: ${v}`)
+            .join('\n')
+        }`
+      : ''
+    const userPayload = baseUserMessage + retryAddendum
     const r = await generateContent<unknown>(
       [{ text: userPayload }, ...assetParts],
       { systemInstruction: sysCodegen, responseMimeType: 'text/plain' }
