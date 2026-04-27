@@ -35,7 +35,7 @@ flowchart TB
         M1[P1 · multi-pass video analysis<br/>timeline + mechanics + visual_ui + merge]
         M2[P2 · asset role mapping<br/>filename to role, no hardcoding]
         M3[P3 · aggregator<br/>typed GameSpec JSON, Zod validated]
-        M4[P4 · codegen<br/>Gemini primary, Sonnet 4.6 fallback]
+        M4[P4 · codegen<br/>Claude Sonnet 4.6]
         M5{Playwright verify<br/>6 binary asserts}
         M1 --> M2 --> M3 --> M4 --> M5
         M5 -.retry up to 2x.-> M4
@@ -95,7 +95,7 @@ Runs are checkpointed in `manifests/05_scenario_automation_manifest.json` and re
 
 ### `proto-pipeline-m/` · Orchestrator + benchmark (Mathis)
 
-The generic pipeline. Four Gemini stages with Zod-typed contracts at every seam, a Playwright verify loop with six binary asserts and up to two retries, and a benchmark runner that sweeps prompt variants on the same corpus.
+The generic pipeline. Multi-model stages with Zod-typed contracts at every seam: Gemini for video analysis (P1), Claude Haiku + Gemini for intermediate steps (P2, P3), and Claude Sonnet 4.6 for HTML codegen (P4). A Playwright verify loop with six binary asserts and up to two retries, and a benchmark runner that sweeps prompt variants on the same corpus.
 
 Stack: Bun, TypeScript (ESM, strict), Zod, Playwright.
 
@@ -313,7 +313,8 @@ Our differentiation: pipeline genericity (not a Castle Clashers playable, but a 
 | Layer | Technology |
 |---|---|
 | Video analysis | Gemini multi-pass (timeline + mechanics + visual_ui + merge) |
-| Codegen | Gemini primary, Anthropic Claude Sonnet 4.6 fallback |
+| Intermediate steps (P2, P3) | Claude Haiku + Gemini |
+| Codegen (HTML generation) | Claude Sonnet 4.6 |
 | Asset generation | Scenario.com (sprite recreation, alpha cleanup, character rigs) |
 | 2D engine | Vanilla Canvas 2D, hand-written primitives |
 | 3D engine | Three.js inlined (~650 KB, fits the 5 MB budget) |
