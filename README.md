@@ -14,7 +14,7 @@ Castle Clashers (2D) is the imposed demo. Block Blast (2D) and Epic Plane Evolut
 
 ## Architecture
 
-The repo holds three teammate pipelines and one Next.js app that composes them at runtime. The graph below is the full picture.
+The repo holds three teammate pipelines and one Next.js app that composes the live generation flow at runtime. The graph below is the full picture.
 
 ```mermaid
 flowchart TB
@@ -52,8 +52,7 @@ flowchart TB
         direction TB
         U1["Browser orchestrator<br/>port of proto-pipeline-m"]
         U2["/api/sandbox/* server side<br/>spawns nico-sandbox Python"]
-        U3["/api/mock-playable<br/>demo fallback"]
-        U4["/api/gemini, /api/anthropic<br/>key proxy only"]
+        U3["/api/gemini, /api/anthropic<br/>key proxy only"]
     end
 
     V --> U2
@@ -62,9 +61,6 @@ flowchart TB
     V --> U1
     U1 --> M1
     M5 ==>|pass| OUT[(Single HTML ≤ 5 MB<br/>MRAID 2.0, self-contained)]
-    E2 --> U3
-    U3 -.mock toggle.-> OUT
-
     M5 -. scored against .-> E2
 
     classDef nico fill:#fef3c7,stroke:#f59e0b,color:#78350f
@@ -74,10 +70,10 @@ flowchart TB
     class N1,N2,N3,N4,N5 nico
     class M1,M2,M3,M4,M5 mathis
     class E1,E2 eliott
-    class U1,U2,U3,U4 ui
+    class U1,U2,U3 ui
 ```
 
-**How to read it.** The live UI is the composition node. It runs Nico's Python asset extractor server-side, runs Mathis's orchestration logic client-side (a TS port of `proto-pipeline-m`), proxies Gemini and Anthropic calls through thin server routes for key safety, and exposes Eliott's hand-tuned gold Castle Clashers playable behind a mock toggle for demo redundancy. Eliott's gold playable also acts as the **anchor reference** that the `proto-pipeline-m` benchmark scores generated playables against.
+**How to read it.** The live UI is the composition node. It runs Nico's Python asset extractor server-side, runs Mathis's orchestration logic client-side (a TS port of `proto-pipeline-m`), and proxies Gemini and Anthropic calls through thin server routes for key safety. Eliott's gold playable acts as the **anchor reference** that the `proto-pipeline-m` benchmark scores generated playables against.
 
 ---
 
@@ -115,13 +111,11 @@ A hand-tuned Castle Clashers playable used in two roles:
 
 Stack: Bun, TypeScript.
 
-It also doubles as the demo's **safety net**: `/api/mock-playable` in the UI returns this gold HTML when the live pipeline is toggled to mock mode.
-
 ---
 
-## How the live UI composes the three pipelines
+## How the live UI composes the runtime flow
 
-The Next.js app at [`ui/`](./ui) is **not a fourth pipeline**. It is a runtime composition of the three above.
+The Next.js app at [`ui/`](./ui) is **not a fourth pipeline**. It is the runtime composition layer for asset generation, orchestration, codegen, verification, and polish.
 
 | User-visible step | Where it runs | Backed by |
 |---|---|---|
@@ -130,7 +124,6 @@ The Next.js app at [`ui/`](./ui) is **not a fourth pipeline**. It is a runtime c
 | Probe, P1 Video, P2 Assets, P3 GameSpec | Browser | `ui/lib/pipeline/{probe,p1-video,p2-assets,p3-aggregator}.ts` (TS port of `proto-pipeline-m/src/pipeline/`) |
 | Gemini, Anthropic, Voxtral calls | Server proxy | `/api/gemini`, `/api/anthropic`, `/api/voxtral` (key safety only, no logic) |
 | P4 Codegen and Verify | Browser | `ui/lib/pipeline/{p4-codegen,assemble,verify-iframe}.ts` |
-| Mock playable toggle | Server | `/api/mock-playable` reads `proto-pipeline-e/targets/castle_clashers_gold/dist/playable.html` |
 | Polish pass (gesture, audio) | Server | `/api/polish`, `ui/lib/polishInjection.ts` |
 
 Prompt variants are loaded from `ui/public/prompts/<variant>/*.md`, themselves symlinked from `proto-pipeline-m/prompts/`. Editing a prompt in one place updates both the CLI benchmark and the live UI.
@@ -140,7 +133,7 @@ So the runtime equation for the live demo is:
 ```
 LIVE_UI = nico-sandbox (server-side, assets)
        + proto-pipeline-m logic ported to browser TS (orchestration, codegen, verify)
-       + proto-pipeline-e gold playable (mock fallback)
+       + polish layer (gesture, audio, final playable packaging)
 ```
 
 ---
@@ -153,7 +146,7 @@ Every generated playable is checked against:
 2. No `<iframe>`, no external script/link/img refs (except `mraid.js`)
 3. `<script src="mraid.js">` in `<head>`
 4. MRAID `ready` listener wired
-5. CTA goes through `mraid.open()` (with `window.open` fallback for previews)
+5. CTA goes through `mraid.open()` (`window.open` is supported for browser previews)
 6. `<meta name="viewport">` present
 7. No `document.write`
 
